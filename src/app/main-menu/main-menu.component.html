@@ -1,0 +1,25 @@
+<div class="flex flex-col items-center justify-center h-screen gap-6">
+    <h1 class="text-center text-white text-4xl font-bold">ITP-CardGame</h1>
+    <div class="flex flex-col gap-4">
+        <button hlmBtn (click)="onLoginClick()" class="bg-blue-500 hover:bg-blue-700 text-white font-bold text-lg py-2 px-4 w-34 h-12 rounded">Login</button>
+        <button hlmBtn (click)="onRegisterClick()" class="bg-blue-500 hover:bg-blue-700 text-white font-bold text-lg py-2 px-4 w-34 h-12 rounded">Register</button>
+
+        <hlm-dialog>
+            <button brnDialogTrigger hlmBtn (click)="onJoinLobbyClick()" class="bg-blue-500 hover:bg-blue-700 text-white font-bold text-lg py-2 px-4 w-34 h-12 rounded">Join lobby</button>
+            <hlm-dialog-content class="sm:max-w-[425px]" *brnDialogContent="let ctx">
+                <hlm-dialog-header>
+                    <h3 hlmDialogTitle>Enter passcode</h3>
+                    <p hlmDialogDescription>Only registered players can send codes.</p>
+                </hlm-dialog-header>
+                <div class="flex items-center w-full max-w-sm space-x-2">
+                    <input class="w-40" hlmInput />
+                    <button hlmBtn>Enter</button>
+                </div>
+            </hlm-dialog-content>
+        </hlm-dialog>
+        
+        <button hlmBtn (click)="onAllCardsClick()" class="bg-blue-500 hover:bg-blue-700 text-white font-bold text-lg py-2 px-4 w-34 h-12 rounded">All cards</button>
+    </div>
+</div>
+
+ 
