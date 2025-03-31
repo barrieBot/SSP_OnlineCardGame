@@ -14,16 +14,16 @@ describe('AppComponent', () => {
     expect(app).toBeTruthy();
   });
 
-  it(`should have the 'testEnvironment' title`, () => {
+  it(`should have the 'itp-cardgame-frontend' title`, () => {
     const fixture = TestBed.createComponent(AppComponent);
     const app = fixture.componentInstance;
-    expect(app.title).toEqual('testEnvironment');
+    expect(app.title).toEqual('itp-cardgame-frontend');
   });
 
   it('should render title', () => {
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, testEnvironment');
+    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, itp-cardgame-frontend');
   });
 });

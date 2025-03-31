@@ -12,7 +12,7 @@
   "nxJsonPlugins": [],
   "fileMap": {
     "projectFileMap": {
-      "testEnvironment": [
+      "itp-cardgame-frontend": [
         {
           "file": ".editorconfig",
           "hash": "8037249353422744134"

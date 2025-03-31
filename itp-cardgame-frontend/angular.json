@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "testEnvironment": {
+    "itp-cardgame-frontend": {
       "projectType": "application",
       "schematics": {},
       "root": "",
@@ -59,10 +59,10 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "testEnvironment:build:production"
+              "buildTarget": "itp-cardgame-frontend:build:production"
             },
             "development": {
-              "buildTarget": "testEnvironment:build:development"
+              "buildTarget": "itp-cardgame-frontend:build:development"
             }
           },
           "defaultConfiguration": "development"
