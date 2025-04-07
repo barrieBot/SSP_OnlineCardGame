@@ -1,0 +1,137 @@
+<div class="h-screen overflow-hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 grid-rows-3 items-center justify-between p-2 sm:p-4 gap-2">
+    <!-- Player 2: row 2, col 1 -->
+    <div class="col-start-1 row-start-2 flex flex-col items-center justify-center p-6 relative">
+        <div class="w-full text-center text-white font-bold text-lg sm:text-xl mb-2">Player 2</div>
+        <div class="relative h-48 sm:h-64 w-32">
+            <div class="absolute top-0 left-0 w-24 h-30 bg-blue-400 border-white border-2 rounded shadow flex items-center justify-center text-white rotate-90 origin-center">ITP</div>
+            <div class="absolute top-6 left-0 w-24 h-30 bg-blue-400 border-white border-2 rounded shadow flex items-center justify-center text-white rotate-90 origin-center">ITP</div>
+            <div class="absolute top-12 left-0 w-24 h-30 bg-blue-400 border-white border-2 rounded shadow flex items-center justify-center text-white rotate-90 origin-center">ITP</div>
+            <div class="absolute top-18 left-0 w-24 h-30 bg-blue-400 border-white border-2 rounded shadow flex items-center justify-center text-white rotate-90 origin-center">ITP</div>
+            <div class="absolute top-24 left-0 w-24 h-30 bg-blue-400 border-white border-2 rounded shadow flex items-center justify-center text-white rotate-90 origin-center">ITP</div>
+            <div class="absolute top-30 left-0 w-24 h-30 bg-blue-400 border-white border-2 rounded shadow flex items-center justify-center text-white rotate-90 origin-center">ITP</div>
+        </div>
+    </div>
+
+    <!-- middle: draw Card & place Card -->
+    <div class="col-start-2 row-start-2 flex flex-col items-center justify-center p-6">
+        <div class="flex items-center justify-center mb-6 space-x-4">
+            <!-- draw card stack -->
+            <button hlmBtn class="w-32 sm:w-48 h-48 sm:h-60 rounded-lg shadow flex items-center justify-center text-white text-lg sm:text-3xl">
+                draw card
+            </button>
+
+            <!-- place card -->
+            <div class="w-32 sm:w-48 h-48 sm:h-60 relative flex flex-col bg-gray-100 border-gray-300 rounded-lg shadow items-center justify-center text-3xl sm:text-6xl">
+                <!-- top icons -->
+                <ng-icon class="absolute top-2 left-2 opacity-40 text-xl sm:text-2xl" name="lucideScissors" />
+                <ng-icon class="absolute top-2 right-2 opacity-40 text-xl sm:text-2xl" name="lucideScissors" />
+                <!-- number -->
+                <span class="z-10">6</span>
+                <!-- bottom icons -->
+                <ng-icon class="absolute bottom-2 right-2 opacity-40 text-xl sm:text-2xl" name="lucideScissors" />
+                <ng-icon class="absolute bottom-2 left-2 opacity-40 text-xl sm:text-2xl" name="lucideScissors" />
+            </div>
+        </div>
+    </div>
+
+    <!-- Player 3: row  1, col 2 -->
+    <div class="col-start-2 row-start-1 flex flex-col items-center justify-center p-6">
+        <div class="text-white mb-2 font-bold text-lg sm:text-xl">Player 3</div>
+        <div class="relative h-32 w-[140px] sm:w-[160px]">
+            <div class="absolute left-0 w-24 h-30 bg-blue-400 border-white border-2 rounded shadow flex items-center justify-center text-white">ITP</div>
+            <div class="absolute left-6 w-24 h-30 bg-blue-400 border-white border-2 rounded shadow flex items-center justify-center text-white">ITP</div>
+            <div class="absolute left-12 w-24 h-30 bg-blue-400 border-white border-2 rounded shadow flex items-center justify-center text-white">ITP</div>
+            <div class="absolute left-18 w-24 h-30 bg-blue-400 border-white border-2 rounded shadow flex items-center justify-center text-white">ITP</div>
+            <div class="absolute left-24 w-24 h-30 bg-blue-400 border-white border-2 rounded shadow flex items-center justify-center text-white">ITP</div>
+            <div class="absolute left-30 w-24 h-30 bg-blue-400 border-white border-2 rounded shadow flex items-center justify-center text-white">ITP</div>
+        </div>
+    </div>
+
+    <!-- Player 4: row 2, col 3 -->
+    <div class="col-start-3 row-start-2 flex flex-col items-center justify-center p-6 relative">
+        <div class="w-full text-center text-white font-bold text-lg sm:text-xl mb-2">Player 4</div>
+        <div class="relative h-48 sm:h-64 w-32">
+            <div class="absolute top-0 left-0 w-24 h-30 bg-blue-400 border-white border-2 rounded shadow flex items-center justify-center text-white rotate-270 origin-center">ITP</div>
+            <div class="absolute top-6 left-0 w-24 h-30 bg-blue-400 border-white border-2 rounded shadow flex items-center justify-center text-white rotate-270 origin-center">ITP</div>
+            <div class="absolute top-12 left-0 w-24 h-30 bg-blue-400 border-white border-2 rounded shadow flex items-center justify-center text-white rotate-270 origin-center">ITP</div>
+            <div class="absolute top-18 left-0 w-24 h-30 bg-blue-400 border-white border-2 rounded shadow flex items-center justify-center text-white rotate-270 origin-center">ITP</div>
+            <div class="absolute top-24 left-0 w-24 h-30 bg-blue-400 border-white border-2 rounded shadow flex items-center justify-center text-white rotate-270 origin-center">ITP</div>
+            <div class="absolute top-30 left-0 w-24 h-30 bg-blue-400 border-white border-2 rounded shadow flex items-center justify-center text-white rotate-270 origin-center">ITP</div>
+        </div>
+    </div>
+
+    <!-- own cards: row 3, col 2 -->
+    <div class="col-start-2 row-start-3 relative flex justify-center p-6">
+        <div class="relative flex justify-center items-center scale-[0.85] sm:scale-100 h-[25vh] w-full max-w-7xl">
+            <!-- card 1 -->
+            <div class="absolute transform rotate-[-10deg] -translate-x-64 translate-y-6 z-10">
+                <button hlmBtn class="relative flex flex-col w-32 sm:w-48 h-48 sm:h-60 border-gray-300 bg-gray-100 hover:bg-gray-200 rounded-lg shadow-lg items-center justify-center text-center text-black text-4xl sm:text-6xl">
+                    <!-- top icons -->
+                    <ng-icon class="absolute top-2 left-2 opacity-40 text-2xl" name="lucideScissors" />
+                    <ng-icon class="absolute top-2 right-2 opacity-40 text-2xl" name="lucideScissors" />
+                    <!-- number -->
+                    <span class="z-10">1</span>
+                    <!-- bottom icons -->
+                    <ng-icon class="absolute bottom-2 right-2 opacity-40 text-2xl" name="lucideScissors" />
+                    <ng-icon class="absolute bottom-2 left-2 opacity-40 text-2xl" name="lucideScissors" />
+                </button>
+            </div>
+
+            <!-- card 2 -->
+            <div class="absolute transform rotate-[-5deg] -translate-x-32 translate-y-3 z-20">
+                <button hlmBtn class="relative flex flex-col w-32 sm:w-48 h-48 sm:h-60 border-gray-300 bg-gray-100 hover:bg-gray-200 rounded-lg shadow-lg items-center justify-center text-center text-black text-4xl sm:text-6xl">
+                    <!-- top icons -->
+                    <ng-icon class="absolute top-2 left-2 opacity-40 text-2xl" name="lucideOctagon" />
+                    <ng-icon class="absolute top-2 right-2 opacity-40 text-2xl" name="lucideOctagon" />
+                    <!-- number -->
+                    <span class="z-10">2</span>
+                    <!-- bottom icons -->
+                    <ng-icon class="absolute bottom-2 right-2 opacity-40 text-2xl" name="lucideOctagon" />
+                    <ng-icon class="absolute bottom-2 left-2 opacity-40 text-2xl" name="lucideOctagon" />
+                </button>
+            </div>
+
+            <!-- card 3 -->
+            <div class="absolute transform rotate-0 z-30">
+                <button hlmBtn class="relative flex flex-col w-32 sm:w-48 h-48 sm:h-60 border-gray-300 bg-gray-100 hover:bg-gray-200 rounded-lg shadow-lg items-center justify-center text-center text-black text-4xl sm:text-6xl">
+                    <!-- top icons -->
+                    <ng-icon class="absolute top-2 left-2 opacity-40 text-2xl" name="lucideStickyNote" />
+                    <ng-icon class="absolute top-2 right-2 opacity-40 text-2xl" name="lucideStickyNote" />
+                    <!-- number -->
+                    <span class="z-10">3</span>
+                    <!-- bottom icons -->
+                    <ng-icon class="absolute bottom-2 right-2 opacity-40 text-2xl" name="lucideStickyNote" />
+                    <ng-icon class="absolute bottom-2 left-2 opacity-40 text-2xl" name="lucideStickyNote" />
+                </button>
+            </div>
+
+            <!-- card 4 -->
+            <div class="absolute transform rotate-[5deg] translate-x-32 translate-y-3 z-20">
+                <button hlmBtn class="relative flex flex-col w-32 sm:w-48 h-48 sm:h-60 border-gray-300 bg-gray-100 hover:bg-gray-200 rounded-lg shadow-lg items-center justify-center text-center text-black text-4xl sm:text-6xl">
+                    <!-- top icons -->
+                    <ng-icon class="absolute top-2 left-2 opacity-40 text-2xl" name="lucideOctagon" />
+                    <ng-icon class="absolute top-2 right-2 opacity-40 text-2xl" name="lucideOctagon" />
+                    <!-- number -->
+                    <span class="z-10">4</span>
+                    <!-- bottom icons -->
+                    <ng-icon class="absolute bottom-2 right-2 opacity-40 text-2xl" name="lucideOctagon" />
+                    <ng-icon class="absolute bottom-2 left-2 opacity-40 text-2xl" name="lucideOctagon" />
+                </button>
+            </div>
+
+            <!-- card 5 -->
+            <div class="absolute transform rotate-[10deg] translate-x-64 translate-y-6 z-10">
+                <button hlmBtn class="relative flex flex-col w-32 sm:w-48 h-48 sm:h-60 border-gray-300 bg-gray-100 hover:bg-gray-200 rounded-lg shadow-lg items-center justify-center text-center text-black text-4xl sm:text-6xl">
+                    <!-- top icons -->
+                    <ng-icon class="absolute top-2 left-2 opacity-40 text-2xl" name="lucideScissors" />
+                    <ng-icon class="absolute top-2 right-2 opacity-40 text-2xl" name="lucideScissors" />
+                    <!-- number -->
+                    <span class="z-10">5</span>
+                    <!-- bottom icons -->
+                    <ng-icon class="absolute bottom-2 right-2 opacity-40 text-2xl" name="lucideScissors" />
+                    <ng-icon class="absolute bottom-2 left-2 opacity-40 text-2xl" name="lucideScissors" />
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
