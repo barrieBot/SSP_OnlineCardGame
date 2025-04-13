@@ -1,9 +1,9 @@
-<div class="flex flex-col items-center justify-center min-h-screen gap-6">
+<div class="flex flex-col items-center justify-center min-h-screen h-full gap-6">
     <h1 class="text-3xl font-bold mb-4 text-white">All cards</h1>
   
     <div class="flex flex-col gap-6 mt-6">
         <!-- numeric scissor cards -->
-        <div class="flex items-center justify-center gap-12">
+        <div class="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-12">
             <hlm-carousel class="w-full max-w-xs">
                 <hlm-carousel-content class="flex gap-5">
                     <ng-container *ngFor="let card of numericScissorCards">
@@ -31,14 +31,15 @@
                 <button class="absolute right-4" hlm-carousel-next></button>
             </hlm-carousel>
 
-            <div class="w-80 p-4 border rounded-lg border-gray-200 bg-gray-200 shadow-md text-black">
+            <!-- description -->
+            <div class="w-80 p-4 border rounded-lg border-gray-200 bg-gray-200 shadow-md text-black text-center md:text-left">
                 <h3 class="text-xl font-bold">Numeric Scissor Cards</h3>
                 <p>Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.</p>
             </div>
         </div>
 
         <!-- numeric paper cards -->
-        <div class="flex items-center justify-center gap-12">
+        <div class="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-12">
             <hlm-carousel class="w-full max-w-xs">
                 <hlm-carousel-content class="flex gap-5">
                     <ng-container *ngFor="let card of numericScissorCards">
@@ -66,14 +67,15 @@
                 <button class="absolute right-4" hlm-carousel-next></button>
             </hlm-carousel>
 
-            <div class="w-80 p-4 border rounded-lg border-gray-200 bg-gray-200 shadow-md text-black">
+            <!-- description -->
+            <div class="w-80 p-4 border rounded-lg border-gray-200 bg-gray-200 shadow-md text-black text-center md:text-left">
                 <h3 class="text-xl font-bold">Numeric Stone Cards</h3>
                 <p>Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.</p>
             </div>
         </div>
 
         <!-- numeric stone cards -->
-        <div class="flex items-center justify-center gap-12">
+        <div class="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-12">
             <hlm-carousel class="w-full max-w-xs">
                 <hlm-carousel-content class="flex gap-5">
                     <ng-container *ngFor="let card of numericScissorCards">
@@ -101,7 +103,8 @@
                 <button class="absolute right-4" hlm-carousel-next></button>
             </hlm-carousel>
 
-            <div class="w-80 p-4 border rounded-lg border-gray-200 bg-gray-200 shadow-md text-black">
+            <!-- description -->
+            <div class="w-80 p-4 border rounded-lg border-gray-200 bg-gray-200 shadow-md text-black text-center md:text-left">
                 <h3 class="text-xl font-bold">Numeric Paper Cards</h3>
                 <p>Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.</p>
             </div>

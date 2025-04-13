@@ -1,5 +1,5 @@
 <!-- user button -->
-<div class="absolute top-4 right-4 z-50">
+<div class="absolute top-2 right-2 md:top-4 md:right-4 z-50">
     <div class="pt-4 pr-4">
         <button hlmBtn aria-label="User menu" align="end" [brnMenuTriggerFor]="menu" class="py-3 px-6 shadow hover-bg-gray-100">
             <ng-icon name="lucideCircleUserRound" class="text-2xl" />
@@ -13,11 +13,12 @@
         <hlm-menu-label>My Account</hlm-menu-label>
         <hlm-menu-separator />
         <hlm-menu-group>
-            <button hlmMenuItem>
-                <ng-icon hlm name="lucideUser" hlmMenuIcon />
-                <a href="/user-profile"></a>
-                <span>Profile</span>
-            </button>
+            <a href="profile">
+                <button hlmMenuItem>
+                    <ng-icon hlm name="lucideUser" hlmMenuIcon />
+                    <span>Profile</span>
+                </button>
+            </a>
 
             <button hlmMenuItem>
                 <ng-icon hlm name="lucideSettings" hlmMenuIcon />
@@ -36,9 +37,12 @@
 </ng-template>
 
 <!-- main content -->
-<div class="flex flex-col items-center justify-center h-screen gap-6">
-    <h1 class="text-center text-white text-4xl font-bold mb-4">Lobby of "Username" - Code: 123456</h1>
-    <div class="flex items-center justify-center gap-12">
+<div class="flex flex-col items-center justify-center min-h-screen gap-6">
+    <h1 class="text-center text-white text-4xl font-bold mt-8 mb-4">
+        Lobby of "Username" -<br class="block md:hidden" />
+        Code: 123456
+    </h1>
+    <div class="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-12">
         <!-- user cards -->
         <div class="flex flex-col items-center justify-center p-4 border border-gray-300 rounded-lg bg-gray-100 shadow-md text-center min-w-[100px] w-64 h-80 text-3xl py-8">
             <p class="text-3xl">User1</p>
