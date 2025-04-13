@@ -42,7 +42,13 @@
         "libs/ui/ui-dialog-helm/src/index.ts"
       ],
       "@spartan-ng/ui-menu-helm": [
-        ".libs/ui/ui-menu-helm/src/index.ts"
+        "libs/ui/ui-menu-helm/src/index.ts"
+      ],
+      "@spartan-ng/ui-table-helm": [
+        "libs/ui/ui-table-helm/src/index.ts"
+      ],
+      "@spartan-ng/ui-separator-helm": [
+        "libs/ui/ui-separator-helm/src/index.ts"
       ]
     }
   },
