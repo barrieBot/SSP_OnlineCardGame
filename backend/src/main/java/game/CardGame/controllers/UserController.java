@@ -7,6 +7,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Optional;
+
 @RestController
 public class UserController {
     private UserRepository userRepository;
@@ -18,8 +20,8 @@ public class UserController {
 
 
     @GetMapping("/user")
-    public String getEmailByName(@RequestParam String name) {
-        UserModel user = userRepository.findByName(name);
-        return user.getEmail();
+    public String getEmailByName(@RequestParam String email) {
+        UserModel user = userRepository.findByEmail(email).get();
+        return user.getUsername();
     }
 }
