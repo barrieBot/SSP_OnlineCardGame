@@ -35,8 +35,11 @@ CREATE TABLE game (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   center_deck INT NOT NULL,
   host INT NOT NULL,
+  players INT NOT NULL,
   FOREIGN KEY (center_deck) REFERENCES deck(id),
-  FOREIGN KEY (host) REFERENCES users(id)
+  FOREIGN KEY (host) REFERENCES users(id),
+  FOREIGN KEY (player) REFERENCES players(id),
+  FOREIGN KEY (current_player) REFERENCES players(id)
 );
 
 CREATE TABLE player (
