@@ -11,6 +11,9 @@ public class PlayerModel {
     @Column(nullable = false)
     private Integer id;
 
+    @Column(unique = true, name = "player_token")
+    private Integer playerToken;
+
     @OneToOne
     @JoinColumn(nullable = false)
     private GameModel gameId;

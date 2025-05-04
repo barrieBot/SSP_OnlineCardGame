@@ -30,6 +30,7 @@ CREATE TABLE users (
 
 CREATE TABLE game (
   id INT AUTO_INCREMENT PRIMARY KEY,
+  game_token INT UNIQUE,
   game_status VARCHAR(20),
   current_player INT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -37,13 +38,12 @@ CREATE TABLE game (
   host INT NOT NULL,
   players INT NOT NULL,
   FOREIGN KEY (center_deck) REFERENCES deck(id),
-  FOREIGN KEY (host) REFERENCES users(id),
-  FOREIGN KEY (player) REFERENCES players(id),
-  FOREIGN KEY (current_player) REFERENCES players(id)
+  FOREIGN KEY (host) REFERENCES users(id)
 );
 
 CREATE TABLE player (
   id INT AUTO_INCREMENT PRIMARY KEY,
+  player_token INT UNIQUE,
   game_id INT NOT NULL,
   user_id INT NOT NULL,
   hand_cards INT NOT NULL,
@@ -58,6 +58,8 @@ CREATE TABLE gameHistory (
   user_id INT NOT NULL,
   FOREIGN KEY (user_id) REFERENCES users(id)
 );
+
+ALTER TABLE game ADD CONSTRAINT fk_players FOREIGN KEY (players) REFERENCES player(id);
 
 -- Damit currentPlayer (in game) auf player verweist
 ALTER TABLE game ADD CONSTRAINT fk_current_player FOREIGN KEY (current_player) REFERENCES player(id);

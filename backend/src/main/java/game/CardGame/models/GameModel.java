@@ -15,6 +15,9 @@ public class GameModel {
     @Column(nullable = false)
     private Integer id;
 
+    @Column(unique = true, name = "game_token")
+    private Integer gameToken;
+
     @Column(nullable = false, length = 20, name = "game_status")
     private String gameStatus;
 
