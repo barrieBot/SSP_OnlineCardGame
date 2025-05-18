@@ -1,0 +1,46 @@
+<div class="min-h-[95vh] w-full bg-slate-50 rounded-2xl mx-auto p-6">
+
+    <!-- header -->
+    <header class="bg-slate-50 text-black p-6">
+        <div class="container mx-auto flex items-center justify-start space-x-4 -ml-4">
+
+            <!-- user profile -->
+            <a href="profile">
+                <button hlmBtn variant="link" type="button" class="text-lg cursor-pointer">Profile</button>
+            </a>
+
+            <!-- user settings -->
+            <a href="settings">
+                <button hlmBtn variant="link" type="button" class="text-lg cursor-pointer">Settings</button>
+            </a>
+        </div>
+    </header>
+
+    <!-- main Content -->
+    <div class="mt-10 w-full max-w-5xl mx-auto grid grid-cols-2 gap-x-6 gap-y-8 items-center">
+        <div class="row-start-1">
+            <p class="text-2xl font-medium">Account settings</p>
+            <p class="text-gray-500">Here you can change your account information</p>
+        </div>
+
+        <!-- username -->
+        <div class="row-start-2 col-start-1">
+            <label class="block text-base" hlmLabel>Username</label>
+            <hlm-form-field>
+                <input class="w-80 p-3 border rounded-md" hlmInput type="text" />
+            </hlm-form-field>
+        </div>
+
+        <!-- email -->
+        <div class="row-start-2 col-start-2">
+            <label class="block text-base" hlmLabel>EMail</label>
+            <hlm-form-field>
+                <input class="w-80 p-3 border rounded-md" hlmInput type="email" />
+            </hlm-form-field>
+        </div>
+
+        <div class="row-start-3 col-start-1">
+            <button type="submit" hlmBtn>Save changes</button>
+        </div>
+    </div>
+</div>
