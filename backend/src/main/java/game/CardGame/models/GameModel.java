@@ -16,7 +16,7 @@ public class GameModel {
     private Integer id;
 
     @Column(unique = true, name = "game_token")
-    private Integer gameToken;
+    private String matchToken;
 
     @Column(nullable = false, length = 20, name = "game_status")
     private String gameStatus;
@@ -41,10 +41,67 @@ public class GameModel {
     @JoinColumn(name = "players", nullable = false)
     private Set<PlayerModel> players;
 
+    public Integer getId() {
+        return id;
+    }
 
+    public void setId(Integer id) {
+        this.id = id;
+    }
 
+    public Set<PlayerModel> getPlayers() {
+        return players;
+    }
 
+    public void setPlayers(Set<PlayerModel> players) {
+        this.players = players;
+    }
 
+    public PlayerModel getHost() {
+        return host;
+    }
 
+    public void setHost(PlayerModel host) {
+        this.host = host;
+    }
 
+    public DeckModel getCenterDeck() {
+        return centerDeck;
+    }
+
+    public void setCenterDeck(DeckModel centerDeck) {
+        this.centerDeck = centerDeck;
+    }
+
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public PlayerModel getCurrentPlayer() {
+        return currentPlayer;
+    }
+
+    public void setCurrentPlayer(PlayerModel currentPlayer) {
+        this.currentPlayer = currentPlayer;
+    }
+
+    public String getGameStatus() {
+        return gameStatus;
+    }
+
+    public void setGameStatus(String gameStatus) {
+        this.gameStatus = gameStatus;
+    }
+
+    public String getMatchToken() {
+        return matchToken;
+    }
+
+    public void setMatchToken(Integer gameToken) {
+        this.matchToken = Integer.toString(gameToken);
+    }
 }
