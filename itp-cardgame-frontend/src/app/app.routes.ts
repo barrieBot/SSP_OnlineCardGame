@@ -1,11 +1,12 @@
 import { Routes } from '@angular/router';
 import { MainMenuComponent } from './main-menu/main-menu.component';
-import { LoginComponent } from './login/login.component';
+import { LoginComponent } from './auth/login/login.component';
 import { CardsPageComponent } from './cards-page/cards-page.component';
-import { RegisterComponent } from './register/register.component';
+import { RegisterComponent } from './auth/register/register.component';
 import { LobbyComponent } from './lobby/lobby.component';
 import { GameplayComponent } from './gameplay/gameplay.component';
 import { UserProfileComponent } from './user-profile/user-profile.component';
+import { UserSettingsComponent } from './user-settings/user-settings.component';
 
 export const routes: Routes = [
     { path: '', component: MainMenuComponent },
@@ -14,5 +15,6 @@ export const routes: Routes = [
     { path: 'cards', component: CardsPageComponent },
     { path: 'lobby', component: LobbyComponent },
     { path: 'gameplay', component: GameplayComponent},
-    { path: 'profile', component: UserProfileComponent }
+    { path: 'profile', component: UserProfileComponent },
+    { path: 'settings', component: UserSettingsComponent }
 ];
