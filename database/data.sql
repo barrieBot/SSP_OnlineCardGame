@@ -7,16 +7,16 @@ CREATE TABLE card_type (
   card_name VARCHAR(50)
 );
 
-CREATE TABLE card (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  type INT NOT NULL,
-  FOREIGN KEY (type) REFERENCES card_type(id)
+CREATE TABLE deck (
+  id INT AUTO_INCREMENT PRIMARY KEY
 );
 
-CREATE TABLE deck (
+CREATE TABLE card (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  card INT NOT NULL,
-  FOREIGN KEY (card) REFERENCES card(id)
+  card_type INT NOT NULL,
+  deck_id INT,
+  FOREIGN KEY (card_type) REFERENCES card_type(id),
+  FOREIGN KEY (deck_id) REFERENCES deck(id)
 );
 
 CREATE TABLE users (
@@ -30,24 +30,22 @@ CREATE TABLE users (
 
 CREATE TABLE game (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  game_token INT UNIQUE,
+  game_code CHAR(6) UNIQUE,
   game_status VARCHAR(20),
-  current_player INT,
+  current_player_id INT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   center_deck INT NOT NULL,
-  host INT NOT NULL,
-  players INT NOT NULL,
-  FOREIGN KEY (center_deck) REFERENCES deck(id),
-  FOREIGN KEY (host) REFERENCES users(id)
+  host_id INT NOT NULL,
+  FOREIGN KEY (center_deck) REFERENCES deck(id)
 );
 
 CREATE TABLE player (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  player_token INT UNIQUE,
-  game_id INT NOT NULL,
+  game_id INT,
   user_id INT NOT NULL,
   hand_cards INT NOT NULL,
-  displayName VARCHAR(50),
+  display_name VARCHAR(50),
+  web_socket_id VARCHAR(50),
   FOREIGN KEY (game_id) REFERENCES game(id) ON DELETE CASCADE,
   FOREIGN KEY (user_id) REFERENCES users(id),
   FOREIGN KEY (hand_cards) REFERENCES deck(id)
@@ -59,7 +57,6 @@ CREATE TABLE gameHistory (
   FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
-ALTER TABLE game ADD CONSTRAINT fk_players FOREIGN KEY (players) REFERENCES player(id);
-
 -- Damit currentPlayer (in game) auf player verweist
-ALTER TABLE game ADD CONSTRAINT fk_current_player FOREIGN KEY (current_player) REFERENCES player(id);
+ALTER TABLE game ADD CONSTRAINT fk_current_player_id FOREIGN KEY (current_player_id) REFERENCES player(id);
+ALTER TABLE game ADD CONSTRAINT fk_host_id FOREIGN KEY (host_id) REFERENCES player(id);

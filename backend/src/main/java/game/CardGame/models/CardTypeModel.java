@@ -2,9 +2,13 @@ package game.CardGame.models;
 
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 @Table(name = "card_type")
 @Entity
+@Getter
+@Setter
 public class CardTypeModel {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -13,20 +17,4 @@ public class CardTypeModel {
 
     @Column(nullable = false, length = 50)
     private String cardName;
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public String getCardName() {
-        return cardName;
-    }
-
-    public void setCardName(String cardName) {
-        this.cardName = cardName;
-    }
 }

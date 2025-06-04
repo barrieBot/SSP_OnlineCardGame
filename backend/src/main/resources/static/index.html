@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WS-Game-Test-Frontend</title>
+</head>
+<body>
+
+<div id="Login">
+    <button type="submit" id="but_connect">
+        Connect WS
+    </button>
+    <p>
+        Username
+    </p>
+    <input type="text" id="un">
+    <button type="submit" id="but_new_game">
+        New Game
+    </button>
+    <p>
+        Game-Token
+    </p>
+    <input type="text" id="token">
+
+    <button type="submit" id="but_en">
+        Join Game
+    </button>
+</div>
+
+<div>
+    <button type="submit" id="but_send">
+        Send Card
+    </button>
+    <input type="text" id="card_input">
+
+    </br>
+    <button type="submit" id="but_drew">
+        Draw Card
+    </button>
+    <p id="new_Card_display"></p>
+    <button type="submit" id="but_yield">
+        Yield Turn
+    </button>
+
+</div>
+<div id="Response">
+    <p id="Rueckgabe">
+    </p>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.1.4/sockjs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+
+<script src="js/main.js"></script>
+</body>
+</html>

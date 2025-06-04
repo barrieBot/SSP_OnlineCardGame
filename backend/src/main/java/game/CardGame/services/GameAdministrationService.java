@@ -16,26 +16,23 @@ public class GameAdministrationService {
     private final int MIN = 100000;
     private final int MAX = 999999;
 
+    @Autowired
     private GameRepository gameRepository;
+    @Autowired
     private PlayerRepository playerRepository;
 
-    @Autowired
-    public GameAdministrationService(GameRepository gameRepository, PlayerRepository playerRepository) {
-        this.gameRepository = gameRepository;
-        this.playerRepository = playerRepository;
-    }
 
     public String createMatch() {
         GameModel game = new GameModel();
         Random random = new Random();
-        game.setMatchToken(random.nextInt(MAX + 1 - MIN) + MIN);
+        game.setGameCode("ABCDEF");//random.nextInt(MAX + 1 - MIN) + MIN);
         //TODO: fehlt noch Prüfung ob der Token schon in der Datenbank existiert
         gameRepository.save(game);
-        return game.getMatchToken();
+        return game.getGameCode();
     }
 
-    public GameModel joinMatch(Integer matchToken, String playerToAdd) { //TODO: ich habe hier auch noch die Spielerid verlangt weil ich sonst nicht weiß welchen spieler ich zum Spiel hinzufügen soll, Äanderung ist noch nicht mit dem Swagger Editor synchronisiert
-        GameModel game = gameRepository.findById(matchToken)
+    public GameModel joinMatch(String gameCode, String playerToAdd) { //TODO: ich habe hier auch noch die Spielerid verlangt weil ich sonst nicht weiß welchen spieler ich zum Spiel hinzufügen soll, Äanderung ist noch nicht mit dem Swagger Editor synchronisiert
+        GameModel game = gameRepository.findByGameCode(gameCode)
                 .orElseThrow(() -> new RuntimeException("Invalid match token"));
         PlayerModel playerThatJoins = playerRepository.findById(playerToAdd)
                 .orElseThrow(() -> new RuntimeException("Player not found"));

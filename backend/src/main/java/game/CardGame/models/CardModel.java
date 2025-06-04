@@ -1,9 +1,13 @@
 package game.CardGame.models;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 @Table(name = "card")
 @Entity
+@Getter
+@Setter
 public class CardModel {
 
     @Id
@@ -12,23 +16,10 @@ public class CardModel {
     private Integer id;
 
     @ManyToOne
-    @JoinColumn(nullable = false)
-    private CardTypeModel type;
+    @JoinColumn(name = "card_type", nullable = false)
+    private CardTypeModel cardType;
 
-
-    public CardTypeModel getType() {
-        return type;
-    }
-
-    public void setType(CardTypeModel type) {
-        this.type = type;
-    }
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
+    @ManyToOne
+    @JoinColumn(name = "deck_id")
+    private DeckModel deckId;
 }

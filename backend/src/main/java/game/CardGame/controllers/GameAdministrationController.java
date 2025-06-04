@@ -35,11 +35,11 @@ public class GameAdministrationController {
         return ResponseEntity.ok(userId);
     }
 
-    @PostMapping("/joinmatch/{matchtoken}")
-    public ResponseEntity<JoinMatchDto> joinMatch(@PathVariable Integer matchtoken, @RequestBody PlayerIdDto playerid){
-        GameModel updatedGame = gameAdministrationService.joinMatch(matchtoken, Integer.toString(playerid.getPlayerId()));
+    @PostMapping("/joinmatch/{gameCode}")
+    public ResponseEntity<JoinMatchDto> joinMatch(@PathVariable String gameCode, @RequestBody PlayerIdDto playerid){
+        GameModel updatedGame = gameAdministrationService.joinMatch(gameCode, Integer.toString(playerid.getPlayerId()));
         JoinMatchDto joinMatchDto = new JoinMatchDto();
-        joinMatchDto.setMatchToken(updatedGame.getMatchToken());
+        joinMatchDto.setMatchToken(updatedGame.getGameCode());
         return ResponseEntity.ok(joinMatchDto);
     }
 

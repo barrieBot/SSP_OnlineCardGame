@@ -1,9 +1,13 @@
 package game.CardGame.models;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 @Table(name = "player")
 @Entity
+@Getter
+@Setter
 public class PlayerModel {
 
     @Id
@@ -11,11 +15,8 @@ public class PlayerModel {
     @Column(nullable = false)
     private Integer id;
 
-    @Column(unique = true, name = "player_token")
-    private Integer playerToken;
-
     @OneToOne
-    @JoinColumn(nullable = false)
+    @JoinColumn(name = "game_id")
     private GameModel gameId;
 
     @ManyToOne
@@ -26,7 +27,9 @@ public class PlayerModel {
     @JoinColumn(name = "hand_cards", nullable = false)
     private DeckModel handCards;
 
-    @Column(name = "displayName", length = 50)
+    @Column(name = "display_name", length = 50)
     private String displayName;
 
+    @Column(name = "web_socket_id")
+    private String webSocketId;
 }

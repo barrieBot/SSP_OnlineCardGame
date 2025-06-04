@@ -9,4 +9,6 @@ import java.util.Optional;
 @Repository
 public interface GameRepository extends CrudRepository<GameModel, Integer> {
     Optional<GameModel> findById(Integer id);
+
+    Optional<GameModel> findByGameCode(String gameCode);
 }
