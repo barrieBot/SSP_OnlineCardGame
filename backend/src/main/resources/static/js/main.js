@@ -128,12 +128,6 @@ function makeGame(){
         event.preventDefault();
 }
 
-function test() {
-    console.log("test");
-    stompClient.send('/app/game.hello', {}, "")
-    event.preventDefault();
-}
-
 function  placeCard(event){
 
     //Methode for Selecting Card
@@ -174,7 +168,7 @@ function yieldTurn(event){
 
 
 sub_connect.addEventListener("click", create_game)
-sub_gen.addEventListener("click", test);
+sub_gen.addEventListener("click", makeGame);
 sub_mit.addEventListener("click", connect);
 sub_send.addEventListener("click", sendCard)
 sub_draw.addEventListener("click", drawCard)

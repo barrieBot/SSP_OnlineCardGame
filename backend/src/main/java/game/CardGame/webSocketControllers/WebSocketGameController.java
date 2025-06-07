@@ -31,7 +31,8 @@ public class WebSocketGameController {
 
 
     @MessageMapping("/game.new")
-    public void newGame(@Payload GameStateDto game_request, SimpMessageHeaderAccessor headerAccessor) {
+    @SendToUser("/queue/private")
+    public GameStateDto newGame(@Payload GameStateDto game_request, SimpMessageHeaderAccessor headerAccessor) {
         if(game_request.getSender() != null){
 
             //Vielleicht sollte Response nicht GameState sein
@@ -46,16 +47,10 @@ public class WebSocketGameController {
 
             headerAccessor.getSessionAttributes().put("game_code", new_Game_init.getId());
             headerAccessor.getSessionAttributes().put("username", game_request.getSender());
-            template.convertAndSendToUser(Objects.requireNonNull(headerAccessor.getSessionId()), "/queue/private", new_Game_init);
-            //template.convertAndSend("/topic/public", new_Game_init);
+            //template.convertAndSendToUser(Objects.requireNonNull(headerAccessor.getSessionId()), "/queue/private", new_Game_init);
+            return new_Game_init;
         }
-
-    }
-
-    @MessageMapping("/game.hello")
-    public void greeting(SimpMessageHeaderAccessor headerAccessor) {
-        String sessionId = headerAccessor.getSessionId();
-        template.convertAndSendToUser(sessionId, "/queue/private", "Hallo, User mit Session: " + sessionId);
+        return null;
     }
 
 
