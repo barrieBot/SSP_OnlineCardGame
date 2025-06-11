@@ -102,9 +102,8 @@ public class WebSocketGameService {
         PlayerModel[] playersOfUser = playerSetOptional.get().toArray(new PlayerModel[0]);
         PlayerModel player = playersOfUser[0];
         player.setWebSocketId(headerAccessor.getSessionId());
+        player.setGameId(game);
         playerRepository.save(player);
-        game.getPlayers().add(player);
-        gameRepository.save(game);
 
         return GameStateDto.builder()
                 .id(game_code)
