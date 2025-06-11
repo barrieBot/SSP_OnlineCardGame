@@ -3,17 +3,23 @@
 const userNmPg = document.querySelector("#Login");
 const responsePg = document.querySelector("#Response")
 
-const un_input = document.querySelector("#un" )
+const usernameInput = document.querySelector("#usernameInput" )
+const emailInput = document.querySelector("#emailInput")
+const passwordInput = document.querySelector("#passwordInput")
+const jwtInput = document.querySelector("#jwtInput")
 const tok_input= document.querySelector("#token")
 const card_input = document.querySelector("#card_input")
-const jwt_input = document.querySelector("#jwtInput")
+const gameCodeInput = document.querySelector("#gameCodeInput")
 
-var sub_connect = document.querySelector('#but_connect')
+
+var sub_connect = document.querySelector('#connectWSButton')
 var sub_gen = document.querySelector("#but_new_game")
-var sub_mit = document.querySelector("#but_en")
+var sub_join_game = document.querySelector("#but_join_game")
 var sub_send = document.querySelector("#but_send")
 var sub_draw = document.querySelector("#but_drew")
 var sub_yield = document.querySelector("#but_yield")
+var sub_register = document.querySelector("#registerButton")
+var sub_login = document.querySelector("#loginButton")
 
 
 
@@ -26,13 +32,54 @@ var tok = null;
 var CardInput = null;
 
 
+function register() {
+    fetch("http://localhost:8080/auth/signup", {
+                                                   method: 'POST',
+                                                   headers: {
+                                                     'Accept': 'application/json',
+                                                     'Content-Type': 'application/json'
+                                                   },
+                                                   body: JSON.stringify(
+                                                   {
+                                                        username: usernameInput.value,
+                                                        email: emailInput.value,
+                                                        password: passwordInput.value
+                                                   })
+                                                 })
+        .then((res) => res.json())
+        .then((data) => {
+            console.log(data);
+        });
+}
+
+
+function login() {
+    fetch("http://localhost:8080/auth/login", {
+                                                   method: 'POST',
+                                                   headers: {
+                                                     'Accept': 'application/json',
+                                                     'Content-Type': 'application/json'
+                                                   },
+                                                   body: JSON.stringify(
+                                                   {
+                                                        username: usernameInput.value,
+                                                        password: passwordInput.value
+                                                   })
+                                                 })
+        .then((res) => res.json())
+        .then((data) => {
+            console.log(data);
+        });
+}
+
+
 function create_game(event){
     console.log(typeof SockJS);
     console.log(typeof Stomp);
-    userN = un_input.value.trim();
+    userN = usernameInput.value.trim();
 
     if(userN){
-        resp.innerHTML = resp.innerHTML.toString() + "Credentials ok </br>"
+        //resp.innerHTML = resp.innerHTML.toString() + "Credentials ok </br>"
 
         var socket = new SockJS('/ws');
         stompClient = Stomp.over(socket);
@@ -53,13 +100,12 @@ function create_game(event){
 }
 
 function connect(event){
-    console.log(typeof SockJS);
-    console.log(typeof Stomp);
-    userN = un_input.value.trim();
-    tok = tok_input.value.trim();
+    //console.log(typeof SockJS);
+    //console.log(typeof Stomp);
+    userN = usernameInput.value.trim();
 
-    if(userN && tok){
-        resp.innerHTML = resp.innerHTML.toString() + "Credentials ok </br>"
+    if(userN){
+        //resp.innerHTML = resp.innerHTML.toString() + "Credentials ok </br>"
 
         let socket = new SockJS('/ws');
         stompClient = Stomp.over(socket);
@@ -116,15 +162,33 @@ function onMessageReceived(payload){
     }
 }
 function makeGame(){
-        userN = un_input.value.trim();
+        userN = usernameInput.value.trim();
         if(stompClient){
             const gameState = {
                 sender: userN,
                 action: 'NEW_GAME'
             };
 
-            let jwt = jwt_input.value;
+            let jwt = jwtInput.value;
             stompClient.send('/app/game.new', {
+                                                Authorization: `Bearer ${jwt}`
+                                              }, JSON.stringify(gameState))
+        }
+
+        event.preventDefault();
+}
+
+
+function joinGame(){
+        let gameCodeValue = gameCodeInput.value;
+        if(stompClient){
+            const gameState = {
+                gameCode: gameCodeValue,
+                action: 'JOIN_GAME'
+            };
+
+            let jwt = jwtInput.value;
+            stompClient.send('/app/game.join', {
                                                 Authorization: `Bearer ${jwt}`
                                               }, JSON.stringify(gameState))
         }
@@ -171,9 +235,11 @@ function yieldTurn(event){
 }
 
 
-sub_connect.addEventListener("click", create_game)
+sub_connect.addEventListener("click", connect)
 sub_gen.addEventListener("click", makeGame);
-sub_mit.addEventListener("click", connect);
-sub_send.addEventListener("click", sendCard)
-sub_draw.addEventListener("click", drawCard)
-sub_yield.addEventListener("click", yieldTurn)
+sub_join_game.addEventListener("click", joinGame);
+//sub_send.addEventListener("click", sendCard)
+//sub_draw.addEventListener("click", drawCard)
+//sub_yield.addEventListener("click", yieldTurn)
+sub_register.addEventListener("click", register);
+sub_login.addEventListener("click", login);

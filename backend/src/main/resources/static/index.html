@@ -6,26 +6,32 @@
 </head>
 <body>
 
-<div id="Login">
-    <button type="submit" id="but_connect">
-        Connect WS
-    </button>
-    <p>
-        Username
-    </p>
-    <input type="text" id="un" placeholder="Username...">
+<div style="display: flex; flex-direction: column; width: 200px; gap: 10px">
+    Username:
+    <input type="text" id="usernameInput" placeholder="Username...">
+    Email:
+    <input type="text" id="emailInput" placeholder="Email...">
+    Password:
+    <input type="password" id="passwordInput" placeholder="Password...">
+    Jwt:
     <input type="text" id="jwtInput" placeholder="Jwt...">
-    <button type="submit" id="but_new_game">
-        New Game
-    </button>
+    Game Code:
+    <input type="text" id="gameCodeInput" placeholder="Game Code...">
+
+    <button type="submit" id="registerButton">Register</button>
+    <button type="submit" id="loginButton">Login</button>
+    <button type="submit" id="connectWSButton">Connect WS</button>
+    <button type="submit" id="but_new_game">New Game</button>
+    <button type="submit" id="but_join_game">Join Game</button>
+</div>
+
+<!--<div id="Login">
     <p>
         Game-Token
     </p>
-    <input type="text" id="token">
 
-    <button type="submit" id="but_en">
-        Join Game
-    </button>
+
+
 </div>
 
 <div>
@@ -43,7 +49,7 @@
         Yield Turn
     </button>
 
-</div>
+</div>-->
 <div id="Response">
     <p id="Rueckgabe">
     </p>
