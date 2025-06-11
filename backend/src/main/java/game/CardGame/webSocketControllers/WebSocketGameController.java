@@ -36,6 +36,8 @@ public class WebSocketGameController {
         }
         catch (Exception e) {
             // TODO: Error Handling
+            template.convertAndSendToUser(Objects.requireNonNull(headerAccessor.getSessionId()), "/queue/private", e.toString(), headerAccessor.getMessageHeaders());
+            return;
         }
         if(game_request.getSender() != null){
             //Vielleicht sollte Response nicht GameState sein
@@ -66,6 +68,8 @@ public class WebSocketGameController {
         }
         catch (Exception e) {
             // TODO: Error Handling
+            template.convertAndSendToUser(Objects.requireNonNull(headerAccessor.getSessionId()), "/queue/private", e.toString(), headerAccessor.getMessageHeaders());
+            return;
         }
     }
 
