@@ -2,8 +2,10 @@ package game.CardGame.webSocketControllers;
 
 
 import game.CardGame.dtos.GameStateDto;
+import game.CardGame.dtos.JoinGameDto;
 import game.CardGame.enums.GameAction;
 import game.CardGame.exceptions.UnknownUsernameException;
+import game.CardGame.services.JwtService;
 import game.CardGame.webSocketServices.WebSocketGameService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,29 +14,30 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.messaging.simp.annotation.SendToUser;
 import org.springframework.stereotype.Controller;
 
-import java.security.Principal;
 import java.util.Objects;
 
 @Controller
 @RequiredArgsConstructor
 public class WebSocketGameController {
-
-    //private final Map<String, Set<String>> game_sessions = new ConcurrentHashMap<>();
-    //private final TokenStorage tokenStorage;
     @Autowired
     private final SimpMessagingTemplate template;
     @Autowired
     private final WebSocketGameService webSocketGameService;
+    @Autowired
+    private final JwtService jwtService;
 
 
     @MessageMapping("/game.new")
-    @SendToUser("/queue/private")
-    public GameStateDto newGame(@Payload GameStateDto game_request, SimpMessageHeaderAccessor headerAccessor) {
+    public void newGame(@Payload GameStateDto game_request, SimpMessageHeaderAccessor headerAccessor) {
+        try {
+            jwtService.verifyJwtForWebSocket(headerAccessor);
+        }
+        catch (Exception e) {
+            // TODO: Error Handling
+        }
         if(game_request.getSender() != null){
-
             //Vielleicht sollte Response nicht GameState sein
             //Damit GameState nur im GameController verwendet wird...
             //Aber vorerst egal
@@ -47,10 +50,23 @@ public class WebSocketGameController {
 
             headerAccessor.getSessionAttributes().put("game_code", new_Game_init.getId());
             headerAccessor.getSessionAttributes().put("username", game_request.getSender());
-            //template.convertAndSendToUser(Objects.requireNonNull(headerAccessor.getSessionId()), "/queue/private", new_Game_init);
-            return new_Game_init;
+            template.convertAndSendToUser(Objects.requireNonNull(headerAccessor.getSessionId()), "/queue/private", new_Game_init, headerAccessor.getMessageHeaders());
         }
-        return null;
+    }
+
+
+    @MessageMapping("/game.join")
+    public void joinGame(@Payload JoinGameDto joinGameDto, SimpMessageHeaderAccessor headerAccessor) {
+        try {
+            String token = jwtService.verifyJwtForWebSocket(headerAccessor);
+            String username = jwtService.extractUsername(token);
+            GameStateDto gameStateDto = webSocketGameService.joinGame(joinGameDto.getGameCode(), username, headerAccessor);
+
+            template.convertAndSendToUser(Objects.requireNonNull(headerAccessor.getSessionId()), "/queue/private", gameStateDto, headerAccessor.getMessageHeaders());
+        }
+        catch (Exception e) {
+            // TODO: Error Handling
+        }
     }
 
 

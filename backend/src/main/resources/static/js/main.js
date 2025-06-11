@@ -6,6 +6,7 @@ const responsePg = document.querySelector("#Response")
 const un_input = document.querySelector("#un" )
 const tok_input= document.querySelector("#token")
 const card_input = document.querySelector("#card_input")
+const jwt_input = document.querySelector("#jwtInput")
 
 var sub_connect = document.querySelector('#but_connect')
 var sub_gen = document.querySelector("#but_new_game")
@@ -122,7 +123,10 @@ function makeGame(){
                 action: 'NEW_GAME'
             };
 
-            stompClient.send('/app/game.new', {}, JSON.stringify(gameState))
+            let jwt = jwt_input.value;
+            stompClient.send('/app/game.new', {
+                                                Authorization: `Bearer ${jwt}`
+                                              }, JSON.stringify(gameState))
         }
 
         event.preventDefault();

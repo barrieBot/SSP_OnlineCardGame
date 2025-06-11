@@ -6,7 +6,6 @@ import game.CardGame.exceptions.UnknownUsernameException;
 import game.CardGame.models.*;
 import game.CardGame.repositories.*;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.mapping.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -15,12 +14,12 @@ import org.springframework.stereotype.Service;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 @RequiredArgsConstructor
 public class WebSocketGameService {
-    //private final Map<String, GameSession> activeGames = new ConcurrentHashMap<>();
     private final SimpMessagingTemplate template;
 
     @Autowired
@@ -85,15 +84,23 @@ public class WebSocketGameService {
 
     public GameStateDto joinGame(String game_code, String playerName, SimpMessageHeaderAccessor headerAccessor) {
         Optional<GameModel> gameOptional = gameRepository.findByGameCode(game_code);
-        if(gameOptional.isEmpty()){
+        /*if(gameOptional.isEmpty()){
             return GameStateDto.builder()
                     .id(game_code)
                     .action(GameAction.Invalid_action)
                     .value("Game-Key invalid")
                     .build();
+        }*/
+        if(gameOptional.isEmpty()) {
+            throw new IllegalArgumentException("Invalid Game Code");
         }
         GameModel game = gameOptional.get();
-        PlayerModel player = playerRepository.findByUserId_Username(playerName).get();
+        Optional<Set<PlayerModel>> playerSetOptional = playerRepository.findByUserId_Username(playerName);
+        if(playerSetOptional.isEmpty()) {
+            throw new IllegalArgumentException("Invalid Username");
+        }
+        PlayerModel[] playersOfUser = playerSetOptional.get().toArray(new PlayerModel[0]);
+        PlayerModel player = playersOfUser[0];
         player.setWebSocketId(headerAccessor.getSessionId());
         playerRepository.save(player);
         game.getPlayers().add(player);

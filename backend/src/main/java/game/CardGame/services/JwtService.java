@@ -13,12 +13,22 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
+import org.springframework.messaging.simp.stomp.StompCommand;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 
 @Service
 public class JwtService {
+    @Autowired
+    private UserDetailsService userDetailsService;
+
     @Value("${security.jwt.secret-key}")
     private String secretKey;
 
@@ -88,5 +98,38 @@ public class JwtService {
     private Key getSignInKey() {
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         return Keys.hmacShaKeyFor(keyBytes);
+    }
+
+    public String extractJwtFromRequest (HttpServletRequest request) {
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            return authHeader.substring(7); // Entfernt "Bearer "
+        }
+        return null;
+    }
+
+    public String verifyJwtForWebSocket(SimpMessageHeaderAccessor headerAccessor) throws IllegalArgumentException {
+        String authHeader = headerAccessor.getFirstNativeHeader("Authorization");
+        if (authHeader.startsWith("Bearer ")) {
+            String token = authHeader.substring(7);
+            String username = extractUsername(token);
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+            if (username != null && authentication == null) {
+                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+                if (isTokenValid(token, userDetails)) {
+                    return token;
+                }
+                else {
+                    throw new IllegalArgumentException("Invalid JWT token");
+                }
+            }
+            else {
+                throw new IllegalArgumentException("No Username in JWT token");
+            }
+        }
+        else {
+            throw new IllegalArgumentException("Missing Authorization header");
+        }
     }
 }

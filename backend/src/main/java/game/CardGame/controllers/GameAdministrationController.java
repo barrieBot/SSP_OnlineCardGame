@@ -1,7 +1,7 @@
 package game.CardGame.controllers;
 
 import game.CardGame.dtos.CreateMatchDto;
-import game.CardGame.dtos.JoinMatchDto;
+import game.CardGame.dtos.JoinGameDto;
 import game.CardGame.dtos.PlayerIdDto;
 import game.CardGame.models.GameModel;
 import game.CardGame.services.GameAdministrationService;
@@ -29,25 +29,17 @@ public class GameAdministrationController {
 
     @GetMapping("/idFromToken")
     public ResponseEntity<Integer> getIdFromToken(HttpServletRequest request) {
-        String jwt = extractJwtFromRequest(request);
+        String jwt = jwtService.extractJwtFromRequest(request);
 
         Integer userId = jwtService.extractClaim(jwt, claims -> claims.get("userId", Integer.class));
         return ResponseEntity.ok(userId);
     }
 
     @PostMapping("/joinmatch/{gameCode}")
-    public ResponseEntity<JoinMatchDto> joinMatch(@PathVariable String gameCode, @RequestBody PlayerIdDto playerid){
+    public ResponseEntity<JoinGameDto> joinMatch(@PathVariable String gameCode, @RequestBody PlayerIdDto playerid){
         GameModel updatedGame = gameAdministrationService.joinMatch(gameCode, Integer.toString(playerid.getPlayerId()));
-        JoinMatchDto joinMatchDto = new JoinMatchDto();
-        joinMatchDto.setMatchToken(updatedGame.getGameCode());
+        JoinGameDto joinMatchDto = new JoinGameDto();
+        joinMatchDto.setGameCode(updatedGame.getGameCode());
         return ResponseEntity.ok(joinMatchDto);
-    }
-
-    private String extractJwtFromRequest(HttpServletRequest request) {
-        String authHeader = request.getHeader("Authorization");
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            return authHeader.substring(7); // Entfernt "Bearer "
-        }
-        return null;
     }
 }
