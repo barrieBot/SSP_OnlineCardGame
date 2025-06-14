@@ -1,27 +1,65 @@
+version: '3.5'
+
 services:
+  frontend:
+    container_name: card_game_front
+    build: ./itp-cardgame-frontend
+    ports:
+      - "1234:4200"
+    depends_on:
+      - backend
+    networks:
+      - card_game_net
+
+  backend:
+    container_name: j_spring_backend
+    build: ./backend
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: always
+    networks:
+      - card_game_net
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysqlDatabase:3306/USER_APP
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: password
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: "true"
+      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.MySQLDialect
+
   db:
     container_name: mysqlDatabase
     build: ./database
-    restart: always
     ports:
       - "3306:3306"
+    restart: always
     networks:
-      - testNetwork
-        
-  backend:
-    container_name: java_spring_backend
-    build: ./CardGame
+      - card_game_net
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: USER_APP
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p$password"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  nginx:
+    image: nginx:alpine
+    container_name: card_game_proxy
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
     ports:
-      - "8080:8080"
-    #environment:
-    #- DATABASE_HOST=host.docker.internal
+      - "80:80"
     depends_on:
-      - db
-    #extra_hosts:
-    #  - "host.docker.internal:host-gateway"
+      - frontend
+      - backend
     networks:
-      - testNetwork
+      - card_game_net
 
 networks:
-  testNetwork:
+  card_game_net:
     driver: bridge

@@ -8,18 +8,18 @@
                 <div hlmCardContent>
                     
                     <!-- Email -->
-                    <label class="mb-1.5 block text-base" hlmLabel>Email</label>
+                    <label class="mb-1.5 block text-base" hlmLabel>Username</label>
                     <hlm-form-field class="w-full">
-                        <input class="w-80 p-3 border border-gray-400 rounded-md" hlmInput type="email" placeholder="Email" />
+                        <input hlmInput [(ngModel)]="username" name="username" class="w-80 p-3 border border-gray-400 rounded-md" type="text" placeholder="Username" />
                     </hlm-form-field>
                     
                     <!-- Password -->
                     <div class="flex justify-between items-center mb-1.5 mt-6">
-                        <label class="block text-base" hlmLabel>Password</label>
+                        <label hlmLabel class="block text-base">Password</label>
                         <a href="#" class="ml-auto inline-block text-sm underline-offset-4 hover:underline">Forgot your password?</a>
                     </div>
                     <hlm-form-field class="w-full relative">
-                        <input id="password" class="w-80 p-3 border border-gray-400 rounded-md" hlmInput type="password" placeholder="Password" />
+                        <input hlmInput [(ngModel)]="password" name="password" id="password" class="w-80 p-3 border border-gray-400 rounded-md" type="password" placeholder="Password" />
                         <!-- show password -->
                         <button type="button" class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center text-gray-500 w-8 h-8"
                                 (click)="togglePassword()">
@@ -28,9 +28,7 @@
                     </hlm-form-field>
                 </div>
                 <div hlmCardFooter class="justify-center">
-                    <a href="/lobby">
-                        <button type="submit" hlmBtn>Login</button>
-                    </a>
+                    <button hlmBtn type="submit" (click)="login()">Login</button>
                 </div>
                 <div class="mt-4 text-center text-sm m-2">
                     Don't have an account?

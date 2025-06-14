@@ -17,29 +17,29 @@
     </header>
 
     <!-- main Content -->
-    <div class="mt-10 w-full max-w-5xl mx-auto grid grid-cols-2 gap-x-6 gap-y-8 items-center">
-        <div class="row-start-1">
+    <div class="mt-10 w-full max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+        <div class="md:col-span-2">
             <p class="text-2xl font-medium">Account settings</p>
             <p class="text-gray-500">Here you can change your account information</p>
         </div>
 
         <!-- username -->
-        <div class="row-start-2 col-start-1">
-            <label class="block text-base" hlmLabel>Username</label>
+        <div>
+            <label class="block text-base mb-2" hlmLabel>Username</label>
             <hlm-form-field>
                 <input class="w-80 p-3 border rounded-md" hlmInput type="text" />
             </hlm-form-field>
         </div>
 
         <!-- email -->
-        <div class="row-start-2 col-start-2">
-            <label class="block text-base" hlmLabel>EMail</label>
+        <div>
+            <label class="block text-base mb-2" hlmLabel>EMail</label>
             <hlm-form-field>
                 <input class="w-80 p-3 border rounded-md" hlmInput type="email" />
             </hlm-form-field>
         </div>
 
-        <div class="row-start-3 col-start-1">
+        <div class="md:col-span-2">
             <button type="submit" hlmBtn>Save changes</button>
         </div>
     </div>

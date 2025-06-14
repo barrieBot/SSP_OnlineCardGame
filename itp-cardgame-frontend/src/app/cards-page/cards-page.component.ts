@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { NgIcon, provideIcons } from '@ng-icons/core';
+import { SvgIconComponent } from '../svg-icon/svg-icon.component';
+import { provideIcons } from '@ng-icons/core';
 import { lucideOctagon, lucideScissors, lucideStickyNote } from '@ng-icons/lucide';
 import { 
   HlmCarouselComponent, 
@@ -19,7 +20,7 @@ import {
   providers: [provideIcons({ lucideScissors, lucideOctagon, lucideStickyNote  })],
   imports: [
     CommonModule,
-    NgIcon,
+    SvgIconComponent,
     HlmCarouselComponent, 
     HlmCarouselContentComponent,
     HlmCarouselItemComponent,
@@ -42,19 +43,25 @@ export class CardsPageComponent {
 
   showNumericScissorCards() {
     console.log("CardsPageComponent wird geladen.");
-    this.numericScissorCards = Array.from({length: 10}, (_, i) => `${i + 1}`);
+    this.numericScissorCards = Array.from({length: 9}, (_, i) => 
+      `assets/svg/cards/numeric_cards/schere${i + 1}.svg`
+    );
     console.log(this.numericScissorCards);
   }
 
   showNumericStoneCards() {
     console.log("CardsPageComponent wird geladen.");
-    this.numericStoneCards = Array.from({length: 10}, (_, i) => `${i + 1}`);
+    this.numericStoneCards = Array.from({length: 9}, (_, i) => 
+      `assets/svg/cards/numeric_cards/stein${i + 1}.svg`
+    );
     console.log(this.numericStoneCards);
   }
 
   showNumericPaperCards() {
     console.log("CardsPageComponent wird geladen.");
-    this.numericPaperCards = Array.from({length: 10}, (_, i) => `${i + 1}`);
+    this.numericPaperCards = Array.from({length: 9}, (_, i) => 
+      `assets/svg/cards/numeric_cards/papier${i + 1}.svg`
+    );
     console.log(this.numericPaperCards);
   }
 

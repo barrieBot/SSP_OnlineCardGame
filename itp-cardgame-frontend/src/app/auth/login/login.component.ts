@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { HlmFormFieldModule } from '@spartan-ng/ui-formfield-helm';
 import { HlmInputDirective } from '@spartan-ng/ui-input-helm';
 import { HlmButtonDirective } from '@spartan-ng/ui-button-helm';
@@ -13,13 +13,15 @@ import {
   HlmCardHeaderDirective,
   HlmCardTitleDirective,
 } from '@spartan-ng/ui-card-helm';
-import { ReactiveFormsModule } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
+import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 
 
 @Component({
   selector: 'app-login',
-  providers: [provideIcons({ lucideEye, lucideEyeClosed })],
   standalone: true,
+  providers: [provideIcons({ lucideEye, lucideEyeClosed })],
   imports: [
     HlmInputDirective, 
     HlmFormFieldModule,
@@ -32,7 +34,7 @@ import { ReactiveFormsModule } from '@angular/forms';
     HlmButtonDirective,
     HlmLabelDirective,
     NgIcon,
-    ReactiveFormsModule
+    FormsModule
   ],
   templateUrl: './login.component.html',
   
@@ -40,7 +42,28 @@ import { ReactiveFormsModule } from '@angular/forms';
 })
 export class LoginComponent {
   showPassword: boolean = false;
+  username: string = '';
+  password: string = '';
 
+  constructor(private http: HttpClient, private router: Router) {}
+
+  login() {
+    const payload = {
+      username: this.username,
+      password: this.password
+    };
+
+    this.http.post('http://localhost:80/api/auth/login', payload, { withCredentials: true }).subscribe({
+      next: () => {
+        alert("Login success");
+        this.router.navigate(['/lobby']);
+      },
+      error: (err) => {
+        console.error(err);
+        alert("Login failed.");
+      }
+    });
+  }
 
   togglePassword() {
     this.showPassword = !this.showPassword;
