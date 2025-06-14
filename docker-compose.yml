@@ -1,0 +1,27 @@
+services:
+  db:
+    container_name: mysqlDatabase
+    build: ./database
+    restart: always
+    ports:
+      - "3306:3306"
+    networks:
+      - testNetwork
+        
+  backend:
+    container_name: java_spring_backend
+    build: ./CardGame
+    ports:
+      - "8080:8080"
+    #environment:
+    #- DATABASE_HOST=host.docker.internal
+    depends_on:
+      - db
+    #extra_hosts:
+    #  - "host.docker.internal:host-gateway"
+    networks:
+      - testNetwork
+
+networks:
+  testNetwork:
+    driver: bridge

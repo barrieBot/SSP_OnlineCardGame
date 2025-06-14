@@ -1,0 +1,62 @@
+CREATE DATABASE IF NOT EXISTS USER_APP;
+
+USE USER_APP;
+
+CREATE TABLE card_type (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  card_name VARCHAR(50)
+);
+
+CREATE TABLE deck (
+  id INT AUTO_INCREMENT PRIMARY KEY
+);
+
+CREATE TABLE card (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  card_type INT NOT NULL,
+  deck_id INT,
+  FOREIGN KEY (card_type) REFERENCES card_type(id),
+  FOREIGN KEY (deck_id) REFERENCES deck(id)
+);
+
+CREATE TABLE users (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  username VARCHAR(50) NOT NULL UNIQUE,
+  email VARCHAR(100) NOT NULL UNIQUE,
+  user_password VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE game (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  game_code CHAR(6) UNIQUE,
+  game_status VARCHAR(20),
+  current_player_id INT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  center_deck INT NOT NULL,
+  host_id INT NOT NULL,
+  FOREIGN KEY (center_deck) REFERENCES deck(id)
+);
+
+CREATE TABLE player (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  game_id INT,
+  user_id INT NOT NULL,
+  hand_cards INT NOT NULL,
+  display_name VARCHAR(50),
+  web_socket_id VARCHAR(50),
+  FOREIGN KEY (game_id) REFERENCES game(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users(id),
+  FOREIGN KEY (hand_cards) REFERENCES deck(id)
+);
+
+CREATE TABLE gameHistory (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+-- Damit currentPlayer (in game) auf player verweist
+ALTER TABLE game ADD CONSTRAINT fk_current_player_id FOREIGN KEY (current_player_id) REFERENCES player(id);
+ALTER TABLE game ADD CONSTRAINT fk_host_id FOREIGN KEY (host_id) REFERENCES player(id);
