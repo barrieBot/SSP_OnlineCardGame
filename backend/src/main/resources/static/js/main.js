@@ -33,7 +33,7 @@ var CardInput = null;
 
 
 function register() {
-    fetch("http://localhost:8080/auth/signup", {
+    fetch("http://localhost:8080/api/auth/signup", {
                                                    method: 'POST',
                                                    headers: {
                                                      'Accept': 'application/json',
@@ -54,7 +54,7 @@ function register() {
 
 
 function login() {
-    fetch("http://localhost:8080/auth/login", {
+    fetch("http://localhost:8080/api/auth/login", {
                                                    method: 'POST',
                                                    headers: {
                                                      'Accept': 'application/json',
@@ -81,7 +81,7 @@ function create_game(event){
     if(userN){
         //resp.innerHTML = resp.innerHTML.toString() + "Credentials ok </br>"
 
-        var socket = new SockJS('/ws');
+        var socket = new SockJS('/api/ws');
         stompClient = Stomp.over(socket);
 
         //add info für neues Spiel
@@ -107,7 +107,7 @@ function connect(event){
     if(userN){
         //resp.innerHTML = resp.innerHTML.toString() + "Credentials ok </br>"
 
-        let socket = new SockJS('/ws');
+        let socket = new SockJS('/api/ws');
         stompClient = Stomp.over(socket);
         stompClient.connect({}, onConnected, onerror);
 
