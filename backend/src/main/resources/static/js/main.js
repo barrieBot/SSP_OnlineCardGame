@@ -73,46 +73,13 @@ function login() {
 }
 
 
-function create_game(event){
-    console.log(typeof SockJS);
-    console.log(typeof Stomp);
-    userN = usernameInput.value.trim();
-
-    if(userN){
-        //resp.innerHTML = resp.innerHTML.toString() + "Credentials ok </br>"
-
-        var socket = new SockJS('/api/ws');
-        stompClient = Stomp.over(socket);
-
-        //add info für neues Spiel
-        //Muss ich hier auch die Subscriptions für die Spezifischen Pfade machen?
-        // '/game.{gameID}'
-        // '/game.{gameID}.{userID}' oder so? oder ist das im Backend
-        //muss ich testen ob es den stompClient schon gibt? Damit es immer der gleiche bleibt?
-        //spezielleren Pfad für generieren festlegen -> @MessageMapping("/game.new")
-
-        stompClient.connect({}, onConnected, onerror);
-
-    }
-
-    event.preventDefault();
-
-}
-
 function connect(event){
-    //console.log(typeof SockJS);
-    //console.log(typeof Stomp);
     userN = usernameInput.value.trim();
 
     if(userN){
-        //resp.innerHTML = resp.innerHTML.toString() + "Credentials ok </br>"
-
         let socket = new SockJS('/api/ws');
         stompClient = Stomp.over(socket);
         stompClient.connect({}, onConnected, onerror);
-
-        //Pfad für JoinGame und andere Effekte ist -> @MessageMapping("/game.config")
-
     }
 
     event.preventDefault();
@@ -164,15 +131,14 @@ function onMessageReceived(payload){
 function makeGame(){
         userN = usernameInput.value.trim();
         if(stompClient){
-            const gameState = {
-                sender: userN,
-                action: 'NEW_GAME'
+            const createGameDto = {
+                displayName: userN
             };
 
             let jwt = jwtInput.value;
             stompClient.send('/app/game.new', {
                                                 Authorization: `Bearer ${jwt}`
-                                              }, JSON.stringify(gameState))
+                                              }, JSON.stringify(createGameDto))
         }
 
         event.preventDefault();

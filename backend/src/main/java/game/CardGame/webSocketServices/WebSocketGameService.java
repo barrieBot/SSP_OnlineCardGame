@@ -1,6 +1,6 @@
 package game.CardGame.webSocketServices;
 
-import game.CardGame.dtos.GameStateDto;
+import game.CardGame.dtos.WebSocketResponseDto;
 import game.CardGame.enums.GameAction;
 import game.CardGame.exceptions.UnknownUsernameException;
 import game.CardGame.models.*;
@@ -11,11 +11,8 @@ import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 @RequiredArgsConstructor
@@ -35,31 +32,37 @@ public class WebSocketGameService {
     @Autowired
     private CardTypeRepository cardTypeRepository;
 
-    public GameStateDto createGame(String playerName, String sessionId) throws UnknownUsernameException {
-        //Generate Game-Key - 6 zeichen A-Z 0-9 Großbuchstaben
-        String game_code = generateGameCode();
-
+    public WebSocketResponseDto createGame(String username, String displayName, String sessionId) throws UnknownUsernameException {
         //Generiere neue Game-Session
         DeckModel deck = new DeckModel();
         deckRepository.save(deck);
-        CardModel card = new CardModel();
+        // TODO: Bei Spielstart Karten erstellen
+        /*CardModel card = new CardModel();
         CardTypeModel cardType = cardTypeRepository.findByCardNameAndCardValueAndCardEvent("Rock", 1, "NONE").get();
         card.setCardType(cardType);
         card.setDeckId(deck);
-        cardRepository.save(card);
+        cardRepository.save(card);*/
 
-        PlayerModel player = new PlayerModel();
-        player.setWebSocketId(sessionId);
-        Optional<UserModel> user = userRepository.findByUsername(playerName);
-        if(user.isEmpty()) {
+        // Set WebSocketId of User
+        Optional<UserModel> userOptional = userRepository.findByUsername(username);
+        if(userOptional.isEmpty()) {
             throw new UnknownUsernameException();
         }
-        player.setUserId(user.get());
-        player.setDisplayName(playerName);      // TODO: Custom Display name
-        player.setHandCards(deck);
+        UserModel user = userOptional.get();
+        user.setWebSocketId(sessionId);
+
+        // Create Player
+        PlayerModel player = new PlayerModel();
+        player.setUserId(user);
+        player.setDisplayName(displayName);
+        DeckModel handCards = new DeckModel();
+        deckRepository.save(handCards);
+        player.setHandCards(handCards);
         playerRepository.save(player);
 
+        // Create Game
         GameModel new_Game = new GameModel();
+        String game_code = generateUniqueGameCode();
         new_Game.setGameCode(game_code);
         new_Game.setHostId(player);
         new_Game.setCurrentPlayerId(player);
@@ -69,18 +72,18 @@ public class WebSocketGameService {
         new_Game.setGameStatus("TestStatus");
         gameRepository.save(new_Game);
 
+        // Add player to game
         player.setGameId(new_Game);
         playerRepository.save(player);
 
-        //Response für "Neues Spiel erstellt"
-        return GameStateDto.builder()
+        return WebSocketResponseDto.builder()
                 .id(game_code)
-                .sender(playerName)
+                .sender(displayName)
                 .action(GameAction.NEW_GAME)
                 .build();
     }
 
-    public GameStateDto joinGame(String game_code, String playerName, SimpMessageHeaderAccessor headerAccessor) {
+    public WebSocketResponseDto joinGame(String game_code, String playerName, SimpMessageHeaderAccessor headerAccessor) {
         Optional<GameModel> gameOptional = gameRepository.findByGameCode(game_code);
         /*if(gameOptional.isEmpty()){
             return GameStateDto.builder()
@@ -99,11 +102,11 @@ public class WebSocketGameService {
         }
         PlayerModel[] playersOfUser = playerSetOptional.get().toArray(new PlayerModel[0]);
         PlayerModel player = playersOfUser[0];
-        player.setWebSocketId(headerAccessor.getSessionId());
+        //player.setWebSocketId(headerAccessor.getSessionId()); // TODO: Change to user
         player.setGameId(game);
         playerRepository.save(player);
 
-        return GameStateDto.builder()
+        return WebSocketResponseDto.builder()
                 .id(game_code)
                 .sender(playerName)
                 .action(GameAction.JOIN_GAME)
@@ -117,13 +120,22 @@ public class WebSocketGameService {
     //etc.
 
 
-    public void broadcast(String game_code, GameStateDto action){
+    public void broadcast(String game_code, WebSocketResponseDto action){
         GameModel game = gameRepository.findByGameCode(game_code).get();
         for (PlayerModel player : game.getPlayers()) {
-            template.convertAndSendToUser(player.getWebSocketId(), "/queue/private", action);
+            //template.convertAndSendToUser(player.getWebSocketId(), "/queue/private", action); // TODO: Change to user
         }
     }
 
+
+    private String generateUniqueGameCode() {
+        //Generate unique Game-Key - 6 zeichen A-Z 0-9 Großbuchstaben
+        String game_code = generateGameCode();
+        while(gameRepository.findByGameCode(game_code).isPresent()) {
+            game_code = generateGameCode();
+        }
+        return game_code;
+    }
 
 
     private String generateGameCode(){

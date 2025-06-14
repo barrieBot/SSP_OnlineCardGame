@@ -1,6 +1,8 @@
 package game.CardGame.models;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.security.core.GrantedAuthority;
@@ -13,6 +15,8 @@ import java.util.Set;
 
 @Table(name = "users")
 @Entity
+@Getter
+@Setter
 public class UserModel implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,6 +36,9 @@ public class UserModel implements UserDetails {
     @Column(updatable = false, name = "created_at")
     private Date createdAt;
 
+    @Column(name = "web_socket_id")
+    private String webSocketId;
+
     @UpdateTimestamp
     @Column(name = "updated_at")
     private Date updatedAt;
@@ -44,14 +51,12 @@ public class UserModel implements UserDetails {
     @JoinColumn
     private Set<GameHistory> playedGames;
 
-
-
-
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of();
     }
 
+    @Override
     public String getPassword() {
         return userPassword;
     }
@@ -79,53 +84,5 @@ public class UserModel implements UserDetails {
     @Override
     public boolean isEnabled() {
         return true;
-    }
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public void setPassword(String password) {
-        this.userPassword = password;
-    }
-
-    public Date getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public Date getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(Date updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getUserPassword() {
-        return userPassword;
-    }
-
-    public void setUserPassword(String userPassword) {
-        this.userPassword = userPassword;
     }
 }

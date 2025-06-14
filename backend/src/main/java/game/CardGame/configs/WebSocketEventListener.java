@@ -1,6 +1,6 @@
 package game.CardGame.configs;
 
-import game.CardGame.dtos.GameStateDto;
+import game.CardGame.dtos.WebSocketResponseDto;
 import game.CardGame.enums.GameAction;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,7 +32,7 @@ public class WebSocketEventListener {
         if(username != null && game_Code != null) {
             log.info("Disconnected from {}", username);
 
-            var game_state = GameStateDto.builder()
+            var game_state = WebSocketResponseDto.builder()
                     .action(GameAction.LEAVE_GAME)
                     .sender(username)
                     .id(game_Code)

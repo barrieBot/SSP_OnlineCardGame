@@ -29,7 +29,4 @@ public class PlayerModel {
 
     @Column(name = "display_name", length = 50)
     private String displayName;
-
-    @Column(name = "web_socket_id")
-    private String webSocketId;
 }

@@ -8,7 +8,7 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class GameStateDto {
+public class WebSocketResponseDto {
     private GameAction action;
     private String id;
     private String sender;
