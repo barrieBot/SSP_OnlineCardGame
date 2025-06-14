@@ -15,6 +15,12 @@ public class CardTypeModel {
     @Column(nullable = false)
     private Integer id;
 
-    @Column(nullable = false, length = 50)
+    @Column(nullable = false, length = 50, name = "card_name")
     private String cardName;
+
+    @Column(nullable = false, name = "card_value")
+    private Integer cardValue;
+
+    @Column(nullable = false, length = 50, name = "card_event")
+    private String cardEvent;
 }

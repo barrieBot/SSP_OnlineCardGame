@@ -40,12 +40,10 @@ public class WebSocketGameService {
         String game_code = generateGameCode();
 
         //Generiere neue Game-Session
-        CardTypeModel cardType = new CardTypeModel();
-        cardType.setCardName("Test");
-        cardTypeRepository.save(cardType);
         DeckModel deck = new DeckModel();
         deckRepository.save(deck);
         CardModel card = new CardModel();
+        CardTypeModel cardType = cardTypeRepository.findByCardNameAndCardValueAndCardEvent("Rock", 1, "NONE").get();
         card.setCardType(cardType);
         card.setDeckId(deck);
         cardRepository.save(card);
