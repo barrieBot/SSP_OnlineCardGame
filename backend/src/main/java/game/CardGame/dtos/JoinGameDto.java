@@ -7,4 +7,5 @@ import lombok.Setter;
 @Setter
 public class JoinGameDto {
     private String gameCode;
+    private String displayName;
 }

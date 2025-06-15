@@ -41,6 +41,6 @@ public class GameModel {
     @JoinColumn(name = "host_id", nullable = false)
     private PlayerModel hostId;
 
-    @OneToMany(mappedBy = "gameId")
+    @OneToMany(mappedBy = "gameId", fetch = FetchType.EAGER)
     private Set<PlayerModel> players;
 }

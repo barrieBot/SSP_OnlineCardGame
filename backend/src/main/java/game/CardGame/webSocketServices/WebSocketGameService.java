@@ -1,16 +1,18 @@
 package game.CardGame.webSocketServices;
 
+import game.CardGame.dtos.JoinGameDto;
 import game.CardGame.dtos.WebSocketResponseDto;
 import game.CardGame.enums.GameAction;
-import game.CardGame.exceptions.UnknownUsernameException;
 import game.CardGame.models.*;
 import game.CardGame.repositories.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -32,7 +34,11 @@ public class WebSocketGameService {
     @Autowired
     private CardTypeRepository cardTypeRepository;
 
-    public WebSocketResponseDto createGame(String username, String displayName, String sessionId) throws UnknownUsernameException {
+    public WebSocketResponseDto createGame(String username, String displayName, String sessionId) throws IllegalArgumentException {
+        if(displayName.equals("")) {
+            displayName = username;
+        }
+
         //Generiere neue Game-Session
         DeckModel deck = new DeckModel();
         deckRepository.save(deck);
@@ -46,10 +52,11 @@ public class WebSocketGameService {
         // Set WebSocketId of User
         Optional<UserModel> userOptional = userRepository.findByUsername(username);
         if(userOptional.isEmpty()) {
-            throw new UnknownUsernameException();
+            throw new IllegalArgumentException("Invalid Username");
         }
         UserModel user = userOptional.get();
         user.setWebSocketId(sessionId);
+        userRepository.save(user);
 
         // Create Player
         PlayerModel player = new PlayerModel();
@@ -83,47 +90,88 @@ public class WebSocketGameService {
                 .build();
     }
 
-    public WebSocketResponseDto joinGame(String game_code, String playerName, SimpMessageHeaderAccessor headerAccessor) {
-        Optional<GameModel> gameOptional = gameRepository.findByGameCode(game_code);
-        /*if(gameOptional.isEmpty()){
-            return GameStateDto.builder()
-                    .id(game_code)
-                    .action(GameAction.Invalid_action)
-                    .value("Game-Key invalid")
-                    .build();
-        }*/
+    public WebSocketResponseDto joinGame(JoinGameDto joinGameDto, String username, String sessionId) throws IllegalArgumentException, IllegalStateException{
+        if(joinGameDto.getDisplayName().equals("")) {
+            joinGameDto.setDisplayName(username);
+        }
+
+        Optional<GameModel> gameOptional = gameRepository.findByGameCode(joinGameDto.getGameCode());
         if(gameOptional.isEmpty()) {
             throw new IllegalArgumentException("Invalid Game Code");
         }
         GameModel game = gameOptional.get();
-        Optional<Set<PlayerModel>> playerSetOptional = playerRepository.findByUserId_Username(playerName);
-        if(playerSetOptional.isEmpty()) {
+
+        // Set WebSocketId of User
+        Optional<UserModel> userOptional = userRepository.findByUsername(username);
+        if(userOptional.isEmpty()) {
             throw new IllegalArgumentException("Invalid Username");
         }
-        PlayerModel[] playersOfUser = playerSetOptional.get().toArray(new PlayerModel[0]);
-        PlayerModel player = playersOfUser[0];
-        //player.setWebSocketId(headerAccessor.getSessionId()); // TODO: Change to user
+        UserModel user = userOptional.get();
+        user.setWebSocketId(sessionId);
+        userRepository.save(user);
+
+        PlayerModel player = findPlayer(username, joinGameDto.getGameCode());
+        if(player != null) {
+            throw new IllegalStateException("User already joined the game");
+        }
+
+        // Create Player
+        player = new PlayerModel();
+        player.setUserId(user);
+        player.setDisplayName(joinGameDto.getDisplayName());
+        DeckModel handCards = new DeckModel();
+        deckRepository.save(handCards);
+        player.setHandCards(handCards);
+        playerRepository.save(player);
+
         player.setGameId(game);
         playerRepository.save(player);
 
         return WebSocketResponseDto.builder()
-                .id(game_code)
-                .sender(playerName)
+                .sender(joinGameDto.getDisplayName())
                 .action(GameAction.JOIN_GAME)
                 .build();
     }
 
 
-    //Noch mehr Funktionen wie
-    //StartGame
-    //rematch
-    //etc.
+    private PlayerModel findPlayer(String username, String gameCode) throws IllegalArgumentException {
+        Optional<Set<PlayerModel>> playerSetOptional = playerRepository.findByUserId_Username(username);
+        if(playerSetOptional.isEmpty()) {
+            throw new IllegalArgumentException("Invalid Username");
+        }
+        PlayerModel[] playersOfUser = playerSetOptional.get().toArray(new PlayerModel[0]);
+        PlayerModel player = null;
+        for(PlayerModel p : playersOfUser) {
+            if(p.getGameId().getGameCode().equals(gameCode)) {
+                player = p;
+            }
+        }
+        return player;
+    }
 
 
-    public void broadcast(String game_code, WebSocketResponseDto action){
-        GameModel game = gameRepository.findByGameCode(game_code).get();
+    public void broadcast(String game_code, WebSocketResponseDto action, MessageHeaders headers) throws IllegalArgumentException {
+        Optional<GameModel> gameOptional = gameRepository.findByGameCode(game_code);
+        if(gameOptional.isEmpty()) {
+            throw new IllegalArgumentException("Invalid Game Code");
+        }
+        GameModel game = gameOptional.get();
+        Map<String, Object> map = new HashMap<>();
+        map.put("simpMessageType",headers.get("simpMessageType"));
+        map.put("stompCommand",headers.get("stompCommand"));
+        Map<String, Object> unmodifiableNativeHeaders = (Map<String, Object>) headers.get("nativeHeaders");
+        Map<String, Object> nativeHeaders = new HashMap<>(unmodifiableNativeHeaders);
+        nativeHeaders.remove("Authorization");
+        map.put("nativeHeaders",nativeHeaders);
+        map.put("simpSessionAttributes",headers.get("simpSessionAttributes"));
+        map.put("simpHeartbeat",headers.get("simpHeartbeat"));
+        map.put("lookupDestination",headers.get("lookupDestination"));
+        map.put("contentType",headers.get("contentType"));
         for (PlayerModel player : game.getPlayers()) {
-            //template.convertAndSendToUser(player.getWebSocketId(), "/queue/private", action); // TODO: Change to user
+            map.put("simpSessionId",player.getUserId().getWebSocketId().toString());
+            map.put("simpDestination", "/user/" + player.getUserId().getWebSocketId().toString() + "/queue/private");
+            MessageHeaders newHeaders = new MessageHeaders(map);
+            template.convertAndSendToUser(player.getUserId().getWebSocketId(), "/queue/private", action, newHeaders);
         }
     }
 

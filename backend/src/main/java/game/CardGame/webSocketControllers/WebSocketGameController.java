@@ -38,21 +38,13 @@ public class WebSocketGameController {
         }
         catch (Exception e) {
             // TODO: Error Handling
-            template.convertAndSendToUser(Objects.requireNonNull(headerAccessor.getSessionId()), "/queue/private", e.toString(), headerAccessor.getMessageHeaders());
             return;
         }
         String username = jwtService.extractUsername(jwtToken);
-        String displayName;
-        if(createGameDto.getDisplayName().equals("")) {
-            displayName = username;
-        }
-        else {
-            displayName = createGameDto.getDisplayName();
-        }
         WebSocketResponseDto webSocketResponse;
         try {
-            webSocketResponse = webSocketGameService.createGame(username, displayName, headerAccessor.getSessionId());
-        } catch (UnknownUsernameException e) {
+            webSocketResponse = webSocketGameService.createGame(username, createGameDto.getDisplayName(), headerAccessor.getSessionId());
+        } catch (IllegalArgumentException e) {
             // TODO: Error Handling
             return;
         }
@@ -65,22 +57,34 @@ public class WebSocketGameController {
 
     @MessageMapping("/game.join")
     public void joinGame(@Payload JoinGameDto joinGameDto, SimpMessageHeaderAccessor headerAccessor) {
+        String jwtToken;
         try {
-            String token = jwtService.verifyJwtForWebSocket(headerAccessor);
-            String username = jwtService.extractUsername(token);
-            WebSocketResponseDto gameStateDto = webSocketGameService.joinGame(joinGameDto.getGameCode(), username, headerAccessor);
-
-            template.convertAndSendToUser(Objects.requireNonNull(headerAccessor.getSessionId()), "/queue/private", gameStateDto, headerAccessor.getMessageHeaders());
+            jwtToken = jwtService.verifyJwtForWebSocket(headerAccessor);
         }
         catch (Exception e) {
             // TODO: Error Handling
-            template.convertAndSendToUser(Objects.requireNonNull(headerAccessor.getSessionId()), "/queue/private", e.toString(), headerAccessor.getMessageHeaders());
             return;
         }
+        String username = jwtService.extractUsername(jwtToken);
+        WebSocketResponseDto webSocketResponse;
+        try {
+            webSocketResponse = webSocketGameService.joinGame(joinGameDto, username, headerAccessor.getSessionId());
+        }
+        catch (IllegalArgumentException e) {
+            // TODO: Error Handling
+            return;
+        }
+        catch (IllegalStateException e) {
+            // TODO: Error Handling
+            return;
+        }
+
+        template.convertAndSendToUser(Objects.requireNonNull(headerAccessor.getSessionId()), "/queue/private", webSocketResponse, headerAccessor.getMessageHeaders());
+        webSocketGameService.broadcast(joinGameDto.getGameCode(), webSocketResponse, headerAccessor.getMessageHeaders());
     }
 
 
-    @MessageMapping("/game.config")
+    /*@MessageMapping("/game.config")
     public void gameConfig(@Payload WebSocketResponseDto game_request, SimpMessageHeaderAccessor headerAccessor) {
 
         //Jede Änderung am Spiel_Conf müssen an alle Spielerinnen weitergegeben werden
@@ -141,7 +145,7 @@ public class WebSocketGameController {
 
         }
 
-    }
+    }*/
 
 
 

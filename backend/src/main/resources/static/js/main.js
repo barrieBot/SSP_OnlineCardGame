@@ -147,9 +147,11 @@ function makeGame(){
 
 function joinGame(){
         let gameCodeValue = gameCodeInput.value;
+        userN = usernameInput.value.trim();
         if(stompClient){
             const gameState = {
                 gameCode: gameCodeValue,
+                displayName: userN,
                 action: 'JOIN_GAME'
             };
 
