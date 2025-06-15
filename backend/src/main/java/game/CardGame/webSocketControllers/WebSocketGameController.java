@@ -4,15 +4,13 @@ package game.CardGame.webSocketControllers;
 import game.CardGame.dtos.CreateGameDto;
 import game.CardGame.dtos.WebSocketResponseDto;
 import game.CardGame.dtos.JoinGameDto;
-import game.CardGame.enums.GameAction;
-import game.CardGame.exceptions.UnknownUsernameException;
+import game.CardGame.enums.ResponseType;
 import game.CardGame.services.JwtService;
 import game.CardGame.webSocketServices.WebSocketGameService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
@@ -37,15 +35,17 @@ public class WebSocketGameController {
             jwtToken = jwtService.verifyJwtForWebSocket(headerAccessor);
         }
         catch (Exception e) {
-            // TODO: Error Handling
+            WebSocketResponseDto errorResponse = new WebSocketResponseDto(ResponseType.ERROR_INVALID_JWT, "Authentication failed");
+            template.convertAndSendToUser(headerAccessor.getSessionId(), "/queue/private", errorResponse, headerAccessor.getMessageHeaders());
             return;
         }
         String username = jwtService.extractUsername(jwtToken);
         WebSocketResponseDto webSocketResponse;
         try {
             webSocketResponse = webSocketGameService.createGame(username, createGameDto.getDisplayName(), headerAccessor.getSessionId());
-        } catch (IllegalArgumentException e) {
-            // TODO: Error Handling
+        } catch (IllegalStateException e) {
+            WebSocketResponseDto errorResponse = new WebSocketResponseDto(ResponseType.ERROR_INVALID_ARGUMENT, e.getMessage());
+            template.convertAndSendToUser(headerAccessor.getSessionId(), "/queue/private", errorResponse, headerAccessor.getMessageHeaders());
             return;
         }
 
@@ -62,7 +62,8 @@ public class WebSocketGameController {
             jwtToken = jwtService.verifyJwtForWebSocket(headerAccessor);
         }
         catch (Exception e) {
-            // TODO: Error Handling
+            WebSocketResponseDto errorResponse = new WebSocketResponseDto(ResponseType.ERROR_INVALID_JWT, "Authentication failed");
+            template.convertAndSendToUser(headerAccessor.getSessionId(), "/queue/private", errorResponse, headerAccessor.getMessageHeaders());
             return;
         }
         String username = jwtService.extractUsername(jwtToken);
@@ -71,11 +72,13 @@ public class WebSocketGameController {
             webSocketResponse = webSocketGameService.joinGame(joinGameDto, username, headerAccessor.getSessionId());
         }
         catch (IllegalArgumentException e) {
-            // TODO: Error Handling
+            WebSocketResponseDto errorResponse = new WebSocketResponseDto(ResponseType.ERROR_INVALID_ARGUMENT, e.getMessage());
+            template.convertAndSendToUser(headerAccessor.getSessionId(), "/queue/private", errorResponse, headerAccessor.getMessageHeaders());
             return;
         }
         catch (IllegalStateException e) {
-            // TODO: Error Handling
+            WebSocketResponseDto errorResponse = new WebSocketResponseDto(ResponseType.ERROR_INVALID_STATE, e.getMessage());
+            template.convertAndSendToUser(headerAccessor.getSessionId(), "/queue/private", errorResponse, headerAccessor.getMessageHeaders());
             return;
         }
 
@@ -149,7 +152,7 @@ public class WebSocketGameController {
 
 
 
-    @MessageMapping("/game.playerAction")
+    /*@MessageMapping("/game.playerAction")
     @SendTo("/topic/public")
     public WebSocketResponseDto placeCard(@Payload WebSocketResponseDto placed_card, SimpMessageHeaderAccessor headerAccessor) {
 
@@ -176,6 +179,6 @@ public class WebSocketGameController {
         WebSocketResponseDto placedCard = placed_card;
         return placedCard;
 
-    }
+    }*/
 
 }

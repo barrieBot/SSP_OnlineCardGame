@@ -1,7 +1,7 @@
 package game.CardGame.configs;
 
 import game.CardGame.dtos.WebSocketResponseDto;
-import game.CardGame.enums.GameAction;
+import game.CardGame.enums.ResponseType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
@@ -33,7 +33,7 @@ public class WebSocketEventListener {
             log.info("Disconnected from {}", username);
 
             var game_state = WebSocketResponseDto.builder()
-                    .action(GameAction.LEAVE_GAME)
+                    .responseType(ResponseType.LEAVE_GAME)
                     .sender(username)
                     .id(game_Code)
                     .build();

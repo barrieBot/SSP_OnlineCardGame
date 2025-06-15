@@ -2,7 +2,7 @@ package game.CardGame.webSocketServices;
 
 import game.CardGame.dtos.JoinGameDto;
 import game.CardGame.dtos.WebSocketResponseDto;
-import game.CardGame.enums.GameAction;
+import game.CardGame.enums.ResponseType;
 import game.CardGame.models.*;
 import game.CardGame.repositories.*;
 import lombok.RequiredArgsConstructor;
@@ -34,7 +34,7 @@ public class WebSocketGameService {
     @Autowired
     private CardTypeRepository cardTypeRepository;
 
-    public WebSocketResponseDto createGame(String username, String displayName, String sessionId) throws IllegalArgumentException {
+    public WebSocketResponseDto createGame(String username, String displayName, String sessionId) throws IllegalStateException {
         if(displayName.equals("")) {
             displayName = username;
         }
@@ -52,7 +52,7 @@ public class WebSocketGameService {
         // Set WebSocketId of User
         Optional<UserModel> userOptional = userRepository.findByUsername(username);
         if(userOptional.isEmpty()) {
-            throw new IllegalArgumentException("Invalid Username");
+            throw new IllegalStateException("Invalid Username");
         }
         UserModel user = userOptional.get();
         user.setWebSocketId(sessionId);
@@ -86,7 +86,7 @@ public class WebSocketGameService {
         return WebSocketResponseDto.builder()
                 .id(game_code)
                 .sender(displayName)
-                .action(GameAction.NEW_GAME)
+                .responseType(ResponseType.NEW_GAME)
                 .build();
     }
 
@@ -129,7 +129,7 @@ public class WebSocketGameService {
 
         return WebSocketResponseDto.builder()
                 .sender(joinGameDto.getDisplayName())
-                .action(GameAction.JOIN_GAME)
+                .responseType(ResponseType.JOIN_GAME)
                 .build();
     }
 
