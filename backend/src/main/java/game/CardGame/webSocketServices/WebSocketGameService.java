@@ -100,11 +100,15 @@ public class WebSocketGameService {
             throw new IllegalArgumentException("Invalid Game Code");
         }
         GameModel game = gameOptional.get();
+        Set<PlayerModel> players = game.getPlayers();
+        if(players.size() == 4) {
+            throw new IllegalStateException("Game already has 4 players");
+        }
 
         // Set WebSocketId of User
         Optional<UserModel> userOptional = userRepository.findByUsername(username);
         if(userOptional.isEmpty()) {
-            throw new IllegalArgumentException("Invalid Username");
+            throw new IllegalStateException("Invalid Username");
         }
         UserModel user = userOptional.get();
         user.setWebSocketId(sessionId);
