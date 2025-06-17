@@ -17,6 +17,7 @@ CREATE TABLE card (
   id INT AUTO_INCREMENT PRIMARY KEY,
   card_type INT NOT NULL,
   deck_id INT,
+  deck_position INT,
   FOREIGN KEY (card_type) REFERENCES card_type(id),
   FOREIGN KEY (deck_id) REFERENCES deck(id)
 );

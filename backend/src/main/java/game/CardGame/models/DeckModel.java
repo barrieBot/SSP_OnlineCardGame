@@ -17,7 +17,7 @@ public class DeckModel {
     @Column(nullable = false)
     private Integer id;
 
-    @OneToMany(mappedBy = "deckId")
+    @OneToMany(mappedBy = "deckId", fetch = FetchType.EAGER)
     private Set<CardModel> cardId;
 
 }

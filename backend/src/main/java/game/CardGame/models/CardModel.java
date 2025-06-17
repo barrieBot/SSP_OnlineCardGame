@@ -22,4 +22,7 @@ public class CardModel {
     @ManyToOne
     @JoinColumn(name = "deck_id")
     private DeckModel deckId;
+
+    @Column(name = "deck_position")
+    private Integer deckPosition;
 }

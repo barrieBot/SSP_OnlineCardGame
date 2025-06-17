@@ -15,6 +15,7 @@ const gameCodeInput = document.querySelector("#gameCodeInput")
 var sub_connect = document.querySelector('#connectWSButton')
 var sub_gen = document.querySelector("#but_new_game")
 var sub_join_game = document.querySelector("#but_join_game")
+var sub_start_game = document.querySelector("#startGameButton")
 var sub_send = document.querySelector("#but_send")
 var sub_draw = document.querySelector("#but_drew")
 var sub_yield = document.querySelector("#but_yield")
@@ -164,6 +165,23 @@ function joinGame(){
         event.preventDefault();
 }
 
+function startGame() {
+    let gameCodeValue = gameCodeInput.value;
+    if(stompClient){
+        const gameState = {
+            gameCode: gameCodeValue,
+            action: 'START_GAME'
+        };
+
+        let jwt = jwtInput.value;
+        stompClient.send('/app/game.start', {
+                                            Authorization: `Bearer ${jwt}`
+                                          }, JSON.stringify(gameState))
+    }
+
+    event.preventDefault();
+}
+
 function  placeCard(event){
 
     //Methode for Selecting Card
@@ -206,6 +224,7 @@ function yieldTurn(event){
 sub_connect.addEventListener("click", connect)
 sub_gen.addEventListener("click", makeGame);
 sub_join_game.addEventListener("click", joinGame);
+sub_start_game.addEventListener("click", startGame);
 //sub_send.addEventListener("click", sendCard)
 //sub_draw.addEventListener("click", drawCard)
 //sub_yield.addEventListener("click", yieldTurn)
