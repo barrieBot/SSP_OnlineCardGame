@@ -106,7 +106,6 @@ function onerror(){
 
 function onMessageReceived(payload){
     const game_event = JSON.parse(payload.body);
-    console.log("TEST message recieved: "+ payload)
 
     if(game_event){
         switch (game_event.type){

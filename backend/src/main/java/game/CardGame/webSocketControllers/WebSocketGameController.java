@@ -83,7 +83,6 @@ public class WebSocketGameController {
             return;
         }
 
-        template.convertAndSendToUser(Objects.requireNonNull(headerAccessor.getSessionId()), "/queue/private", webSocketResponse, headerAccessor.getMessageHeaders());
         webSocketGameService.broadcast(joinGameDto.getGameCode(), webSocketResponse, headerAccessor.getMessageHeaders());
     }
 
@@ -115,7 +114,6 @@ public class WebSocketGameController {
             return;
         }
 
-        template.convertAndSendToUser(Objects.requireNonNull(headerAccessor.getSessionId()), "/queue/private", webSocketResponse, headerAccessor.getMessageHeaders());
         webSocketGameService.broadcastWithPlayerHandCards(startGameDto.getGameCode(), webSocketResponse, headerAccessor.getMessageHeaders());
     }
 
