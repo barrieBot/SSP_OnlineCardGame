@@ -125,9 +125,15 @@ public class WebSocketGameService {
         player.setGameId(game);
         playerRepository.save(player);
 
+        List<String> playersOfGame = new ArrayList<>();
+        for(PlayerModel otherPlayer : game.getPlayers()) {
+            playersOfGame.add(otherPlayer.getDisplayName());
+        }
+
         return WebSocketResponseDto.builder()
                 .sender(joinGameDto.getDisplayName())
                 .responseType(ResponseType.JOIN_GAME)
+                .value(playersOfGame)
                 .build();
     }
 
