@@ -30,6 +30,8 @@ public class WebSocketGameService {
     private CardRepository cardRepository;
     @Autowired
     private CardTypeRepository cardTypeRepository;
+    @Autowired
+    private WebSocketUtilService webSocketUtilService;
 
     public WebSocketResponseDto createGame(String username, String displayName, String sessionId) throws IllegalStateException {
         if(displayName.equals("")) {
@@ -109,7 +111,7 @@ public class WebSocketGameService {
         user.setWebSocketId(sessionId);
         userRepository.save(user);
 
-        PlayerModel player = findPlayer(username, joinGameDto.getGameCode());
+        PlayerModel player = webSocketUtilService.findPlayer(username, joinGameDto.getGameCode());
         if(player != null) {
             throw new IllegalStateException("User already joined the game");
         }
@@ -158,7 +160,7 @@ public class WebSocketGameService {
             throw new IllegalStateException("Game has already started or finished");
         }
 
-        PlayerModel callingPlayer = findPlayer(username, startGameDto.getGameCode());
+        PlayerModel callingPlayer = webSocketUtilService.findPlayer(username, startGameDto.getGameCode());
         if(callingPlayer == null) {
             throw new IllegalStateException("User is not part of the game");
         }
@@ -177,20 +179,20 @@ public class WebSocketGameService {
         for(PlayerModel player : game.getPlayers()) {
             DeckModel handCards = player.getHandCards();
             for(int i = 0; i < 5; i++) {
-                CardModel card = viewTopCard(game.getCenterDeck());
+                CardModel card = webSocketUtilService.viewTopCard(game.getCenterDeck());
                 card.setDeckId(handCards);
                 card.setDeckPosition(i);
                 cardRepository.save(card);
             }
         }
 
-        CardModel card = viewTopCard(game.getCenterDeck());
+        CardModel card = webSocketUtilService.viewTopCard(game.getCenterDeck());
         card.setDeckId(game.getDiscardPile());
         card.setDeckPosition(1);
         cardRepository.save(card);
 
         CardDto cardDto = new CardDto();
-        CardModel topCard = viewTopCard(game.getDiscardPile());
+        CardModel topCard = webSocketUtilService.viewTopCard(game.getDiscardPile());
         cardDto.setCardName(topCard.getCardType().getCardName());
         cardDto.setCardValue(topCard.getCardType().getCardValue());
         cardDto.setCardEvent(topCard.getCardType().getCardEvent());
@@ -200,116 +202,6 @@ public class WebSocketGameService {
                 .responseType(ResponseType.START_GAME)
                 .additionalValue(cardDto)
                 .build();
-    }
-
-
-    public WebSocketResponseDto playCard(PlayCardDto playCardDto, String username, String gameCode) throws IllegalArgumentException, IllegalStateException {
-        Optional<GameModel> gameOptional = gameRepository.findByGameCode(gameCode);
-        if(gameOptional.isEmpty()) {
-            throw new IllegalArgumentException("Invalid Game Code");
-        }
-        GameModel game = gameOptional.get();
-
-        if(!game.getGameStatus().equals("Running")) {
-            throw new IllegalStateException("Game is not running");
-        }
-
-        PlayerModel callingPlayer = findPlayer(username, gameCode);
-        if(callingPlayer == null) {
-            throw new IllegalStateException("User is not part of the game");
-        }
-        if(!game.getCurrentPlayerId().getId().equals(callingPlayer.getId())) {
-            throw new IllegalStateException("Not Users turn");
-        }
-
-        // Check if player has card
-        Set<CardModel> handCards = cardRepository.findByDeckId(callingPlayer.getHandCards()).get();
-        boolean playerHasCard = false;
-        CardModel cardToPlay = null;
-        for(CardModel card : handCards) {
-            if(card.getCardType().getCardName().equals(playCardDto.getCard().getCardName())
-                    && card.getCardType().getCardValue().equals(playCardDto.getCard().getCardValue())
-                    && card.getCardType().getCardEvent().equals(playCardDto.getCard().getCardEvent())) {
-                playerHasCard = true;
-                cardToPlay = card;
-            }
-        }
-        if(!playerHasCard) {
-            throw new IllegalArgumentException("Invalid Card");
-        }
-
-        // Check if card is playable
-        CardModel topCard = viewTopCard(game.getDiscardPile());
-        boolean validCardPlay = false;
-        switch (topCard.getCardType().getCardName()) {
-            case "Rock" -> {
-                if (playCardDto.getCard().getCardName().equals("Paper")) {
-                    validCardPlay = true;
-                } else if (playCardDto.getCard().getCardName().equals("Rock")
-                        && playCardDto.getCard().getCardValue() > topCard.getCardType().getCardValue()) {
-                    validCardPlay = true;
-                }
-            }
-            case "Paper" -> {
-                if (playCardDto.getCard().getCardName().equals("Scissors")) {
-                    validCardPlay = true;
-                } else if (playCardDto.getCard().getCardName().equals("Paper")
-                        && playCardDto.getCard().getCardValue() > topCard.getCardType().getCardValue()) {
-                    validCardPlay = true;
-                }
-            }
-            case "Scissors" -> {
-                if (playCardDto.getCard().getCardName().equals("Rock")) {
-                    validCardPlay = true;
-                } else if (playCardDto.getCard().getCardName().equals("Scissors")
-                        && playCardDto.getCard().getCardValue() > topCard.getCardType().getCardValue()) {
-                    validCardPlay = true;
-                }
-            }
-        }
-        if(!validCardPlay) {
-            throw new IllegalArgumentException("Card cannot be played");
-        }
-
-        // Play card
-        cardToPlay.setDeckId(game.getDiscardPile());
-        cardToPlay.setDeckPosition(viewTopCard(game.getDiscardPile()).getDeckPosition() + 1);
-        cardRepository.save(cardToPlay);
-
-        // Change Current Player
-        int newPlayerTurnIndicator = callingPlayer.getTurnIndicator() + 1;
-        if(newPlayerTurnIndicator == 5) {
-            newPlayerTurnIndicator = 1;
-        }
-        PlayerModel newCurrentPlayer = playerRepository.findByGameIdAndTurnIndicator(game, newPlayerTurnIndicator).get();
-        game.setCurrentPlayerId(newCurrentPlayer);
-        gameRepository.save(game);
-
-        CardPlayedResponseDto cardPlayedResponseDto = new CardPlayedResponseDto();
-        CardDto cardDto = new CardDto();
-        cardDto.setCardEvent(playCardDto.getCard().getCardEvent());
-        cardDto.setCardValue(playCardDto.getCard().getCardValue());
-        cardDto.setCardName(playCardDto.getCard().getCardName());
-        cardPlayedResponseDto.setCard(cardDto);
-        cardPlayedResponseDto.setNewCurrentPlayer(newCurrentPlayer.getDisplayName());
-
-        return WebSocketResponseDto.builder()
-                .sender(callingPlayer.getDisplayName())
-                .responseType(ResponseType.CARD_PLACED)
-                .value(cardPlayedResponseDto)
-                .build();
-    }
-
-
-    private CardModel viewTopCard(DeckModel deck) {
-        Optional<CardModel> cardOptional = cardRepository.findTopDeckPositionByDeckIdOrderByDeckPositionDesc(deck);
-        if(cardOptional.isEmpty()) {
-            // TODO: Shuffle
-            return null;
-        }
-        else {
-            return cardOptional.get();
-        }
     }
 
 
@@ -332,86 +224,6 @@ public class WebSocketGameService {
                 }
             }
         }
-    }
-
-
-    private PlayerModel findPlayer(String username, String gameCode) throws IllegalArgumentException {
-        Optional<Set<PlayerModel>> playerSetOptional = playerRepository.findByUserId_Username(username);
-        if(playerSetOptional.isEmpty()) {
-            throw new IllegalArgumentException("Invalid Username");
-        }
-        PlayerModel[] playersOfUser = playerSetOptional.get().toArray(new PlayerModel[0]);
-        PlayerModel player = null;
-        for(PlayerModel p : playersOfUser) {
-            if(p.getGameId().getGameCode().equals(gameCode)) {
-                player = p;
-            }
-        }
-        return player;
-    }
-
-
-    public void broadcastWithPlayerHandCards(String game_code, WebSocketResponseDto action, MessageHeaders headers) throws IllegalArgumentException {
-        Optional<GameModel> gameOptional = gameRepository.findByGameCode(game_code);
-        if(gameOptional.isEmpty()) {
-            throw new IllegalArgumentException("Invalid Game Code");
-        }
-        GameModel game = gameOptional.get();
-        List<Object> values = new ArrayList<>();
-        for (PlayerModel player : playerRepository.findByGameIdOrderByTurnIndicatorDesc(game).get()) {
-            ArrayList<CardDto> cardDtos = new ArrayList<>();
-            Set<CardModel> cards =  cardRepository.findByDeckId(player.getHandCards()).get();
-            for(CardModel card : cards) {
-                CardDto cardDto = new CardDto();
-                cardDto.setCardName(card.getCardType().getCardName());
-                cardDto.setCardValue(card.getCardType().getCardValue());
-                cardDto.setCardEvent(card.getCardType().getCardEvent());
-                cardDtos.add(cardDto);
-            }
-            values.add(cardDtos);
-        }
-        broadcast(game_code, action, headers, values);
-    }
-
-
-    public void broadcast(String game_code, WebSocketResponseDto action, MessageHeaders headers) throws IllegalArgumentException {
-        broadcast(game_code, action, headers, null);
-    }
-
-
-    public void broadcast(String game_code, WebSocketResponseDto action, MessageHeaders headers, List<Object> values) throws IllegalArgumentException {
-        Optional<GameModel> gameOptional = gameRepository.findByGameCode(game_code);
-        if(gameOptional.isEmpty()) {
-            throw new IllegalArgumentException("Invalid Game Code");
-        }
-        GameModel game = gameOptional.get();
-        Map<String, Object> map = new HashMap<>();
-        map.put("simpMessageType",headers.get("simpMessageType"));
-        map.put("stompCommand",headers.get("stompCommand"));
-        Map<String, Object> unmodifiableNativeHeaders = (Map<String, Object>) headers.get("nativeHeaders");
-        Map<String, Object> nativeHeaders = new HashMap<>(unmodifiableNativeHeaders);
-        nativeHeaders.remove("Authorization");
-        map.put("nativeHeaders",nativeHeaders);
-        map.put("simpSessionAttributes",headers.get("simpSessionAttributes"));
-        map.put("simpHeartbeat",headers.get("simpHeartbeat"));
-        map.put("lookupDestination",headers.get("lookupDestination"));
-        map.put("contentType",headers.get("contentType"));
-        int i = 0;
-        for (PlayerModel player : playerRepository.findByGameIdOrderByTurnIndicatorDesc(game).get()) {
-            map.put("simpSessionId",player.getUserId().getWebSocketId().toString());
-            map.put("simpDestination", "/user/" + player.getUserId().getWebSocketId().toString() + "/queue/private");
-            MessageHeaders newHeaders = new MessageHeaders(map);
-            if(values != null) {
-                action.setValue(values.get(i));
-            }
-            template.convertAndSendToUser(player.getUserId().getWebSocketId(), "/queue/private", action, newHeaders);
-            i++;
-        }
-    }
-
-
-    private String stringifyCardInfo(CardModel card) {
-        return card.getCardType().getCardName() + ";" + card.getCardType().getCardValue() + ";" + card.getCardType().getCardEvent();
     }
 
 
