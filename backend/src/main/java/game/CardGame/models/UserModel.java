@@ -36,9 +36,6 @@ public class UserModel implements UserDetails {
     @Column(updatable = false, name = "created_at")
     private Date createdAt;
 
-    @Column(name = "web_socket_id")
-    private String webSocketId;
-
     @UpdateTimestamp
     @Column(name = "updated_at")
     private Date updatedAt;

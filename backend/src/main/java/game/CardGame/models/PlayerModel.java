@@ -32,4 +32,7 @@ public class PlayerModel {
 
     @Column(name = "turn_indicator")
     private Integer turnIndicator;
+
+    @Column(name = "web_socket_id")
+    private String webSocketId;
 }

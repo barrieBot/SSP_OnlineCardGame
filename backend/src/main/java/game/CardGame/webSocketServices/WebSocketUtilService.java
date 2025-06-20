@@ -101,13 +101,13 @@ public class WebSocketUtilService {
         map.put("contentType",headers.get("contentType"));
         int i = 0;
         for (PlayerModel player : playerRepository.findByGameIdOrderByTurnIndicatorDesc(game).get()) {
-            map.put("simpSessionId",player.getUserId().getWebSocketId().toString());
-            map.put("simpDestination", "/user/" + player.getUserId().getWebSocketId().toString() + "/queue/private");
+            map.put("simpSessionId",player.getWebSocketId().toString());
+            map.put("simpDestination", "/user/" + player.getWebSocketId().toString() + "/queue/private");
             MessageHeaders newHeaders = new MessageHeaders(map);
             if(values != null) {
                 action.setValue(values.get(i));
             }
-            template.convertAndSendToUser(player.getUserId().getWebSocketId(), "/queue/private", action, newHeaders);
+            template.convertAndSendToUser(player.getWebSocketId(), "/queue/private", action, newHeaders);
             i++;
         }
     }

@@ -86,6 +86,28 @@ public class WebSocketGameController {
         webSocketUtilService.broadcast(joinGameDto.getGameCode(), webSocketResponse, headerAccessor.getMessageHeaders());
     }
 
+    @MessageMapping("/game.join.anonymous")
+    public void joinGameAnonymous(@Payload JoinGameDto joinGameDto, SimpMessageHeaderAccessor headerAccessor) {
+        WebSocketResponseDto webSocketResponse;
+        try {
+            webSocketResponse = webSocketGameService.joinGameAnonymous(joinGameDto, headerAccessor.getSessionId());
+        }
+        catch (IllegalArgumentException e) {
+            WebSocketResponseDto errorResponse = new WebSocketResponseDto(ResponseType.ERROR_INVALID_ARGUMENT, e.getMessage());
+            template.convertAndSendToUser(headerAccessor.getSessionId(), "/queue/private", errorResponse, headerAccessor.getMessageHeaders());
+            return;
+        }
+        catch (IllegalStateException e) {
+            WebSocketResponseDto errorResponse = new WebSocketResponseDto(ResponseType.ERROR_INVALID_STATE, e.getMessage());
+            template.convertAndSendToUser(headerAccessor.getSessionId(), "/queue/private", errorResponse, headerAccessor.getMessageHeaders());
+            return;
+        }
+
+        template.convertAndSendToUser(Objects.requireNonNull(headerAccessor.getSessionId()), "/queue/private", webSocketResponse, headerAccessor.getMessageHeaders());
+        webSocketResponse.setAdditionalValue(null);
+        webSocketUtilService.broadcast(joinGameDto.getGameCode(), webSocketResponse, headerAccessor.getMessageHeaders());
+    }
+
 
     @MessageMapping("/game.start")
     public void startGame(@Payload GameCodeDto gameCodeDto, SimpMessageHeaderAccessor headerAccessor) {

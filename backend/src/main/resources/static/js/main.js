@@ -26,6 +26,7 @@ var sub_register = document.querySelector("#registerButton")
 var sub_login = document.querySelector("#loginButton")
 var sub_play_card = document.querySelector("#playCardButton")
 var sub_draw_card = document.querySelector("#drawCardButton")
+var sub_join_game_anonymous = document.querySelector("#but_join_game_anonymous")
 
 
 
@@ -169,6 +170,23 @@ function joinGame(){
         event.preventDefault();
 }
 
+function joinGameAnonymous() {
+    let gameCodeValue = gameCodeInput.value;
+    userN = usernameInput.value.trim();
+    if(stompClient){
+        const gameState = {
+            gameCode: gameCodeValue,
+            displayName: userN,
+            action: 'JOIN_GAME'
+        };
+
+        let jwt = jwtInput.value;
+        stompClient.send('/app/game.join.anonymous', {}, JSON.stringify(gameState))
+    }
+
+    event.preventDefault();
+}
+
 function startGame() {
     let gameCodeValue = gameCodeInput.value;
     if(stompClient){
@@ -270,3 +288,4 @@ sub_register.addEventListener("click", register);
 sub_login.addEventListener("click", login);
 sub_play_card.addEventListener("click", playCard);
 sub_draw_card.addEventListener("click", drawCard);
+sub_join_game_anonymous.addEventListener("click", joinGameAnonymous)

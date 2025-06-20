@@ -27,7 +27,6 @@ CREATE TABLE users (
   username VARCHAR(50) NOT NULL UNIQUE,
   email VARCHAR(100) NOT NULL UNIQUE,
   user_password VARCHAR(255) NOT NULL,
-  web_socket_id VARCHAR(50),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
@@ -52,6 +51,7 @@ CREATE TABLE player (
   hand_cards INT NOT NULL,
   display_name VARCHAR(50),
   turn_indicator INT,
+  web_socket_id VARCHAR(50),
   FOREIGN KEY (game_id) REFERENCES game(id) ON DELETE CASCADE,
   FOREIGN KEY (user_id) REFERENCES users(id),
   FOREIGN KEY (hand_cards) REFERENCES deck(id)

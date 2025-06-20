@@ -4,9 +4,12 @@ import game.CardGame.dtos.*;
 import game.CardGame.enums.ResponseType;
 import game.CardGame.models.*;
 import game.CardGame.repositories.*;
+import game.CardGame.services.AuthenticationService;
+import game.CardGame.services.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -31,6 +34,12 @@ public class WebSocketGameService {
     private CardTypeRepository cardTypeRepository;
     @Autowired
     private WebSocketUtilService webSocketUtilService;
+    @Autowired
+    private AuthenticationService authenticationService;
+    @Autowired
+    private JwtService jwtService;
+    @Autowired
+    private final PasswordEncoder passwordEncoder;
 
     public WebSocketResponseDto createGame(String username, String displayName, String sessionId) throws IllegalStateException {
         if(displayName.equals("")) {
@@ -47,13 +56,12 @@ public class WebSocketGameService {
             throw new IllegalStateException("Invalid Username");
         }
         UserModel user = userOptional.get();
-        user.setWebSocketId(sessionId);
-        userRepository.save(user);
 
         // Create Player
         PlayerModel player = new PlayerModel();
         player.setUserId(user);
         player.setDisplayName(displayName);
+        player.setWebSocketId(sessionId);
         DeckModel handCards = new DeckModel();
         deckRepository.save(handCards);
         player.setHandCards(handCards);
@@ -107,8 +115,6 @@ public class WebSocketGameService {
             throw new IllegalStateException("Invalid Username");
         }
         UserModel user = userOptional.get();
-        user.setWebSocketId(sessionId);
-        userRepository.save(user);
 
         PlayerModel player = webSocketUtilService.findPlayer(username, joinGameDto.getGameCode());
         if(player != null) {
@@ -119,6 +125,7 @@ public class WebSocketGameService {
         player = new PlayerModel();
         player.setUserId(user);
         player.setDisplayName(joinGameDto.getDisplayName());
+        player.setWebSocketId(sessionId);
         DeckModel handCards = new DeckModel();
         deckRepository.save(handCards);
         player.setHandCards(handCards);
@@ -144,6 +151,66 @@ public class WebSocketGameService {
                 .sender(joinGameDto.getDisplayName())
                 .responseType(ResponseType.JOIN_GAME)
                 .value(playersOfGame)
+                .build();
+    }
+
+
+    public WebSocketResponseDto joinGameAnonymous(JoinGameDto joinGameDto, String sessionId) throws IllegalArgumentException, IllegalStateException {
+        Optional<GameModel> gameOptional = gameRepository.findByGameCode(joinGameDto.getGameCode());
+        if(gameOptional.isEmpty()) {
+            throw new IllegalArgumentException("Invalid Game Code");
+        }
+        GameModel game = gameOptional.get();
+        Set<PlayerModel> players = game.getPlayers();
+        if(players.size() == 4) {
+            throw new IllegalStateException("Game already has 4 players");
+        }
+
+        UserModel user = new UserModel();
+        String username = generateRandomString(10);
+        user.setUsername(username);
+        user.setEmail(generateRandomString(10));
+        String password = generateRandomString(10);
+        user.setUserPassword(passwordEncoder.encode(password));
+        userRepository.save(user);
+
+        LoginUserDto loginUserDto = new LoginUserDto();
+        loginUserDto.setPassword(password);
+        loginUserDto.setUsername(username);
+        UserModel authenticatedUser = authenticationService.authenticate(loginUserDto);
+        String jwtToken = jwtService.generateToken(authenticatedUser);
+
+        // Create Player
+        PlayerModel player = new PlayerModel();
+        player.setUserId(user);
+        player.setDisplayName(joinGameDto.getDisplayName());
+        player.setWebSocketId(sessionId);
+        DeckModel handCards = new DeckModel();
+        deckRepository.save(handCards);
+        player.setHandCards(handCards);
+        // Find highest turnIndicator
+        int hightestIndicator = 0;
+        for(PlayerModel otherPlayer : game.getPlayers()) {
+            if(otherPlayer.getTurnIndicator() > hightestIndicator) {
+                hightestIndicator = otherPlayer.getTurnIndicator();
+            }
+        }
+        player.setTurnIndicator(hightestIndicator + 1);
+        playerRepository.save(player);
+
+        player.setGameId(game);
+        playerRepository.save(player);
+
+        List<String> playersOfGame = new ArrayList<>();
+        for(PlayerModel otherPlayer : game.getPlayers()) {
+            playersOfGame.add(otherPlayer.getDisplayName());
+        }
+
+        return WebSocketResponseDto.builder()
+                .sender(joinGameDto.getDisplayName())
+                .responseType(ResponseType.JOIN_GAME)
+                .value(playersOfGame)
+                .additionalValue(jwtToken)
                 .build();
     }
 
@@ -237,9 +304,14 @@ public class WebSocketGameService {
 
 
     private String generateGameCode(){
+        return generateRandomString(6);
+    }
+
+
+    private String generateRandomString(int numberOfCharacters) {
         String allowed_characters = "ABCDEFGHIJKLMNOPRSTUVWXYZ0123456789";
         StringBuilder sb = new StringBuilder(6);
-        for(int i = 0; i < 6; i++){
+        for(int i = 0; i < numberOfCharacters; i++){
             sb.append(allowed_characters.charAt((int)(Math.random()*allowed_characters.length())));
         }
         return sb.toString();
