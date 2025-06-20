@@ -1,9 +1,6 @@
 package game.CardGame.webSocketServices;
 
-import game.CardGame.dtos.CardDto;
-import game.CardGame.dtos.CardPlayedResponseDto;
-import game.CardGame.dtos.PlayCardDto;
-import game.CardGame.dtos.WebSocketResponseDto;
+import game.CardGame.dtos.*;
 import game.CardGame.enums.ResponseType;
 import game.CardGame.models.CardModel;
 import game.CardGame.models.GameModel;
@@ -102,19 +99,36 @@ public class WebSocketGameplayService {
 
         PlayerModel newCurrentPlayer = setNextPlayer(game, callingPlayer);
 
-        CardPlayedResponseDto cardPlayedResponseDto = new CardPlayedResponseDto();
+
         CardDto cardDto = new CardDto();
         cardDto.setCardEvent(playCardDto.getCard().getCardEvent());
         cardDto.setCardValue(playCardDto.getCard().getCardValue());
         cardDto.setCardName(playCardDto.getCard().getCardName());
-        cardPlayedResponseDto.setCard(cardDto);
-        cardPlayedResponseDto.setNewCurrentPlayer(newCurrentPlayer.getDisplayName());
 
-        return WebSocketResponseDto.builder()
-                .sender(callingPlayer.getDisplayName())
-                .responseType(ResponseType.CARD_PLACED)
-                .value(cardPlayedResponseDto)
-                .build();
+        if(webSocketUtilService.viewTopCard(callingPlayer.getHandCards()) != null) {
+            CardPlayedResponseDto cardPlayedResponseDto = new CardPlayedResponseDto();
+            cardPlayedResponseDto.setCard(cardDto);
+            cardPlayedResponseDto.setNewCurrentPlayer(newCurrentPlayer.getDisplayName());
+
+            return WebSocketResponseDto.builder()
+                    .sender(callingPlayer.getDisplayName())
+                    .responseType(ResponseType.CARD_PLACED)
+                    .value(cardPlayedResponseDto)
+                    .build();
+        }
+        else {
+            PlayerWonResponseDto playerWonResponseDto = new PlayerWonResponseDto();
+            playerWonResponseDto.setPlayerName(callingPlayer.getDisplayName());
+            playerWonResponseDto.setCard(cardDto);
+            game.setGameStatus("Finished");
+            gameRepository.save(game);
+
+            return WebSocketResponseDto.builder()
+                    .sender(callingPlayer.getDisplayName())
+                    .responseType(ResponseType.GAME_FINISHED)
+                    .value(playerWonResponseDto)
+                    .build();
+        }
     }
 
 
