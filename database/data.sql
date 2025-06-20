@@ -39,8 +39,10 @@ CREATE TABLE game (
   current_player_id INT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   center_deck INT NOT NULL,
+  discard_pile INT NOT NULL,
   host_id INT NOT NULL,
-  FOREIGN KEY (center_deck) REFERENCES deck(id)
+  FOREIGN KEY (center_deck) REFERENCES deck(id),
+  FOREIGN KEY (discard_pile) REFERENCES deck(id)
 );
 
 CREATE TABLE player (
@@ -49,6 +51,7 @@ CREATE TABLE player (
   user_id INT NOT NULL,
   hand_cards INT NOT NULL,
   display_name VARCHAR(50),
+  turn_indicator INT,
   FOREIGN KEY (game_id) REFERENCES game(id) ON DELETE CASCADE,
   FOREIGN KEY (user_id) REFERENCES users(id),
   FOREIGN KEY (hand_cards) REFERENCES deck(id)

@@ -38,6 +38,10 @@ public class GameModel {
     private DeckModel centerDeck;
 
     @OneToOne
+    @JoinColumn(name = "discard_pile", nullable = false)
+    private DeckModel discardPile;
+
+    @OneToOne
     @JoinColumn(name = "host_id", nullable = false)
     private PlayerModel hostId;
 

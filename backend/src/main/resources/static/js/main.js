@@ -10,6 +10,9 @@ const jwtInput = document.querySelector("#jwtInput")
 const tok_input= document.querySelector("#token")
 const card_input = document.querySelector("#card_input")
 const gameCodeInput = document.querySelector("#gameCodeInput")
+const cardNameInput = document.querySelector("#cardNameInput")
+const cardValueInput = document.querySelector("#cardValueInput")
+const cardEventInput = document.querySelector("#cardEventInput")
 
 
 var sub_connect = document.querySelector('#connectWSButton')
@@ -21,6 +24,7 @@ var sub_draw = document.querySelector("#but_drew")
 var sub_yield = document.querySelector("#but_yield")
 var sub_register = document.querySelector("#registerButton")
 var sub_login = document.querySelector("#loginButton")
+var sub_play_card = document.querySelector("#playCardButton")
 
 
 
@@ -181,6 +185,30 @@ function startGame() {
     event.preventDefault();
 }
 
+
+function playCard() {
+    let gameCodeContent = gameCodeInput.value;
+    let cardNameContent = cardNameInput.value;
+    let cardValueContent = cardValueInput.value;
+    let cardEventContent = cardEventInput.value;
+    if(stompClient){
+        const gameState = {
+            gameCode: gameCodeContent,
+            cardName: cardNameContent,
+            cardValue: cardValueContent,
+            cardEvent: cardEventContent,
+            action: 'PLAY_CARD'
+        };
+
+        let jwt = jwtInput.value;
+        stompClient.send('/app/game.card.play', {
+                                            Authorization: `Bearer ${jwt}`
+                                          }, JSON.stringify(gameState))
+    }
+
+    event.preventDefault();
+}
+
 function  placeCard(event){
 
     //Methode for Selecting Card
@@ -229,3 +257,4 @@ sub_start_game.addEventListener("click", startGame);
 //sub_yield.addEventListener("click", yieldTurn)
 sub_register.addEventListener("click", register);
 sub_login.addEventListener("click", login);
+sub_play_card.addEventListener("click", playCard);

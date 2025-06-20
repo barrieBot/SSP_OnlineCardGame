@@ -5,8 +5,8 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class PlayCardDto {
-    String gameCode;
+public class CardPlayedResponseDto {
+    String newCurrentPlayer;
     String cardName;
     Integer cardValue;
     String cardEvent;

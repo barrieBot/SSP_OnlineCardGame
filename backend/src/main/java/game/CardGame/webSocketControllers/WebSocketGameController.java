@@ -1,10 +1,7 @@
 package game.CardGame.webSocketControllers;
 
 
-import game.CardGame.dtos.CreateGameDto;
-import game.CardGame.dtos.StartGameDto;
-import game.CardGame.dtos.WebSocketResponseDto;
-import game.CardGame.dtos.JoinGameDto;
+import game.CardGame.dtos.*;
 import game.CardGame.enums.ResponseType;
 import game.CardGame.services.JwtService;
 import game.CardGame.webSocketServices.WebSocketGameService;
@@ -115,6 +112,38 @@ public class WebSocketGameController {
         }
 
         webSocketGameService.broadcastWithPlayerHandCards(startGameDto.getGameCode(), webSocketResponse, headerAccessor.getMessageHeaders());
+    }
+
+
+    @MessageMapping("/game.card.play")
+    public void playCard(@Payload PlayCardDto playCardDto, SimpMessageHeaderAccessor headerAccessor) {
+        String jwtToken;
+        try {
+            jwtToken = jwtService.verifyJwtForWebSocket(headerAccessor);
+        }
+        catch (Exception e) {
+            WebSocketResponseDto errorResponse = new WebSocketResponseDto(ResponseType.ERROR_INVALID_JWT, "Authentication failed");
+            template.convertAndSendToUser(headerAccessor.getSessionId(), "/queue/private", errorResponse, headerAccessor.getMessageHeaders());
+            return;
+        }
+        String username = jwtService.extractUsername(jwtToken);
+        String gameToken = playCardDto.getGameCode();
+        WebSocketResponseDto webSocketResponse;
+        try {
+            webSocketResponse = webSocketGameService.playCard(playCardDto, username, gameToken);
+        }
+        catch (IllegalArgumentException e) {
+            WebSocketResponseDto errorResponse = new WebSocketResponseDto(ResponseType.ERROR_INVALID_ARGUMENT, e.getMessage());
+            template.convertAndSendToUser(headerAccessor.getSessionId(), "/queue/private", errorResponse, headerAccessor.getMessageHeaders());
+            return;
+        }
+        catch (IllegalStateException e) {
+            WebSocketResponseDto errorResponse = new WebSocketResponseDto(ResponseType.ERROR_INVALID_STATE, e.getMessage());
+            template.convertAndSendToUser(headerAccessor.getSessionId(), "/queue/private", errorResponse, headerAccessor.getMessageHeaders());
+            return;
+        }
+
+        webSocketGameService.broadcast(gameToken, webSocketResponse, headerAccessor.getMessageHeaders());
     }
 
 

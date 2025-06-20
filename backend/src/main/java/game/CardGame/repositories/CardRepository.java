@@ -6,10 +6,13 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
+import java.util.Set;
 
 @Repository
 public interface CardRepository extends CrudRepository<CardModel, Integer> {
     Optional<CardModel> findById(Integer id);
 
-    Optional<CardModel> findTopDeckPositionByDeckIdOrderByDeckPosition(DeckModel deckId);
+    Optional<CardModel> findTopDeckPositionByDeckIdOrderByDeckPositionDesc(DeckModel deckId);
+
+    Optional<Set<CardModel>> findByDeckId(DeckModel deckId);
 }

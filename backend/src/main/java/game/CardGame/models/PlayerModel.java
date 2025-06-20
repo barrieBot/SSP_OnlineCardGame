@@ -29,4 +29,7 @@ public class PlayerModel {
 
     @Column(name = "display_name", length = 50)
     private String displayName;
+
+    @Column(name = "turn_indicator")
+    private Integer turnIndicator;
 }
