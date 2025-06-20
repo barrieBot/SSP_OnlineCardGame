@@ -1,5 +1,6 @@
 package game.CardGame.webSocketControllers;
 
+import game.CardGame.dtos.GameCodeDto;
 import game.CardGame.dtos.PlayCardDto;
 import game.CardGame.dtos.WebSocketResponseDto;
 import game.CardGame.enums.ResponseType;
@@ -57,5 +58,37 @@ public class WebSocketGameplayController {
         }
 
         webSocketUtilService.broadcast(gameToken, webSocketResponse, headerAccessor.getMessageHeaders());
+    }
+
+
+    @MessageMapping("/game.card.draw")
+    public void drawCard(@Payload GameCodeDto gameCodeDto, SimpMessageHeaderAccessor headerAccessor) {
+        String jwtToken;
+        try {
+            jwtToken = jwtService.verifyJwtForWebSocket(headerAccessor);
+        }
+        catch (Exception e) {
+            WebSocketResponseDto errorResponse = new WebSocketResponseDto(ResponseType.ERROR_INVALID_JWT, "Authentication failed");
+            template.convertAndSendToUser(headerAccessor.getSessionId(), "/queue/private", errorResponse, headerAccessor.getMessageHeaders());
+            return;
+        }
+        String username = jwtService.extractUsername(jwtToken);
+        String gameCode = gameCodeDto.getGameCode();
+        WebSocketResponseDto webSocketResponse;
+        try {
+            webSocketResponse = webSocketGameplayService.drawCard(gameCode, username);
+        }
+        catch (IllegalArgumentException e) {
+            WebSocketResponseDto errorResponse = new WebSocketResponseDto(ResponseType.ERROR_INVALID_ARGUMENT, e.getMessage());
+            template.convertAndSendToUser(headerAccessor.getSessionId(), "/queue/private", errorResponse, headerAccessor.getMessageHeaders());
+            return;
+        }
+        catch (IllegalStateException e) {
+            WebSocketResponseDto errorResponse = new WebSocketResponseDto(ResponseType.ERROR_INVALID_STATE, e.getMessage());
+            template.convertAndSendToUser(headerAccessor.getSessionId(), "/queue/private", errorResponse, headerAccessor.getMessageHeaders());
+            return;
+        }
+
+        webSocketUtilService.broadcast(gameCode, webSocketResponse, headerAccessor.getMessageHeaders());
     }
 }

@@ -25,6 +25,7 @@ var sub_yield = document.querySelector("#but_yield")
 var sub_register = document.querySelector("#registerButton")
 var sub_login = document.querySelector("#loginButton")
 var sub_play_card = document.querySelector("#playCardButton")
+var sub_draw_card = document.querySelector("#drawCardButton")
 
 
 
@@ -211,7 +212,24 @@ function playCard() {
     event.preventDefault();
 }
 
-function  placeCard(event){
+function  drawCard(event){
+    let gameCodeContent = gameCodeInput.value;
+    if(stompClient){
+        const gameState = {
+            gameCode: gameCodeContent,
+            action: 'PLAY_CARD'
+        };
+
+        let jwt = jwtInput.value;
+        stompClient.send('/app/game.card.draw', {
+                                            Authorization: `Bearer ${jwt}`
+                                          }, JSON.stringify(gameState))
+    }
+
+    event.preventDefault();
+}
+
+/*function  placeCard(event){
 
     //Methode for Selecting Card
     const Card = 's5';
@@ -224,12 +242,6 @@ function  placeCard(event){
 
         stompClient.send('/app/game.playerAction', {}, JSON.stringify(gameState))
     }
-
-    event.preventDefault();
-}
-
-function  drawCard(event){
-
 
     event.preventDefault();
 }
@@ -247,16 +259,14 @@ function sendCard(event){
 function yieldTurn(event){
 
     event.preventDefault();
-}
+}*/
 
 
 sub_connect.addEventListener("click", connect)
 sub_gen.addEventListener("click", makeGame);
 sub_join_game.addEventListener("click", joinGame);
 sub_start_game.addEventListener("click", startGame);
-//sub_send.addEventListener("click", sendCard)
-//sub_draw.addEventListener("click", drawCard)
-//sub_yield.addEventListener("click", yieldTurn)
 sub_register.addEventListener("click", register);
 sub_login.addEventListener("click", login);
 sub_play_card.addEventListener("click", playCard);
+sub_draw_card.addEventListener("click", drawCard);

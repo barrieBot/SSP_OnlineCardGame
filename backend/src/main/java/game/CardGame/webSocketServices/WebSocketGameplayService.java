@@ -14,8 +14,7 @@ import game.CardGame.repositories.PlayerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 @Service
 public class WebSocketGameplayService {
@@ -101,14 +100,7 @@ public class WebSocketGameplayService {
         cardToPlay.setDeckPosition(webSocketUtilService.viewTopCard(game.getDiscardPile()).getDeckPosition() + 1);
         cardRepository.save(cardToPlay);
 
-        // Change Current Player
-        int newPlayerTurnIndicator = callingPlayer.getTurnIndicator() + 1;
-        if(newPlayerTurnIndicator == 5) {
-            newPlayerTurnIndicator = 1;
-        }
-        PlayerModel newCurrentPlayer = playerRepository.findByGameIdAndTurnIndicator(game, newPlayerTurnIndicator).get();
-        game.setCurrentPlayerId(newCurrentPlayer);
-        gameRepository.save(game);
+        PlayerModel newCurrentPlayer = setNextPlayer(game, callingPlayer);
 
         CardPlayedResponseDto cardPlayedResponseDto = new CardPlayedResponseDto();
         CardDto cardDto = new CardDto();
@@ -123,5 +115,81 @@ public class WebSocketGameplayService {
                 .responseType(ResponseType.CARD_PLACED)
                 .value(cardPlayedResponseDto)
                 .build();
+    }
+
+
+    public WebSocketResponseDto drawCard(String gameCode, String username) throws IllegalArgumentException, IllegalStateException {
+        Optional<GameModel> gameOptional = gameRepository.findByGameCode(gameCode);
+        if(gameOptional.isEmpty()) {
+            throw new IllegalArgumentException("Invalid Game Code");
+        }
+        GameModel game = gameOptional.get();
+
+        if(!game.getGameStatus().equals("Running")) {
+            throw new IllegalStateException("Game is not running");
+        }
+
+        PlayerModel callingPlayer = webSocketUtilService.findPlayer(username, gameCode);
+        if(callingPlayer == null) {
+            throw new IllegalStateException("User is not part of the game");
+        }
+        if(!game.getCurrentPlayerId().getId().equals(callingPlayer.getId())) {
+            throw new IllegalStateException("Not Users turn");
+        }
+
+        PlayerModel newCurrentPlayer = setNextPlayer(game, callingPlayer);
+
+        CardModel drawnCard = webSocketUtilService.viewTopCard(game.getCenterDeck());
+        if(drawnCard == null) {
+            shuffleDiscardPile(game);
+            drawnCard = webSocketUtilService.viewTopCard(game.getCenterDeck());
+        }
+        drawnCard.setDeckId(callingPlayer.getHandCards());
+        drawnCard.setDeckPosition(webSocketUtilService.viewTopCard(callingPlayer.getHandCards()).getDeckPosition() + 1);
+        cardRepository.save(drawnCard);
+
+        CardDto cardDto = new CardDto();
+        cardDto.setCardEvent(drawnCard.getCardType().getCardEvent());
+        cardDto.setCardValue(drawnCard.getCardType().getCardValue());
+        cardDto.setCardName(drawnCard.getCardType().getCardName());
+
+        return WebSocketResponseDto.builder()
+                .sender(callingPlayer.getDisplayName())
+                .responseType(ResponseType.CARD_DRAWN)
+                .value(cardDto)
+                .build();
+    }
+
+
+    private void shuffleDiscardPile(GameModel game) {
+        Set<CardModel> discardedCards = cardRepository.findByDeckId(game.getDiscardPile()).get();
+        CardModel topCard = webSocketUtilService.viewTopCard(game.getDiscardPile());
+        List<CardModel> cardsToShuffle = new ArrayList<>();
+        for(CardModel card : discardedCards) {
+            if(!card.getId().equals(topCard.getId())) {
+                cardsToShuffle.add(card);
+            }
+        }
+        Collections.shuffle(cardsToShuffle);
+        for(int i = 1; i <= cardsToShuffle.size(); i++) {
+            CardModel card = cardsToShuffle.get(i - 1);
+            card.setDeckPosition(i);
+            card.setDeckId(game.getCenterDeck());
+            cardRepository.save(card);
+        }
+        topCard.setDeckPosition(1);
+        cardRepository.save(topCard);
+    }
+
+
+    private PlayerModel setNextPlayer(GameModel game, PlayerModel callingPlayer) {
+        int newPlayerTurnIndicator = callingPlayer.getTurnIndicator() + 1;
+        if(newPlayerTurnIndicator == 5) {
+            newPlayerTurnIndicator = 1;
+        }
+        PlayerModel newCurrentPlayer = playerRepository.findByGameIdAndTurnIndicator(game, newPlayerTurnIndicator).get();
+        game.setCurrentPlayerId(newCurrentPlayer);
+        gameRepository.save(game);
+        return newCurrentPlayer;
     }
 }

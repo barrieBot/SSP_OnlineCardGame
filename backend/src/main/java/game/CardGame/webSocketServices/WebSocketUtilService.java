@@ -31,7 +31,6 @@ public class WebSocketUtilService {
     public CardModel viewTopCard(DeckModel deck) {
         Optional<CardModel> cardOptional = cardRepository.findTopDeckPositionByDeckIdOrderByDeckPositionDesc(deck);
         if(cardOptional.isEmpty()) {
-            // TODO: Shuffle
             return null;
         }
         else {

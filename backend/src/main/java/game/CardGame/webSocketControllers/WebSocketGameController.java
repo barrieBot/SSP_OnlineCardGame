@@ -88,7 +88,7 @@ public class WebSocketGameController {
 
 
     @MessageMapping("/game.start")
-    public void startGame(@Payload StartGameDto startGameDto, SimpMessageHeaderAccessor headerAccessor) {
+    public void startGame(@Payload GameCodeDto gameCodeDto, SimpMessageHeaderAccessor headerAccessor) {
         String jwtToken;
         try {
             jwtToken = jwtService.verifyJwtForWebSocket(headerAccessor);
@@ -101,7 +101,7 @@ public class WebSocketGameController {
         String username = jwtService.extractUsername(jwtToken);
         WebSocketResponseDto webSocketResponse;
         try {
-            webSocketResponse = webSocketGameService.startGame(startGameDto, username);
+            webSocketResponse = webSocketGameService.startGame(gameCodeDto, username);
         }
         catch (IllegalArgumentException e) {
             WebSocketResponseDto errorResponse = new WebSocketResponseDto(ResponseType.ERROR_INVALID_ARGUMENT, e.getMessage());
@@ -114,7 +114,7 @@ public class WebSocketGameController {
             return;
         }
 
-        webSocketUtilService.broadcastWithPlayerHandCards(startGameDto.getGameCode(), webSocketResponse, headerAccessor.getMessageHeaders());
+        webSocketUtilService.broadcastWithPlayerHandCards(gameCodeDto.getGameCode(), webSocketResponse, headerAccessor.getMessageHeaders());
     }
 
 

@@ -6,7 +6,6 @@ import game.CardGame.models.*;
 import game.CardGame.repositories.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
@@ -149,8 +148,8 @@ public class WebSocketGameService {
     }
 
 
-    public WebSocketResponseDto startGame(StartGameDto startGameDto, String username) throws IllegalArgumentException, IllegalStateException {
-        Optional<GameModel> gameOptional = gameRepository.findByGameCode(startGameDto.getGameCode());
+    public WebSocketResponseDto startGame(GameCodeDto gameCodeDto, String username) throws IllegalArgumentException, IllegalStateException {
+        Optional<GameModel> gameOptional = gameRepository.findByGameCode(gameCodeDto.getGameCode());
         if(gameOptional.isEmpty()) {
             throw new IllegalArgumentException("Invalid Game Code");
         }
@@ -160,7 +159,7 @@ public class WebSocketGameService {
             throw new IllegalStateException("Game has already started or finished");
         }
 
-        PlayerModel callingPlayer = webSocketUtilService.findPlayer(username, startGameDto.getGameCode());
+        PlayerModel callingPlayer = webSocketUtilService.findPlayer(username, gameCodeDto.getGameCode());
         if(callingPlayer == null) {
             throw new IllegalStateException("User is not part of the game");
         }

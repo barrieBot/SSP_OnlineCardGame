@@ -5,6 +5,6 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class StartGameDto {
+public class GameCodeDto {
     private String gameCode;
 }
