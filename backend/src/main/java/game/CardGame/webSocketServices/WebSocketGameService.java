@@ -189,9 +189,16 @@ public class WebSocketGameService {
         card.setDeckPosition(1);
         cardRepository.save(card);
 
+        CardDto cardDto = new CardDto();
+        CardModel topCard = viewTopCard(game.getDiscardPile());
+        cardDto.setCardName(topCard.getCardType().getCardName());
+        cardDto.setCardValue(topCard.getCardType().getCardValue());
+        cardDto.setCardEvent(topCard.getCardType().getCardEvent());
+
         return WebSocketResponseDto.builder()
                 .sender(callingPlayer.getDisplayName())
                 .responseType(ResponseType.START_GAME)
+                .additionalValue(cardDto)
                 .build();
     }
 
@@ -220,9 +227,9 @@ public class WebSocketGameService {
         boolean playerHasCard = false;
         CardModel cardToPlay = null;
         for(CardModel card : handCards) {
-            if(card.getCardType().getCardName().equals(playCardDto.getCardName())
-                    && card.getCardType().getCardValue().equals(playCardDto.getCardValue())
-                    && card.getCardType().getCardEvent().equals(playCardDto.getCardEvent())) {
+            if(card.getCardType().getCardName().equals(playCardDto.getCard().getCardName())
+                    && card.getCardType().getCardValue().equals(playCardDto.getCard().getCardValue())
+                    && card.getCardType().getCardEvent().equals(playCardDto.getCard().getCardEvent())) {
                 playerHasCard = true;
                 cardToPlay = card;
             }
@@ -236,26 +243,26 @@ public class WebSocketGameService {
         boolean validCardPlay = false;
         switch (topCard.getCardType().getCardName()) {
             case "Rock" -> {
-                if (playCardDto.getCardName().equals("Paper")) {
+                if (playCardDto.getCard().getCardName().equals("Paper")) {
                     validCardPlay = true;
-                } else if (playCardDto.getCardName().equals("Rock")
-                        && playCardDto.getCardValue() > topCard.getCardType().getCardValue()) {
+                } else if (playCardDto.getCard().getCardName().equals("Rock")
+                        && playCardDto.getCard().getCardValue() > topCard.getCardType().getCardValue()) {
                     validCardPlay = true;
                 }
             }
             case "Paper" -> {
-                if (playCardDto.getCardName().equals("Scissors")) {
+                if (playCardDto.getCard().getCardName().equals("Scissors")) {
                     validCardPlay = true;
-                } else if (playCardDto.getCardName().equals("Paper")
-                        && playCardDto.getCardValue() > topCard.getCardType().getCardValue()) {
+                } else if (playCardDto.getCard().getCardName().equals("Paper")
+                        && playCardDto.getCard().getCardValue() > topCard.getCardType().getCardValue()) {
                     validCardPlay = true;
                 }
             }
             case "Scissors" -> {
-                if (playCardDto.getCardName().equals("Rock")) {
+                if (playCardDto.getCard().getCardName().equals("Rock")) {
                     validCardPlay = true;
-                } else if (playCardDto.getCardName().equals("Scissors")
-                        && playCardDto.getCardValue() > topCard.getCardType().getCardValue()) {
+                } else if (playCardDto.getCard().getCardName().equals("Scissors")
+                        && playCardDto.getCard().getCardValue() > topCard.getCardType().getCardValue()) {
                     validCardPlay = true;
                 }
             }
@@ -279,9 +286,11 @@ public class WebSocketGameService {
         gameRepository.save(game);
 
         CardPlayedResponseDto cardPlayedResponseDto = new CardPlayedResponseDto();
-        cardPlayedResponseDto.setCardEvent(playCardDto.getCardEvent());
-        cardPlayedResponseDto.setCardValue(playCardDto.getCardValue());
-        cardPlayedResponseDto.setCardName(playCardDto.getCardName());
+        CardDto cardDto = new CardDto();
+        cardDto.setCardEvent(playCardDto.getCard().getCardEvent());
+        cardDto.setCardValue(playCardDto.getCard().getCardValue());
+        cardDto.setCardName(playCardDto.getCard().getCardName());
+        cardPlayedResponseDto.setCard(cardDto);
         cardPlayedResponseDto.setNewCurrentPlayer(newCurrentPlayer.getDisplayName());
 
         return WebSocketResponseDto.builder()
@@ -350,12 +359,16 @@ public class WebSocketGameService {
         GameModel game = gameOptional.get();
         List<Object> values = new ArrayList<>();
         for (PlayerModel player : playerRepository.findByGameIdOrderByTurnIndicatorDesc(game).get()) {
-            ArrayList<String> cardNames = new ArrayList<>();
+            ArrayList<CardDto> cardDtos = new ArrayList<>();
             Set<CardModel> cards =  cardRepository.findByDeckId(player.getHandCards()).get();
             for(CardModel card : cards) {
-                cardNames.add(stringifyCardInfo(card));
+                CardDto cardDto = new CardDto();
+                cardDto.setCardName(card.getCardType().getCardName());
+                cardDto.setCardValue(card.getCardType().getCardValue());
+                cardDto.setCardEvent(card.getCardType().getCardEvent());
+                cardDtos.add(cardDto);
             }
-            values.add(cardNames);
+            values.add(cardDtos);
         }
         broadcast(game_code, action, headers, values);
     }

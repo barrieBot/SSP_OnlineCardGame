@@ -13,6 +13,7 @@ public class WebSocketResponseDto {
     private String id;
     private String sender;
     private Object value;
+    private Object additionalValue;
 
     public WebSocketResponseDto(ResponseType responseType, String message) {
         this.responseType = responseType;

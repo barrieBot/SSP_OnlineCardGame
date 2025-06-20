@@ -7,7 +7,5 @@ import lombok.Setter;
 @Setter
 public class PlayCardDto {
     String gameCode;
-    String cardName;
-    Integer cardValue;
-    String cardEvent;
+    CardDto card;
 }

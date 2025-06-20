@@ -194,9 +194,11 @@ function playCard() {
     if(stompClient){
         const gameState = {
             gameCode: gameCodeContent,
-            cardName: cardNameContent,
-            cardValue: cardValueContent,
-            cardEvent: cardEventContent,
+            card: {
+                cardName: cardNameContent,
+                cardValue: cardValueContent,
+                cardEvent: cardEventContent
+            },
             action: 'PLAY_CARD'
         };
 
