@@ -75,6 +75,7 @@ public class WebSocketGameService {
         new_Game.setGameCode(game_code);
         new_Game.setHostId(player);
         new_Game.setCurrentPlayerId(player);
+        new_Game.setDrawCount(0);
         DeckModel centerDeck = new DeckModel();
         deckRepository.save(centerDeck);
         new_Game.setCenterDeck(centerDeck);
@@ -389,9 +390,12 @@ public class WebSocketGameService {
     private void setupStartingDeck(DeckModel deck) {
         String[] types = {"Rock", "Paper", "Scissors"};
         int maxNumber = 9;
+        int plus2Count = 4;
+        int plus4Count = 2;
         int numberOfSets = 2;
-        List<Integer> range = new ArrayList<>(IntStream.range(1, maxNumber * types.length * numberOfSets + 1).boxed().toList());
+        List<Integer> range = new ArrayList<>(IntStream.range(1, maxNumber * types.length * numberOfSets + 1 + plus2Count * types.length + plus4Count * types.length).boxed().toList());
         Collections.shuffle(range);
+        Deque<Integer> stack = new ArrayDeque<>(range);
         for(int i = 0; i < numberOfSets; i++) {
             for (int j = 0; j < types.length; j++) {
                 String type = types[j];
@@ -400,9 +404,31 @@ public class WebSocketGameService {
                     CardTypeModel cardType = cardTypeRepository.findByCardNameAndCardValueAndCardEvent(type, k, "NONE").get();
                     card.setCardType(cardType);
                     card.setDeckId(deck);
-                    card.setDeckPosition(range.get((i * types.length * maxNumber) + (j * maxNumber) + k - 1));
+                    card.setDeckPosition(stack.pop());
                     cardRepository.save(card);
                 }
+            }
+        }
+        for(int i = 0; i < plus2Count; i++) {
+            for (int j = 1; j <= types.length; j++) {
+                String type = types[j - 1];
+                CardModel card = new CardModel();
+                CardTypeModel cardType = cardTypeRepository.findByCardNameAndCardValueAndCardEvent(type, 2, "DRAW").get();
+                card.setCardType(cardType);
+                card.setDeckId(deck);
+                card.setDeckPosition(stack.pop());
+                cardRepository.save(card);
+            }
+        }
+        for(int i = 0; i < plus4Count; i++) {
+            for (int j = 1; j <= types.length; j++) {
+                String type = types[j - 1];
+                CardModel card = new CardModel();
+                CardTypeModel cardType = cardTypeRepository.findByCardNameAndCardValueAndCardEvent(type, 4, "DRAW").get();
+                card.setCardType(cardType);
+                card.setDeckId(deck);
+                card.setDeckPosition(stack.pop());
+                cardRepository.save(card);
             }
         }
     }

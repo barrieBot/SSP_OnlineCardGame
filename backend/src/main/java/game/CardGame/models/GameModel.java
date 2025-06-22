@@ -49,6 +49,9 @@ public class GameModel {
     @JoinColumn(name = "winning_player_id")
     private PlayerModel winningPlayerId;
 
+    @Column(name = "drawCount", nullable = false)
+    private Integer drawCount;
+
     @OneToMany(mappedBy = "gameId", fetch = FetchType.EAGER)
     private Set<PlayerModel> players;
 }

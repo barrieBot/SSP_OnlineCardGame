@@ -44,6 +44,7 @@ CREATE TABLE game (
   discard_pile INT,
   host_id INT,
   winning_player_id INT,
+  draw_count INT NOT NULL,
   FOREIGN KEY (center_deck) REFERENCES deck(id),
   FOREIGN KEY (discard_pile) REFERENCES deck(id)
 );
@@ -101,3 +102,12 @@ INSERT INTO card_type (card_name, card_value, card_event) VALUES ("Scissors", 6,
 INSERT INTO card_type (card_name, card_value, card_event) VALUES ("Scissors", 7, "NONE");
 INSERT INTO card_type (card_name, card_value, card_event) VALUES ("Scissors", 8, "NONE");
 INSERT INTO card_type (card_name, card_value, card_event) VALUES ("Scissors", 9, "NONE");
+
+INSERT INTO card_type (card_name, card_value, card_event) VALUES ("Rock", 2, "DRAW");
+INSERT INTO card_type (card_name, card_value, card_event) VALUES ("Rock", 4, "DRAW");
+
+INSERT INTO card_type (card_name, card_value, card_event) VALUES ("Paper", 2, "DRAW");
+INSERT INTO card_type (card_name, card_value, card_event) VALUES ("Paper", 4, "DRAW");
+
+INSERT INTO card_type (card_name, card_value, card_event) VALUES ("Scissors", 2, "DRAW");
+INSERT INTO card_type (card_name, card_value, card_event) VALUES ("Scissors", 4, "DRAW");
