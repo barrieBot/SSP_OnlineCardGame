@@ -384,6 +384,15 @@ public class WebSocketGameService {
         card.setDeckId(game.getDiscardPile());
         card.setDeckPosition(1);
         cardRepository.save(card);
+
+        if(card.getCardType().getCardEvent().equals("DRAW")) {
+            game.setDrawCount(card.getCardType().getCardValue());
+            gameRepository.save(game);
+        }
+        else {
+            game.setDrawCount(0);
+            gameRepository.save(game);
+        }
     }
 
 

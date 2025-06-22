@@ -195,28 +195,38 @@ public class WebSocketGameplayService {
 
         PlayerModel newCurrentPlayer = setNextPlayer(game, callingPlayer);
 
-        CardModel drawnCard = webSocketUtilService.viewTopCard(game.getCenterDeck());
-        if(drawnCard == null) {
-            shuffleDiscardPile(game);
-            drawnCard = webSocketUtilService.viewTopCard(game.getCenterDeck());
-        }
-        drawnCard.setDeckId(callingPlayer.getHandCards());
-        drawnCard.setDeckPosition(webSocketUtilService.viewTopCard(callingPlayer.getHandCards()).getDeckPosition() + 1);
-        cardRepository.save(drawnCard);
-
-        CardDto cardDto = new CardDto();
-        cardDto.setCardEvent(drawnCard.getCardType().getCardEvent());
-        cardDto.setCardValue(drawnCard.getCardType().getCardValue());
-        cardDto.setCardName(drawnCard.getCardType().getCardName());
-
         int drawCount = game.getDrawCount();
+        if(drawCount == 0) {
+            drawCount = 1;
+        }
+
+        List<CardDto> drawnCards = new ArrayList<>();
+
+        for(int i = 0; i < drawCount; i++) {
+            CardModel drawnCard = webSocketUtilService.viewTopCard(game.getCenterDeck());
+            if (drawnCard == null) {
+                shuffleDiscardPile(game);
+                drawnCard = webSocketUtilService.viewTopCard(game.getCenterDeck());
+            }
+            drawnCard.setDeckId(callingPlayer.getHandCards());
+            drawnCard.setDeckPosition(webSocketUtilService.viewTopCard(callingPlayer.getHandCards()).getDeckPosition() + 1);
+            cardRepository.save(drawnCard);
+
+            CardDto cardDto = new CardDto();
+            cardDto.setCardEvent(drawnCard.getCardType().getCardEvent());
+            cardDto.setCardValue(drawnCard.getCardType().getCardValue());
+            cardDto.setCardName(drawnCard.getCardType().getCardName());
+
+            drawnCards.add(cardDto);
+        }
+
         game.setDrawCount(0);
         gameRepository.save(game);
 
         return WebSocketResponseDto.builder()
                 .sender(callingPlayer.getDisplayName())
                 .responseType(ResponseType.CARD_DRAWN)
-                .value(cardDto)
+                .value(drawnCards)
                 .additionalValue(drawCount)
                 .build();
     }
