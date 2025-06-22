@@ -10,6 +10,7 @@ import game.CardGame.repositories.CardRepository;
 import game.CardGame.repositories.GameRepository;
 import game.CardGame.repositories.PlayerRepository;
 import game.CardGame.repositories.UserRepository;
+import game.CardGame.responseDtos.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -28,7 +29,7 @@ public class WebSocketGameplayService {
     @Autowired
     private UserRepository userRepository;
 
-    public WebSocketResponseDto playCard(PlayCardDto playCardDto, String username, String gameCode) throws IllegalArgumentException, IllegalStateException {
+    public WebSocketPlayCardResult playCard(PlayCardDto playCardDto, String username, String gameCode) throws IllegalArgumentException, IllegalStateException {
         Optional<GameModel> gameOptional = gameRepository.findByGameCode(gameCode);
         if(gameOptional.isEmpty()) {
             throw new IllegalArgumentException("Invalid Game Code");
@@ -136,20 +137,14 @@ public class WebSocketGameplayService {
         cardDto.setCardName(playCardDto.getCard().getCardName());
 
         if(webSocketUtilService.viewTopCard(callingPlayer.getHandCards()) != null) {
-            CardPlayedResponseDto cardPlayedResponseDto = new CardPlayedResponseDto();
-            cardPlayedResponseDto.setCard(cardDto);
-            cardPlayedResponseDto.setNewCurrentPlayer(newCurrentPlayer.getDisplayName());
-
-            return WebSocketResponseDto.builder()
+            return WebSocketPlayCardResponse.builder()
                     .sender(callingPlayer.getDisplayName())
                     .responseType(ResponseType.CARD_PLACED)
-                    .value1(cardPlayedResponseDto)
+                    .playedCard(cardDto)
+                    .newCurrentPlayer(newCurrentPlayer.getDisplayName())
                     .build();
         }
         else {
-            PlayerWonResponseDto playerWonResponseDto = new PlayerWonResponseDto();
-            playerWonResponseDto.setPlayerName(callingPlayer.getDisplayName());
-            playerWonResponseDto.setCard(cardDto);
             game.setGameStatus("Finished");
             game.setWinningPlayerId(callingPlayer);
             gameRepository.save(game);
@@ -165,16 +160,17 @@ public class WebSocketGameplayService {
                 }
             }
 
-            return WebSocketResponseDto.builder()
+            return WebSocketGameWonResponse.builder()
                     .sender(callingPlayer.getDisplayName())
                     .responseType(ResponseType.GAME_FINISHED)
-                    .value1(playerWonResponseDto)
+                    .playedCard(cardDto)
+                    .winningPlayer(callingPlayer.getDisplayName())
                     .build();
         }
     }
 
 
-    public WebSocketResponseDto drawCard(String gameCode, String username) throws IllegalArgumentException, IllegalStateException {
+    public WebSocketDrawCardIndividualResponse drawCard(String gameCode, String username) throws IllegalArgumentException, IllegalStateException {
         Optional<GameModel> gameOptional = gameRepository.findByGameCode(gameCode);
         if(gameOptional.isEmpty()) {
             throw new IllegalArgumentException("Invalid Game Code");
@@ -223,11 +219,11 @@ public class WebSocketGameplayService {
         game.setDrawCount(0);
         gameRepository.save(game);
 
-        return WebSocketResponseDto.builder()
+        return WebSocketDrawCardIndividualResponse.builder()
                 .sender(callingPlayer.getDisplayName())
                 .responseType(ResponseType.CARD_DRAWN)
-                .value1(drawnCards)
-                .value2(drawCount)
+                .drawnCards(drawnCards)
+                .drawCount(drawCount)
                 .build();
     }
 

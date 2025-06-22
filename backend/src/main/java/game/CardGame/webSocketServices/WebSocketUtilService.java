@@ -1,7 +1,7 @@
 package game.CardGame.webSocketServices;
 
 import game.CardGame.dtos.CardDto;
-import game.CardGame.dtos.WebSocketResponseDto;
+import game.CardGame.responseDtos.WebSocketResponseDto;
 import game.CardGame.models.CardModel;
 import game.CardGame.models.DeckModel;
 import game.CardGame.models.GameModel;
@@ -9,6 +9,7 @@ import game.CardGame.models.PlayerModel;
 import game.CardGame.repositories.CardRepository;
 import game.CardGame.repositories.GameRepository;
 import game.CardGame.repositories.PlayerRepository;
+import game.CardGame.responseDtos.WebSocketStartGameResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.MessageHeaders;
@@ -54,7 +55,7 @@ public class WebSocketUtilService {
     }
 
 
-    public void broadcastWithPlayerHandCards(String game_code, WebSocketResponseDto action, MessageHeaders headers) throws IllegalArgumentException {
+    public void broadcastWithPlayerHandCards(String game_code, WebSocketStartGameResponse action, MessageHeaders headers) throws IllegalArgumentException {
         Optional<GameModel> gameOptional = gameRepository.findByGameCode(game_code);
         if(gameOptional.isEmpty()) {
             throw new IllegalArgumentException("Invalid Game Code");
@@ -110,10 +111,14 @@ public class WebSocketUtilService {
                 map.put("simpSessionId",player.getWebSocketId().toString());
                 map.put("simpDestination", "/user/" + player.getWebSocketId().toString() + "/queue/private");
                 MessageHeaders newHeaders = new MessageHeaders(map);
-                if(values != null) {
-                    action.setValue1(values.get(i));
+                if(values != null && action instanceof WebSocketStartGameResponse) {
+                    WebSocketStartGameResponse startGameResponse = (WebSocketStartGameResponse) action;
+                    startGameResponse.setHandCards(values.get(i));
+                    template.convertAndSendToUser(player.getWebSocketId(), "/queue/private", startGameResponse, newHeaders);
                 }
-                template.convertAndSendToUser(player.getWebSocketId(), "/queue/private", action, newHeaders);
+                else {
+                    template.convertAndSendToUser(player.getWebSocketId(), "/queue/private", action, newHeaders);
+                }
                 i++;
             }
         }

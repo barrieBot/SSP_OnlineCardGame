@@ -1,4 +1,4 @@
-package game.CardGame.dtos;
+package game.CardGame.responseDtos;
 
 import lombok.Getter;
 import lombok.Setter;

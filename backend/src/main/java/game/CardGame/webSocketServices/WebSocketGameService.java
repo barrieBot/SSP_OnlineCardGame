@@ -4,6 +4,7 @@ import game.CardGame.dtos.*;
 import game.CardGame.enums.ResponseType;
 import game.CardGame.models.*;
 import game.CardGame.repositories.*;
+import game.CardGame.responseDtos.*;
 import game.CardGame.services.AuthenticationService;
 import game.CardGame.services.JwtService;
 import jakarta.transaction.Transactional;
@@ -42,7 +43,7 @@ public class WebSocketGameService {
     @Autowired
     private final PasswordEncoder passwordEncoder;
 
-    public WebSocketResponseDto createGame(String username, String displayName, String sessionId) throws IllegalStateException {
+    public WebSocketCreateGameResponse createGame(String username, String displayName, String sessionId) throws IllegalStateException {
         if(displayName.equals("")) {
             displayName = username;
         }
@@ -88,14 +89,14 @@ public class WebSocketGameService {
         player.setGameId(new_Game);
         playerRepository.save(player);
 
-        return WebSocketResponseDto.builder()
-                .id(game_code)
+        return WebSocketCreateGameResponse.builder()
+                .gameCode(game_code)
                 .sender(displayName)
                 .responseType(ResponseType.NEW_GAME)
                 .build();
     }
 
-    public WebSocketResponseDto joinGame(JoinGameDto joinGameDto, String username, String sessionId) throws IllegalArgumentException, IllegalStateException{
+    public WebSocketJoinGameResponse joinGame(JoinGameDto joinGameDto, String username, String sessionId) throws IllegalArgumentException, IllegalStateException{
         if(joinGameDto.getDisplayName().equals("")) {
             joinGameDto.setDisplayName(username);
         }
@@ -148,16 +149,16 @@ public class WebSocketGameService {
             playersOfGame.add(otherPlayer.getDisplayName());
         }
 
-        return WebSocketResponseDto.builder()
+        return WebSocketJoinGameResponse.builder()
                 .sender(joinGameDto.getDisplayName())
                 .responseType(ResponseType.JOIN_GAME)
-                .value1(playersOfGame)
-                .value2(game.getHostId().getDisplayName())
+                .otherPlayers(playersOfGame)
+                .host(game.getHostId().getDisplayName())
                 .build();
     }
 
 
-    public WebSocketResponseDto joinGameAnonymous(JoinGameDto joinGameDto, String sessionId) throws IllegalArgumentException, IllegalStateException {
+    public WebSocketJoinGameAnonymousResponse joinGameAnonymous(JoinGameDto joinGameDto, String sessionId) throws IllegalArgumentException, IllegalStateException {
         Optional<GameModel> gameOptional = gameRepository.findByGameCode(joinGameDto.getGameCode());
         if(gameOptional.isEmpty()) {
             throw new IllegalArgumentException("Invalid Game Code");
@@ -216,17 +217,17 @@ public class WebSocketGameService {
             playersOfGame.add(otherPlayer.getDisplayName());
         }
 
-        return WebSocketResponseDto.builder()
+        return WebSocketJoinGameAnonymousResponse.builder()
                 .sender(joinGameDto.getDisplayName())
                 .responseType(ResponseType.JOIN_GAME)
-                .value1(playersOfGame)
-                .value2(game.getHostId().getDisplayName())
-                .value3(jwtToken)
+                .otherPlayers(playersOfGame)
+                .host(game.getHostId().getDisplayName())
+                .jwt(jwtToken)
                 .build();
     }
 
 
-    public WebSocketResponseDto startGame(GameCodeDto gameCodeDto, String username) throws IllegalArgumentException, IllegalStateException {
+    public WebSocketStartGameResponse startGame(GameCodeDto gameCodeDto, String username) throws IllegalArgumentException, IllegalStateException {
         Optional<GameModel> gameOptional = gameRepository.findByGameCode(gameCodeDto.getGameCode());
         if(gameOptional.isEmpty()) {
             throw new IllegalArgumentException("Invalid Game Code");
@@ -262,23 +263,18 @@ public class WebSocketGameService {
         cardDto.setCardValue(topCard.getCardType().getCardValue());
         cardDto.setCardEvent(topCard.getCardType().getCardEvent());
 
-        TurnOrderDto turnOrderDto = new TurnOrderDto();
-        List<PlayerModel> playersByTurnOrder = playerRepository.findByGameIdOrderByTurnIndicatorDesc(game).get();
-        turnOrderDto.setPlayer1(playersByTurnOrder.get(3).getDisplayName());
-        turnOrderDto.setPlayer2(playersByTurnOrder.get(2).getDisplayName());
-        turnOrderDto.setPlayer3(playersByTurnOrder.get(1).getDisplayName());
-        turnOrderDto.setPlayer4(playersByTurnOrder.get(0).getDisplayName());
+        TurnOrderDto turnOrderDto = createTurnOrderDto(game);
 
-        return WebSocketResponseDto.builder()
+        return WebSocketStartGameResponse.builder()
                 .sender(callingPlayer.getDisplayName())
                 .responseType(ResponseType.START_GAME)
-                .value2(cardDto)
-                .value3(turnOrderDto)
+                .centerCard(cardDto)
+                .turnOrder(turnOrderDto)
                 .build();
     }
 
 
-    public WebSocketResponseDto closeGame(GameCodeDto gameCodeDto, String username) throws IllegalArgumentException, IllegalStateException {
+    public WebSocketCloseGameResponse closeGame(GameCodeDto gameCodeDto, String username) throws IllegalArgumentException, IllegalStateException {
         Optional<GameModel> gameOptional = gameRepository.findByGameCode(gameCodeDto.getGameCode());
         if(gameOptional.isEmpty()) {
             throw new IllegalArgumentException("Invalid Game Code");
@@ -297,7 +293,7 @@ public class WebSocketGameService {
             throw new IllegalStateException("User is not the host");
         }
 
-        return WebSocketResponseDto.builder()
+        return WebSocketCloseGameResponse.builder()
                 .sender(callingPlayer.getDisplayName())
                 .responseType(ResponseType.HOST_CLOSE)
                 .build();
@@ -330,7 +326,7 @@ public class WebSocketGameService {
     }
 
 
-    public WebSocketResponseDto restartGame(GameCodeDto gameCodeDto, String username) throws IllegalArgumentException, IllegalStateException {
+    public WebSocketStartGameResponse restartGame(GameCodeDto gameCodeDto, String username) throws IllegalArgumentException, IllegalStateException {
         Optional<GameModel> gameOptional = gameRepository.findByGameCode(gameCodeDto.getGameCode());
         if(gameOptional.isEmpty()) {
             throw new IllegalArgumentException("Invalid Game Code");
@@ -359,11 +355,25 @@ public class WebSocketGameService {
         cardDto.setCardValue(topCard.getCardType().getCardValue());
         cardDto.setCardEvent(topCard.getCardType().getCardEvent());
 
-        return WebSocketResponseDto.builder()
+        TurnOrderDto turnOrderDto = createTurnOrderDto(game);
+
+        return WebSocketStartGameResponse.builder()
                 .sender(callingPlayer.getDisplayName())
                 .responseType(ResponseType.HOST_RESTART)
-                .value2(cardDto)
+                .centerCard(cardDto)
+                .turnOrder(turnOrderDto)
                 .build();
+    }
+
+
+    private TurnOrderDto createTurnOrderDto(GameModel game) {
+        TurnOrderDto turnOrderDto = new TurnOrderDto();
+        List<PlayerModel> playersByTurnOrder = playerRepository.findByGameIdOrderByTurnIndicatorDesc(game).get();
+        turnOrderDto.setPlayer1(playersByTurnOrder.get(3).getDisplayName());
+        turnOrderDto.setPlayer2(playersByTurnOrder.get(2).getDisplayName());
+        turnOrderDto.setPlayer3(playersByTurnOrder.get(1).getDisplayName());
+        turnOrderDto.setPlayer4(playersByTurnOrder.get(0).getDisplayName());
+        return turnOrderDto;
     }
 
 
