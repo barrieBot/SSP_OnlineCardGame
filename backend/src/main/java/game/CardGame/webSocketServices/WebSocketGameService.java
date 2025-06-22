@@ -74,7 +74,6 @@ public class WebSocketGameService {
         String game_code = generateUniqueGameCode();
         new_Game.setGameCode(game_code);
         new_Game.setHostId(player);
-        new_Game.setCurrentPlayerId(player);
         new_Game.setDrawCount(0);
         DeckModel centerDeck = new DeckModel();
         deckRepository.save(centerDeck);
@@ -252,6 +251,8 @@ public class WebSocketGameService {
         }
 
         game.setGameStatus("Running");
+        PlayerModel startingPlayer = playerRepository.findByGameIdAndTurnIndicator(game, 1).get();
+        game.setCurrentPlayerId(startingPlayer);
         gameRepository.save(game);
         setupCardOfGame(game);
 
