@@ -245,21 +245,7 @@ public class WebSocketGameService {
 
         game.setGameStatus("Running");
         gameRepository.save(game);
-        setupStartingDeck(game.getCenterDeck());
-        for(PlayerModel player : game.getPlayers()) {
-            DeckModel handCards = player.getHandCards();
-            for(int i = 0; i < 5; i++) {
-                CardModel card = webSocketUtilService.viewTopCard(game.getCenterDeck());
-                card.setDeckId(handCards);
-                card.setDeckPosition(i);
-                cardRepository.save(card);
-            }
-        }
-
-        CardModel card = webSocketUtilService.viewTopCard(game.getCenterDeck());
-        card.setDeckId(game.getDiscardPile());
-        card.setDeckPosition(1);
-        cardRepository.save(card);
+        setupCardOfGame(game);
 
         CardDto cardDto = new CardDto();
         CardModel topCard = webSocketUtilService.viewTopCard(game.getDiscardPile());
@@ -324,6 +310,79 @@ public class WebSocketGameService {
             cardRepository.delete(card);
         }
         deckRepository.delete(game.getDiscardPile());
+    }
+
+
+    public WebSocketResponseDto restartGame(GameCodeDto gameCodeDto, String username) throws IllegalArgumentException, IllegalStateException {
+        Optional<GameModel> gameOptional = gameRepository.findByGameCode(gameCodeDto.getGameCode());
+        if(gameOptional.isEmpty()) {
+            throw new IllegalArgumentException("Invalid Game Code");
+        }
+        GameModel game = gameOptional.get();
+
+        if(!game.getGameStatus().equals("Finished")) {
+            throw new IllegalStateException("Game has already started or finished");
+        }
+
+        PlayerModel callingPlayer = webSocketUtilService.findPlayer(username, gameCodeDto.getGameCode());
+        if(callingPlayer == null) {
+            throw new IllegalStateException("User is not part of the game");
+        }
+        if(!game.getHostId().getId().equals(callingPlayer.getId())) {
+            throw new IllegalStateException("User is not the host");
+        }
+
+        deleteCardsOfGame(gameCodeDto.getGameCode());
+
+        setupCardOfGame(game);
+
+        CardDto cardDto = new CardDto();
+        CardModel topCard = webSocketUtilService.viewTopCard(game.getDiscardPile());
+        cardDto.setCardName(topCard.getCardType().getCardName());
+        cardDto.setCardValue(topCard.getCardType().getCardValue());
+        cardDto.setCardEvent(topCard.getCardType().getCardEvent());
+
+        return WebSocketResponseDto.builder()
+                .sender(callingPlayer.getDisplayName())
+                .responseType(ResponseType.HOST_RESTART)
+                .additionalValue(cardDto)
+                .build();
+    }
+
+
+    @Transactional
+    private void deleteCardsOfGame(String gameCode) {
+        GameModel game = gameRepository.findByGameCode(gameCode).get();
+        for(PlayerModel player : playerRepository.findByGameIdOrderByTurnIndicatorDesc(game).get()) {
+            for(CardModel card : cardRepository.findByDeckId(player.getHandCards()).get()) {
+                cardRepository.delete(card);
+            }
+        }
+        for(CardModel card : cardRepository.findByDeckId(game.getCenterDeck()).get()) {
+            cardRepository.delete(card);
+        }
+        for(CardModel card : cardRepository.findByDeckId(game.getDiscardPile()).get()) {
+            cardRepository.delete(card);
+        }
+    }
+
+
+    private void setupCardOfGame(GameModel game) {
+        setupStartingDeck(game.getCenterDeck());
+        for(PlayerModel player : game.getPlayers()) {
+            DeckModel handCards = player.getHandCards();
+            for(int i = 0; i < 5; i++) {
+                CardModel card = webSocketUtilService.viewTopCard(game.getCenterDeck());
+                card.setDeckId(handCards);
+                card.setDeckPosition(i);
+                cardRepository.save(card);
+            }
+        }
+
+        CardModel card = webSocketUtilService.viewTopCard(game.getCenterDeck());
+        card.setDeckId(game.getDiscardPile());
+        card.setDeckPosition(1);
+        cardRepository.save(card);
     }
 
 

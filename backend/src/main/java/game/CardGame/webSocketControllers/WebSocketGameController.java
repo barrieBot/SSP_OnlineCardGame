@@ -174,7 +174,36 @@ public class WebSocketGameController {
             e.printStackTrace();
             template.convertAndSendToUser(headerAccessor.getSessionId(), "/queue/private", "Error deleting game: " + e.getMessage(), headerAccessor.getMessageHeaders());
         }
+    }
 
+
+    @MessageMapping("/game.restart")
+    public void restartGame(@Payload GameCodeDto gameCodeDto, SimpMessageHeaderAccessor headerAccessor) {
+        String jwtToken;
+        try {
+            jwtToken = jwtService.verifyJwtForWebSocket(headerAccessor);
+        }
+        catch (Exception e) {
+            WebSocketResponseDto errorResponse = new WebSocketResponseDto(ResponseType.ERROR_INVALID_JWT, "Authentication failed");
+            template.convertAndSendToUser(headerAccessor.getSessionId(), "/queue/private", errorResponse, headerAccessor.getMessageHeaders());
+            return;
+        }
+        String username = jwtService.extractUsername(jwtToken);
+        WebSocketResponseDto webSocketResponse;
+        try {
+            webSocketResponse = webSocketGameService.restartGame(gameCodeDto, username);
+        }
+        catch (IllegalArgumentException e) {
+            WebSocketResponseDto errorResponse = new WebSocketResponseDto(ResponseType.ERROR_INVALID_ARGUMENT, e.getMessage());
+            template.convertAndSendToUser(headerAccessor.getSessionId(), "/queue/private", errorResponse, headerAccessor.getMessageHeaders());
+            return;
+        }
+        catch (IllegalStateException e) {
+            WebSocketResponseDto errorResponse = new WebSocketResponseDto(ResponseType.ERROR_INVALID_STATE, e.getMessage());
+            template.convertAndSendToUser(headerAccessor.getSessionId(), "/queue/private", errorResponse, headerAccessor.getMessageHeaders());
+            return;
+        }
+        webSocketUtilService.broadcastWithPlayerHandCards(gameCodeDto.getGameCode(), webSocketResponse, headerAccessor.getMessageHeaders());
     }
 
 
