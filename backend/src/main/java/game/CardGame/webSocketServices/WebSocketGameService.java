@@ -152,7 +152,8 @@ public class WebSocketGameService {
         return WebSocketResponseDto.builder()
                 .sender(joinGameDto.getDisplayName())
                 .responseType(ResponseType.JOIN_GAME)
-                .value(playersOfGame)
+                .value1(playersOfGame)
+                .value2(game.getHostId().getDisplayName())
                 .build();
     }
 
@@ -193,14 +194,19 @@ public class WebSocketGameService {
         DeckModel handCards = new DeckModel();
         deckRepository.save(handCards);
         player.setHandCards(handCards);
-        // Find highest turnIndicator
-        int hightestIndicator = 0;
-        for(PlayerModel otherPlayer : game.getPlayers()) {
-            if(otherPlayer.getTurnIndicator() > hightestIndicator) {
-                hightestIndicator = otherPlayer.getTurnIndicator();
+        // Generate unique turn indicator
+        int randomTurnIndicator = (int)(Math.random() * 5);
+        boolean uniqueTurnIndicator = false;
+        while (!uniqueTurnIndicator) {
+            uniqueTurnIndicator = true;
+            randomTurnIndicator = (int)(Math.random() * 5);
+            for(PlayerModel otherPlayer : game.getPlayers()) {
+                if(otherPlayer.getTurnIndicator() == randomTurnIndicator) {
+                    uniqueTurnIndicator = false;
+                }
             }
         }
-        player.setTurnIndicator(hightestIndicator + 1);
+        player.setTurnIndicator(randomTurnIndicator);
         playerRepository.save(player);
 
         player.setGameId(game);
@@ -214,8 +220,9 @@ public class WebSocketGameService {
         return WebSocketResponseDto.builder()
                 .sender(joinGameDto.getDisplayName())
                 .responseType(ResponseType.JOIN_GAME)
-                .value(playersOfGame)
-                .additionalValue(jwtToken)
+                .value1(playersOfGame)
+                .value2(game.getHostId().getDisplayName())
+                .value3(jwtToken)
                 .build();
     }
 
@@ -254,10 +261,18 @@ public class WebSocketGameService {
         cardDto.setCardValue(topCard.getCardType().getCardValue());
         cardDto.setCardEvent(topCard.getCardType().getCardEvent());
 
+        TurnOrderDto turnOrderDto = new TurnOrderDto();
+        List<PlayerModel> playersByTurnOrder = playerRepository.findByGameIdOrderByTurnIndicatorDesc(game).get();
+        turnOrderDto.setPlayer1(playersByTurnOrder.get(3).getDisplayName());
+        turnOrderDto.setPlayer2(playersByTurnOrder.get(2).getDisplayName());
+        turnOrderDto.setPlayer3(playersByTurnOrder.get(1).getDisplayName());
+        turnOrderDto.setPlayer4(playersByTurnOrder.get(0).getDisplayName());
+
         return WebSocketResponseDto.builder()
                 .sender(callingPlayer.getDisplayName())
                 .responseType(ResponseType.START_GAME)
-                .additionalValue(cardDto)
+                .value2(cardDto)
+                .value3(turnOrderDto)
                 .build();
     }
 
@@ -346,7 +361,7 @@ public class WebSocketGameService {
         return WebSocketResponseDto.builder()
                 .sender(callingPlayer.getDisplayName())
                 .responseType(ResponseType.HOST_RESTART)
-                .additionalValue(cardDto)
+                .value2(cardDto)
                 .build();
     }
 

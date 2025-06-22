@@ -111,7 +111,7 @@ public class WebSocketUtilService {
                 map.put("simpDestination", "/user/" + player.getWebSocketId().toString() + "/queue/private");
                 MessageHeaders newHeaders = new MessageHeaders(map);
                 if(values != null) {
-                    action.setValue(values.get(i));
+                    action.setValue1(values.get(i));
                 }
                 template.convertAndSendToUser(player.getWebSocketId(), "/queue/private", action, newHeaders);
                 i++;

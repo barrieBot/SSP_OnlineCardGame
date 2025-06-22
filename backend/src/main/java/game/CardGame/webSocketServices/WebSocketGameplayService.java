@@ -143,7 +143,7 @@ public class WebSocketGameplayService {
             return WebSocketResponseDto.builder()
                     .sender(callingPlayer.getDisplayName())
                     .responseType(ResponseType.CARD_PLACED)
-                    .value(cardPlayedResponseDto)
+                    .value1(cardPlayedResponseDto)
                     .build();
         }
         else {
@@ -168,7 +168,7 @@ public class WebSocketGameplayService {
             return WebSocketResponseDto.builder()
                     .sender(callingPlayer.getDisplayName())
                     .responseType(ResponseType.GAME_FINISHED)
-                    .value(playerWonResponseDto)
+                    .value1(playerWonResponseDto)
                     .build();
         }
     }
@@ -226,8 +226,8 @@ public class WebSocketGameplayService {
         return WebSocketResponseDto.builder()
                 .sender(callingPlayer.getDisplayName())
                 .responseType(ResponseType.CARD_DRAWN)
-                .value(drawnCards)
-                .additionalValue(drawCount)
+                .value1(drawnCards)
+                .value2(drawCount)
                 .build();
     }
 

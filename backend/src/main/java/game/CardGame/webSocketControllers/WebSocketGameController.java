@@ -104,7 +104,7 @@ public class WebSocketGameController {
         }
 
         template.convertAndSendToUser(Objects.requireNonNull(headerAccessor.getSessionId()), "/queue/private", webSocketResponse, headerAccessor.getMessageHeaders());
-        webSocketResponse.setAdditionalValue(null);
+        webSocketResponse.setValue2(null);
         webSocketUtilService.broadcastToOthers(joinGameDto.getGameCode(), webSocketResponse, headerAccessor.getMessageHeaders());
     }
 

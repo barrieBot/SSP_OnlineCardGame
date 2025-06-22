@@ -5,7 +5,6 @@ import game.CardGame.dtos.PlayCardDto;
 import game.CardGame.dtos.WebSocketResponseDto;
 import game.CardGame.enums.ResponseType;
 import game.CardGame.services.JwtService;
-import game.CardGame.webSocketServices.WebSocketGameService;
 import game.CardGame.webSocketServices.WebSocketGameplayService;
 import game.CardGame.webSocketServices.WebSocketUtilService;
 import lombok.RequiredArgsConstructor;
@@ -15,8 +14,6 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
-
-import java.util.Objects;
 
 @Controller
 @RequiredArgsConstructor
@@ -92,7 +89,7 @@ public class WebSocketGameplayController {
         }
 
         template.convertAndSendToUser(headerAccessor.getSessionId(), "/queue/private", webSocketResponse, headerAccessor.getMessageHeaders());
-        webSocketResponse.setValue(null);
+        webSocketResponse.setValue1(null);
         webSocketUtilService.broadcastToOthers(gameCode, webSocketResponse, headerAccessor.getMessageHeaders());
     }
 }
