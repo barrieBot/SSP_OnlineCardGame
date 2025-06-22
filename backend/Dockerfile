@@ -1,16 +1,18 @@
-FROM maven:3.8.6-openjdk-23
+FROM maven:3.9.9-eclipse-temurin-23 AS builder
 
-WORKDIR .
+WORKDIR /build
 
 COPY pom.xml .
+RUN mvn dependency:go-offline
+
 COPY src ./src
 RUN mvn clean package -DskipTests
 
 FROM openjdk:23-jdk
 
-WORKDIR .
+WORKDIR /app
 
-COPY .//target/CardGame-0.0.1.jar app.jar
+COPY --from=builder /build/target/*.jar app.jar
 
 EXPOSE 8080
 
