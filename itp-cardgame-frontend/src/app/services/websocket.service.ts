@@ -111,7 +111,7 @@ export class WebsocketService {
       body: JSON.stringify(joinGameDto),
     });
 
-    console.log('[WebSocket] Sent joinGameDto:', joinGameDto);
+    console.log('[WebSocket] sent joinGameDto:', joinGameDto);
   }
 
   startGame(gameCode: string): void {

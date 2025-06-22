@@ -71,8 +71,8 @@ export class UserProfileComponent implements OnInit {
     this.webSocketService.getGameUpdates().subscribe((update) => {
       console.log('WebSocket-Update:', update);
 
-      if (update?.responseType === 'NEW_GAME' && update?.id) {
-        this.router.navigate(['/lobby', update.id]);
+      if (update?.responseType === 'NEW_GAME' && update?.gameCode) {
+        this.router.navigate(['/lobby', update.gameCode]);
       }
 
       if (update?.responseType === 'JOIN_GAME' && update?.gameCode) {

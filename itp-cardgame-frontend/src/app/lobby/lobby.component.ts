@@ -60,8 +60,6 @@ export class LobbyComponent implements OnInit {
       console.log('Lobby WebSocket Update:', update);
 
       if (update?.responseType === 'NEW_GAME' && update.id) {
-        this.gameId = update.id;
-
         if (!this.hostUsername && this.currentUser) {
           this.hostUsername = this.currentUser?.username;
         }
@@ -71,11 +69,11 @@ export class LobbyComponent implements OnInit {
       if (update?.responseType === 'JOIN_GAME') {
         const newPlayerUsername = update.sender;
 
-        if (Array.isArray(update.value)) {
-          this.players = update.value.map((username: string) => ({ username }));
+        if (Array.isArray(update.otherPlayers)) {
+          this.players = update.otherPlayers.map((username: string) => ({ username }));
 
-          if (update.value.length > 0) {
-            this.hostUsername = update.value[0];
+          if (update.host) {
+            this.hostUsername = update.host;
           }
         }
 
