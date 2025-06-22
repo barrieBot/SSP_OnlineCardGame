@@ -16,6 +16,8 @@ import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
+import java.util.Objects;
+
 @Controller
 @RequiredArgsConstructor
 public class WebSocketGameplayController {
@@ -89,6 +91,8 @@ public class WebSocketGameplayController {
             return;
         }
 
-        webSocketUtilService.broadcast(gameCode, webSocketResponse, headerAccessor.getMessageHeaders());
+        template.convertAndSendToUser(headerAccessor.getSessionId(), "/queue/private", webSocketResponse, headerAccessor.getMessageHeaders());
+        webSocketResponse.setValue(null);
+        webSocketUtilService.broadcastToOthers(gameCode, webSocketResponse, headerAccessor.getMessageHeaders());
     }
 }

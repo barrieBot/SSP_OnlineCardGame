@@ -73,16 +73,21 @@ public class WebSocketUtilService {
             }
             values.add(cardDtos);
         }
-        broadcast(game_code, action, headers, values);
+        broadcast(game_code, action, headers, values, true);
     }
 
 
     public void broadcast(String game_code, WebSocketResponseDto action, MessageHeaders headers) throws IllegalArgumentException {
-        broadcast(game_code, action, headers, null);
+        broadcast(game_code, action, headers, null, true);
     }
 
 
-    public void broadcast(String game_code, WebSocketResponseDto action, MessageHeaders headers, List<Object> values) throws IllegalArgumentException {
+    public void broadcastToOthers(String game_code, WebSocketResponseDto action, MessageHeaders headers) throws IllegalArgumentException {
+        broadcast(game_code, action, headers, null, false);
+    }
+
+
+    public void broadcast(String game_code, WebSocketResponseDto action, MessageHeaders headers, List<Object> values, Boolean broadcastToAll) throws IllegalArgumentException {
         Optional<GameModel> gameOptional = gameRepository.findByGameCode(game_code);
         if(gameOptional.isEmpty()) {
             throw new IllegalArgumentException("Invalid Game Code");
@@ -101,14 +106,16 @@ public class WebSocketUtilService {
         map.put("contentType",headers.get("contentType"));
         int i = 0;
         for (PlayerModel player : playerRepository.findByGameIdOrderByTurnIndicatorDesc(game).get()) {
-            map.put("simpSessionId",player.getWebSocketId().toString());
-            map.put("simpDestination", "/user/" + player.getWebSocketId().toString() + "/queue/private");
-            MessageHeaders newHeaders = new MessageHeaders(map);
-            if(values != null) {
-                action.setValue(values.get(i));
+            if(broadcastToAll || !headers.get("simpSessionId").equals(player.getWebSocketId().toString())) {
+                map.put("simpSessionId",player.getWebSocketId().toString());
+                map.put("simpDestination", "/user/" + player.getWebSocketId().toString() + "/queue/private");
+                MessageHeaders newHeaders = new MessageHeaders(map);
+                if(values != null) {
+                    action.setValue(values.get(i));
+                }
+                template.convertAndSendToUser(player.getWebSocketId(), "/queue/private", action, newHeaders);
+                i++;
             }
-            template.convertAndSendToUser(player.getWebSocketId(), "/queue/private", action, newHeaders);
-            i++;
         }
     }
 }
