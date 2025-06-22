@@ -1,0 +1,166 @@
+<div class="min-h-[95vh] w-full bg-slate-50 rounded-2xl mx-auto p-6">
+
+    <!-- header -->
+    <header class="bg-slate-50 text-black p-6">
+        <div class="container mx-auto flex items-center justify-between">
+
+            <!-- left: profile + settings -->
+            <div class="flex items-center space-x-4">
+                <button hlmBtn variant="link" type="button" class="text-lg cursor-pointer" routerLink="/profile">Profile</button>
+                <button hlmBtn variant="link" type="button" class="text-lg cursor-pointer" routerLink="/settings">Settings</button>
+            </div>
+
+            <!-- right: create lobby + join lobby -->
+            <div class="flex items-center gap-2">
+                <hlm-dialog>
+                    <button brnDialogTrigger hlmBtn variant="outline" class="text-black border-green-600 hover:bg-green-100">Join lobby</button>
+
+                    <hlm-dialog-content class="sm:max-w-[425px]" *brnDialogContent="let ctx">
+                        <hlm-dialog-header>
+                            <h3 hlmDialogTitle>Enter Passcode</h3>
+                            <p hlmDialogDescription>Only registered players can join lobbies.</p>
+                        </hlm-dialog-header>
+
+                        <div class="flex items-center w-full space-x-2 mt-4">
+                            <input hlmInput
+                                   [(ngModel)]="lobbyCode"
+                                   placeholder="Code"
+                                   class="flex-1" />
+                            <button hlmBtn (click)="joinLobby()">Enter</button>
+                        </div>
+                    </hlm-dialog-content>
+                </hlm-dialog>
+
+                <button hlmBtn variant="default" class="text-white bg-green-600 hover:bg-green-700" (click)="createMatch()">Create lobby</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- banner -->
+    <div class="bg-linear-to-r from-rose-400 to-orange-300 relative h-60 rounded-xl overflow-hidden">
+        <div class="absolute inset-0 bg-black opacity-30 z-0"></div>
+        <div class="absolute bottom-4 right-4 p-2 bg-white rounded-full shadow-lg w-10 h-10 flex items-center justify-center z-10">
+            <ng-icon hlm size="sm" name="lucidePen" />
+        </div>
+    </div>
+
+    <!-- profile picture -->
+    <div class="relative z-10 flex flex-col items-center -mt-20">
+        <img class="w-40 h-40 rounded-full border-4 border-white shadow-lg bg-slate-100">
+        <p class="text-2xl font-semibold text-black mt-2">{{ user?.username || 'Unknown user' }}</p>
+        <brn-separator hlmSeparator class="mt-6 w-full max-w-5xl"/>
+    </div>
+
+    <!-- main Content -->
+    <div class="mt-10 w-full max-w-5xl mx-auto flex flex-col gap-8 items-center">
+    
+        <!-- overview -->
+        <div class="w-full flex justify-center mt-0">
+            <div class="w-full">
+                <h2 class="text-2xl font-semibold text-black text-left mb-0">Overview</h2>
+            </div>
+        </div>
+        <div class="flex flex-wrap justify-center gap-4">
+            <!-- level -->
+            <div class="bg-slate-100 p-2 rounded-lg shadow-sm flex gap-4 row-start-1">
+                <div class="bg-white p-4 rounded-lg shadow-sm flex flex-col items-center w-32 md:w-48">
+                    <p class="text-xl font-semibold text-black">Level</p>
+                    <p class="text-3xl font-bold text-black">10</p>
+                </div>
+            </div>
+
+            <!-- stats -->
+            <div class="bg-slate-100 p-2 rounded-lg shadow-sm flex gap-4 row-start-1">
+                <!-- wins -->
+                <div class="bg-white p-4 rounded-lg shadow-sm flex flex-col items-center w-32 md:w-48">
+                    <p class="text-xl font-semibold text-black">Wins</p>
+                    <p class="text-3xl font-bold text-green-500">20</p>
+                </div>
+
+                <!-- loses -->
+                <div class="bg-white p-4 rounded-lg shadow-sm flex flex-col items-center w-32 md:w-48 row-start-1">
+                    <p class="text-xl font-semibold text-black">Loses</p>
+                    <p class="text-3xl font-bold text-red-500">0</p>
+                </div>
+            </div>
+
+            <!-- achievements -->
+            <div class="bg-slate-100 p-2 rounded-lg shadow-sm flex gap-4 row-start-1">
+                <div class="bg-white p-4 rounded-lg shadow-sm flex flex-col items-center w-32">
+                    <div class="text-3xl font-semibold flex items-center gap-1 text-yellow-400">
+                        <ng-icon name="lucideTrophy" />
+                    </div>
+                    <p class="text-3xl font-bold text-black">5/15</p>
+                </div>
+            </div>
+
+            <!-- friends online -->
+            <div class="bg-slate-100 p-2 rounded-lg shadow-sm flex gap-4 row-start-1">
+                <div class="bg-white p-4 rounded-lg shadow-sm flex flex-col items-center w-48">
+                    <p class="text-xl font-semibold text-black">Friends online</p>
+                    <div class="flex items-center justify-center text-3xl font-bold text-black">
+                        5
+                        <span class="bg-green-400 w-3.5 h-3.5 rounded-full ml-2 inline-block translate-y-[1px]"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- match history -->
+        <div class="w-full flex justify-center mt-6">
+            <div class="w-full">
+                <h2 class="text-2xl font-semibold text-black text-left mb-0">Match history</h2>
+            </div>
+        </div>
+
+        <!-- table -->
+        <div class="w-full flex justify-center">
+            <div class="bg-white w-full rounded-lg shadow-sm">
+                <hlm-table>
+                    <hlm-trow>
+                        <hlm-th class="w-52">Date</hlm-th>
+                        <hlm-th class="w-60">Place</hlm-th>
+                        <hlm-th class="flex-1">Number of cards left</hlm-th>
+                        <hlm-th class="justify-end w-40">Number of players</hlm-th>
+                        <hlm-th class="justify-end w-40">Time</hlm-th>
+                    </hlm-trow>
+                    <hlm-trow>
+                        <hlm-td truncate class="font-medium w-52">12.04.2025</hlm-td>
+                        <hlm-td class="w-60">1</hlm-td>
+                        <hlm-td class="flex-1">0</hlm-td>
+                        <hlm-td class="justify-end w-40">4</hlm-td>
+                        <hlm-td class="justify-end w-40">00:21:18</hlm-td>
+                    </hlm-trow>
+                    <hlm-trow>
+                        <hlm-td truncate class="font-medium w-52">11.04.2025</hlm-td>
+                        <hlm-td class="w-60">3</hlm-td>
+                        <hlm-td class="flex-1">4</hlm-td>
+                        <hlm-td class="justify-end w-40">4</hlm-td>
+                        <hlm-td class="justify-end w-40">00:14:03</hlm-td>
+                    </hlm-trow>
+                    <hlm-trow>
+                        <hlm-td truncate class="font-medium w-52">11.04.2025</hlm-td>
+                        <hlm-td class="w-60">2</hlm-td>
+                        <hlm-td class="flex-1">2</hlm-td>
+                        <hlm-td class="justify-end w-40">4</hlm-td>
+                        <hlm-td class="justify-end w-40">00:11:00</hlm-td>
+                    </hlm-trow>
+                    <hlm-trow>
+                        <hlm-td truncate class="font-medium w-52">10.04.2025</hlm-td>
+                        <hlm-td class="w-60">2</hlm-td>
+                        <hlm-td class="flex-1">3</hlm-td>
+                        <hlm-td class="justify-end w-40">4</hlm-td>
+                        <hlm-td class="justify-end w-40">00:45:18</hlm-td>
+                    </hlm-trow>
+                    <hlm-trow>
+                        <hlm-td truncate class="font-medium w-52">08.04.2025</hlm-td>
+                        <hlm-td class="w-60">3</hlm-td>
+                        <hlm-td class="flex-1">5</hlm-td>
+                        <hlm-td class="justify-end w-40">4</hlm-td>
+                        <hlm-td class="justify-end w-40">00:31:04</hlm-td>
+                    </hlm-trow>
+                </hlm-table>
+            </div>
+        </div>
+    </div>
+</div>

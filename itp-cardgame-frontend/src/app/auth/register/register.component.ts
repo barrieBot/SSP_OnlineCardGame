@@ -13,9 +13,9 @@ import {
   HlmCardHeaderDirective,
   HlmCardTitleDirective,
 } from '@spartan-ng/ui-card-helm';
-import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { AuthService } from 'src/app/services/auth.service';
 
 @Component({
   selector: 'app-register',
@@ -43,30 +43,18 @@ export class RegisterComponent {
   username: string = '';
   email: string = '';
   password: string = '';
-  // confirmPassword: string = '';
 
-  constructor(private http: HttpClient, private router: Router) {}
+  constructor(private authService: AuthService, private router: Router) {}
 
   register() {
-    // if (this.password != this.confirmPassword) {
-    //   alert("Passwords do not match!");
-    //   return;
-    // }
-
-    const payload = {
-      email: this.email,
-      username: this.username,
-      password: this.password
-    };
-
-    this.http.post('http://localhost:80/api/auth/signup', payload, { withCredentials: true }).subscribe({
+    this.authService.register(this.email, this.username, this.password).subscribe({
       next: () => {
         alert("Registration success");
         this.router.navigate(['/login']);
       },
       error: (err) => {
         console.error(err);
-        alert("Registration failed.");
+        alert("Registration failed");
       }
     });
   }

@@ -5,8 +5,8 @@ import { CardsPageComponent } from './cards-page/cards-page.component';
 import { RegisterComponent } from './auth/register/register.component';
 import { LobbyComponent } from './lobby/lobby.component';
 import { GameplayComponent } from './gameplay/gameplay.component';
-import { UserProfileComponent } from './user-profile/user-profile.component';
-import { UserSettingsComponent } from './user-settings/user-settings.component';
+import { UserProfileComponent } from './user/user-profile/user-profile.component';
+import { UserSettingsComponent } from './user/user-settings/user-settings.component';
 
 export const routes: Routes = [
     { path: '', component: MainMenuComponent },
@@ -16,5 +16,7 @@ export const routes: Routes = [
     { path: 'lobby', component: LobbyComponent },
     { path: 'gameplay', component: GameplayComponent},
     { path: 'profile', component: UserProfileComponent },
-    { path: 'settings', component: UserSettingsComponent }
+    { path: 'settings', component: UserSettingsComponent },
+    { path: 'lobby/:id', component: LobbyComponent },
+    { path: 'gameplay/:id', component: GameplayComponent }
 ];

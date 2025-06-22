@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { HlmFormFieldModule } from '@spartan-ng/ui-formfield-helm';
 import { HlmInputDirective } from '@spartan-ng/ui-input-helm';
 import { HlmButtonDirective } from '@spartan-ng/ui-button-helm';
@@ -13,9 +13,16 @@ import {
   HlmCardHeaderDirective,
   HlmCardTitleDirective,
 } from '@spartan-ng/ui-card-helm';
-import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { AuthService } from 'src/app/services/auth.service';
+import { UserService } from 'src/app/services/user.service';
+
+function decodeJwt(token: string): any {
+  const payload = token.split('.')[1];
+  const decoded = atob(payload);
+  return JSON.parse(decoded);
+}
 
 
 @Component({
@@ -44,19 +51,27 @@ export class LoginComponent {
   showPassword: boolean = false;
   username: string = '';
   password: string = '';
+  private authService = inject(AuthService);
+  private userService = inject(UserService);
 
-  constructor(private http: HttpClient, private router: Router) {}
+  constructor(private router: Router) {}
 
   login() {
-    const payload = {
-      username: this.username,
-      password: this.password
-    };
-
-    this.http.post('http://localhost:80/api/auth/login', payload, { withCredentials: true }).subscribe({
-      next: () => {
+    this.authService.login(this.username, this.password).subscribe({
+      next: (response) => {
         alert("Login success");
-        this.router.navigate(['/lobby']);
+
+        const token = response.token;
+        localStorage.setItem('jwt', token);
+
+        const payload = decodeJwt(token);
+        console.log('Decoded JWT payload:', payload);
+
+        const userId = payload.userId;
+        const username = payload.sub;
+
+        this.userService.setUser({ id: userId, username: username, token: token });
+        this.router.navigate(['/profile']);
       },
       error: (err) => {
         console.error(err);
