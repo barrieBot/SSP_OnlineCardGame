@@ -2,7 +2,7 @@ package game.CardGame.webSocketControllers;
 
 import game.CardGame.dtos.GameCodeDto;
 import game.CardGame.dtos.PlayCardDto;
-import game.CardGame.dtos.WebSocketResponseDto;
+import game.CardGame.responseDtos.*;
 import game.CardGame.enums.ResponseType;
 import game.CardGame.services.JwtService;
 import game.CardGame.webSocketServices.WebSocketGameplayService;
@@ -35,23 +35,23 @@ public class WebSocketGameplayController {
             jwtToken = jwtService.verifyJwtForWebSocket(headerAccessor);
         }
         catch (Exception e) {
-            WebSocketResponseDto errorResponse = new WebSocketResponseDto(ResponseType.ERROR_INVALID_JWT, "Authentication failed");
+            WebSocketErrorResponse errorResponse = new WebSocketErrorResponse(ResponseType.ERROR_INVALID_JWT, "Authentication failed");
             template.convertAndSendToUser(headerAccessor.getSessionId(), "/queue/private", errorResponse, headerAccessor.getMessageHeaders());
             return;
         }
         String username = jwtService.extractUsername(jwtToken);
         String gameToken = playCardDto.getGameCode();
-        WebSocketResponseDto webSocketResponse;
+        WebSocketPlayCardResult webSocketResponse;
         try {
             webSocketResponse = webSocketGameplayService.playCard(playCardDto, username, gameToken);
         }
         catch (IllegalArgumentException e) {
-            WebSocketResponseDto errorResponse = new WebSocketResponseDto(ResponseType.ERROR_INVALID_ARGUMENT, e.getMessage());
+            WebSocketErrorResponse errorResponse = new WebSocketErrorResponse(ResponseType.ERROR_INVALID_ARGUMENT, e.getMessage());
             template.convertAndSendToUser(headerAccessor.getSessionId(), "/queue/private", errorResponse, headerAccessor.getMessageHeaders());
             return;
         }
         catch (IllegalStateException e) {
-            WebSocketResponseDto errorResponse = new WebSocketResponseDto(ResponseType.ERROR_INVALID_STATE, e.getMessage());
+            WebSocketErrorResponse errorResponse = new WebSocketErrorResponse(ResponseType.ERROR_INVALID_STATE, e.getMessage());
             template.convertAndSendToUser(headerAccessor.getSessionId(), "/queue/private", errorResponse, headerAccessor.getMessageHeaders());
             return;
         }
@@ -67,29 +67,33 @@ public class WebSocketGameplayController {
             jwtToken = jwtService.verifyJwtForWebSocket(headerAccessor);
         }
         catch (Exception e) {
-            WebSocketResponseDto errorResponse = new WebSocketResponseDto(ResponseType.ERROR_INVALID_JWT, "Authentication failed");
+            WebSocketErrorResponse errorResponse = new WebSocketErrorResponse(ResponseType.ERROR_INVALID_JWT, "Authentication failed");
             template.convertAndSendToUser(headerAccessor.getSessionId(), "/queue/private", errorResponse, headerAccessor.getMessageHeaders());
             return;
         }
         String username = jwtService.extractUsername(jwtToken);
         String gameCode = gameCodeDto.getGameCode();
-        WebSocketResponseDto webSocketResponse;
+        WebSocketDrawCardIndividualResponse webSocketResponse;
         try {
             webSocketResponse = webSocketGameplayService.drawCard(gameCode, username);
         }
         catch (IllegalArgumentException e) {
-            WebSocketResponseDto errorResponse = new WebSocketResponseDto(ResponseType.ERROR_INVALID_ARGUMENT, e.getMessage());
+            WebSocketErrorResponse errorResponse = new WebSocketErrorResponse(ResponseType.ERROR_INVALID_ARGUMENT, e.getMessage());
             template.convertAndSendToUser(headerAccessor.getSessionId(), "/queue/private", errorResponse, headerAccessor.getMessageHeaders());
             return;
         }
         catch (IllegalStateException e) {
-            WebSocketResponseDto errorResponse = new WebSocketResponseDto(ResponseType.ERROR_INVALID_STATE, e.getMessage());
+            WebSocketErrorResponse errorResponse = new WebSocketErrorResponse(ResponseType.ERROR_INVALID_STATE, e.getMessage());
             template.convertAndSendToUser(headerAccessor.getSessionId(), "/queue/private", errorResponse, headerAccessor.getMessageHeaders());
             return;
         }
 
         template.convertAndSendToUser(headerAccessor.getSessionId(), "/queue/private", webSocketResponse, headerAccessor.getMessageHeaders());
-        webSocketResponse.setValue1(null);
-        webSocketUtilService.broadcastToOthers(gameCode, webSocketResponse, headerAccessor.getMessageHeaders());
+        WebSocketDrawCardResponse webSocketDrawCardResponse = WebSocketDrawCardResponse.builder()
+                .sender(webSocketResponse.getSender())
+                .responseType(webSocketResponse.getResponseType())
+                .drawCount(webSocketResponse.getDrawCount())
+                .build();
+        webSocketUtilService.broadcastToOthers(gameCode, webSocketDrawCardResponse, headerAccessor.getMessageHeaders());
     }
 }
