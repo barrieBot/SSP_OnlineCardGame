@@ -46,7 +46,9 @@ export class GameplayComponent implements OnInit {
   ];
 
   playerCards: string[] = [];
+  //playerCards vielleicht nicht nur string sondern ein Card-Type oder so
   middleCard: string = 'assets/svg/cards/numeric_cards/papier5.svg';
+  //vielleicht auch hier ein Card-Type
   selectedCardIndex: number | null = null;
   cardSpacing = 60;
 
@@ -76,6 +78,12 @@ export class GameplayComponent implements OnInit {
     this.playerCards.splice(index, 1);
   }
 
+  validCardCheck(index:number) {
+    //Card[index] beats middleCard
+    return true;
+    // else return false
+  }
+
   getCardStyle(index: number, total: number): { [key: string]: string } {
     const spread = 20;
     const offset = (index - (total - 1) / 2);
@@ -85,6 +93,7 @@ export class GameplayComponent implements OnInit {
 
     return {
       transform: `rotate(${angle}deg) translate(${x}px, ${y}px)`,
+      transformOrigin: 'bottom center',
       zIndex: `${10 + (total - index)}`
     };
   }
