@@ -10,8 +10,8 @@ import java.util.Optional;
 import java.util.Set;
 
 @Repository
-public interface PlayerRepository extends CrudRepository<PlayerModel, String> {
-    Optional<PlayerModel> findById(String id);
+public interface PlayerRepository extends CrudRepository<PlayerModel, Integer> {
+    Optional<PlayerModel> findById(Integer id);
 
     Optional<Set<PlayerModel>> findByUserId_Username(String username);
 

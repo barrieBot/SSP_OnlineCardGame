@@ -24,7 +24,7 @@ public class PlayerModel {
     private UserModel userId;
 
     @OneToOne
-    @JoinColumn(name = "hand_cards", nullable = false)
+    @JoinColumn(name = "hand_cards")
     private DeckModel handCards;
 
     @Column(name = "display_name", length = 50)

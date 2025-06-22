@@ -27,6 +27,9 @@ CREATE TABLE users (
   username VARCHAR(50) NOT NULL UNIQUE,
   email VARCHAR(100) NOT NULL UNIQUE,
   user_password VARCHAR(255) NOT NULL,
+  is_anonymous BOOLEAN NOT NULL,
+  stat_games_won INT NOT NULL,
+  stat_games_lost INT NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
@@ -37,9 +40,10 @@ CREATE TABLE game (
   game_status VARCHAR(20),
   current_player_id INT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  center_deck INT NOT NULL,
-  discard_pile INT NOT NULL,
-  host_id INT NOT NULL,
+  center_deck INT,
+  discard_pile INT,
+  host_id INT,
+  winning_player_id INT,
   FOREIGN KEY (center_deck) REFERENCES deck(id),
   FOREIGN KEY (discard_pile) REFERENCES deck(id)
 );
@@ -48,7 +52,7 @@ CREATE TABLE player (
   id INT AUTO_INCREMENT PRIMARY KEY,
   game_id INT,
   user_id INT NOT NULL,
-  hand_cards INT NOT NULL,
+  hand_cards INT,
   display_name VARCHAR(50),
   turn_indicator INT,
   web_socket_id VARCHAR(50),
@@ -66,6 +70,7 @@ CREATE TABLE gameHistory (
 -- Damit currentPlayer (in game) auf player verweist
 ALTER TABLE game ADD CONSTRAINT fk_current_player_id FOREIGN KEY (current_player_id) REFERENCES player(id);
 ALTER TABLE game ADD CONSTRAINT fk_host_id FOREIGN KEY (host_id) REFERENCES player(id);
+ALTER TABLE game ADD CONSTRAINT fk_winning_player_id FOREIGN KEY (winning_player_id) REFERENCES player(id);
 
 INSERT INTO card_type (card_name, card_value, card_event) VALUES ("Rock", 1, "NONE");
 INSERT INTO card_type (card_name, card_value, card_event) VALUES ("Rock", 2, "NONE");

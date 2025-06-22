@@ -6,6 +6,7 @@ import game.CardGame.models.*;
 import game.CardGame.repositories.*;
 import game.CardGame.services.AuthenticationService;
 import game.CardGame.services.JwtService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -172,6 +173,9 @@ public class WebSocketGameService {
         user.setEmail(generateRandomString(10));
         String password = generateRandomString(10);
         user.setUserPassword(passwordEncoder.encode(password));
+        user.setIsAnonymous(true);
+        user.setStatGamesWon(0);
+        user.setStatGamesLost(0);
         userRepository.save(user);
 
         LoginUserDto loginUserDto = new LoginUserDto();
@@ -268,6 +272,58 @@ public class WebSocketGameService {
                 .responseType(ResponseType.START_GAME)
                 .additionalValue(cardDto)
                 .build();
+    }
+
+
+    public WebSocketResponseDto closeGame(GameCodeDto gameCodeDto, String username) throws IllegalArgumentException, IllegalStateException {
+        Optional<GameModel> gameOptional = gameRepository.findByGameCode(gameCodeDto.getGameCode());
+        if(gameOptional.isEmpty()) {
+            throw new IllegalArgumentException("Invalid Game Code");
+        }
+        GameModel game = gameOptional.get();
+
+        if(!game.getGameStatus().equals("Finished")) {
+            throw new IllegalStateException("Game has already started or finished");
+        }
+
+        PlayerModel callingPlayer = webSocketUtilService.findPlayer(username, gameCodeDto.getGameCode());
+        if(callingPlayer == null) {
+            throw new IllegalStateException("User is not part of the game");
+        }
+        if(!game.getHostId().getId().equals(callingPlayer.getId())) {
+            throw new IllegalStateException("User is not the host");
+        }
+
+        return WebSocketResponseDto.builder()
+                .sender(callingPlayer.getDisplayName())
+                .responseType(ResponseType.HOST_CLOSE)
+                .build();
+    }
+
+
+    @Transactional
+    public void deleteGame(String gameCode) {
+        GameModel game = gameRepository.findByGameCode(gameCode).get();
+        for(PlayerModel player : playerRepository.findByGameIdOrderByTurnIndicatorDesc(game).get()) {
+            for(CardModel card : cardRepository.findByDeckId(player.getHandCards()).get()) {
+                cardRepository.delete(card);
+            }
+            playerRepository.delete(player);
+            deckRepository.delete(player.getHandCards());
+            UserModel user = player.getUserId();
+            if(user.getIsAnonymous()) {
+                userRepository.delete(user);
+            }
+        }
+        gameRepository.delete(game);
+        for(CardModel card : cardRepository.findByDeckId(game.getCenterDeck()).get()) {
+            cardRepository.delete(card);
+        }
+        deckRepository.delete(game.getCenterDeck());
+        for(CardModel card : cardRepository.findByDeckId(game.getDiscardPile()).get()) {
+            cardRepository.delete(card);
+        }
+        deckRepository.delete(game.getDiscardPile());
     }
 
 

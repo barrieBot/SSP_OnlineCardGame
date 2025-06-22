@@ -5,9 +5,11 @@ import game.CardGame.enums.ResponseType;
 import game.CardGame.models.CardModel;
 import game.CardGame.models.GameModel;
 import game.CardGame.models.PlayerModel;
+import game.CardGame.models.UserModel;
 import game.CardGame.repositories.CardRepository;
 import game.CardGame.repositories.GameRepository;
 import game.CardGame.repositories.PlayerRepository;
+import game.CardGame.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -23,6 +25,8 @@ public class WebSocketGameplayService {
     private CardRepository cardRepository;
     @Autowired
     private PlayerRepository playerRepository;
+    @Autowired
+    private UserRepository userRepository;
 
     public WebSocketResponseDto playCard(PlayCardDto playCardDto, String username, String gameCode) throws IllegalArgumentException, IllegalStateException {
         Optional<GameModel> gameOptional = gameRepository.findByGameCode(gameCode);
@@ -121,7 +125,19 @@ public class WebSocketGameplayService {
             playerWonResponseDto.setPlayerName(callingPlayer.getDisplayName());
             playerWonResponseDto.setCard(cardDto);
             game.setGameStatus("Finished");
+            game.setWinningPlayerId(callingPlayer);
             gameRepository.save(game);
+
+            for(PlayerModel player : playerRepository.findByGameIdOrderByTurnIndicatorDesc(game).get()) {
+                UserModel user = player.getUserId();
+                if (player.getId().equals(game.getWinningPlayerId().getId())) {
+                    user.setStatGamesWon(user.getStatGamesWon() + 1);
+                    userRepository.save(user);
+                } else {
+                    user.setStatGamesLost(user.getStatGamesLost() + 1);
+                    userRepository.save(user);
+                }
+            }
 
             return WebSocketResponseDto.builder()
                     .sender(callingPlayer.getDisplayName())

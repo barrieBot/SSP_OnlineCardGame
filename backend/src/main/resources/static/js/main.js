@@ -27,6 +27,7 @@ var sub_login = document.querySelector("#loginButton")
 var sub_play_card = document.querySelector("#playCardButton")
 var sub_draw_card = document.querySelector("#drawCardButton")
 var sub_join_game_anonymous = document.querySelector("#but_join_game_anonymous")
+var sub_close_game = document.querySelector("#closeGameButton")
 
 
 
@@ -247,6 +248,24 @@ function  drawCard(event){
     event.preventDefault();
 }
 
+
+function closeGame() {
+    let gameCodeContent = gameCodeInput.value;
+    if(stompClient){
+        const gameState = {
+            gameCode: gameCodeContent,
+            action: 'CLOSE_GAME'
+        };
+
+        let jwt = jwtInput.value;
+        stompClient.send('/app/game.close', {
+                                            Authorization: `Bearer ${jwt}`
+                                          }, JSON.stringify(gameState))
+    }
+
+    event.preventDefault();
+}
+
 /*function  placeCard(event){
 
     //Methode for Selecting Card
@@ -289,3 +308,4 @@ sub_login.addEventListener("click", login);
 sub_play_card.addEventListener("click", playCard);
 sub_draw_card.addEventListener("click", drawCard);
 sub_join_game_anonymous.addEventListener("click", joinGameAnonymous)
+sub_close_game.addEventListener("click", closeGame)

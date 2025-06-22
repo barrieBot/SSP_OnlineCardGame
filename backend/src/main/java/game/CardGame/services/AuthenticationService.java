@@ -32,6 +32,9 @@ public class AuthenticationService {
         user.setUsername(input.getUsername());
         user.setEmail(input.getEmail());
         user.setUserPassword(passwordEncoder.encode(input.getPassword()));
+        user.setIsAnonymous(false);
+        user.setStatGamesWon(0);
+        user.setStatGamesLost(0);
         return userRepository.save(user);
     }
 

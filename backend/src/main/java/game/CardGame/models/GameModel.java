@@ -26,7 +26,7 @@ public class GameModel {
     private String gameStatus;
 
     @OneToOne
-    @JoinColumn(name = "current_player_id", nullable = false)
+    @JoinColumn(name = "current_player_id")
     private PlayerModel currentPlayerId;
 
     @CreationTimestamp
@@ -34,16 +34,20 @@ public class GameModel {
     private Date createdAt;
 
     @OneToOne
-    @JoinColumn(name = "center_deck", nullable = false)
+    @JoinColumn(name = "center_deck")
     private DeckModel centerDeck;
 
     @OneToOne
-    @JoinColumn(name = "discard_pile", nullable = false)
+    @JoinColumn(name = "discard_pile")
     private DeckModel discardPile;
 
     @OneToOne
-    @JoinColumn(name = "host_id", nullable = false)
+    @JoinColumn(name = "host_id")
     private PlayerModel hostId;
+
+    @OneToOne
+    @JoinColumn(name = "winning_player_id")
+    private PlayerModel winningPlayerId;
 
     @OneToMany(mappedBy = "gameId", fetch = FetchType.EAGER)
     private Set<PlayerModel> players;

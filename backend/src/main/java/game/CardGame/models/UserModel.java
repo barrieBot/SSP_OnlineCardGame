@@ -32,6 +32,15 @@ public class UserModel implements UserDetails {
     @Column(nullable = false, name = "user_password")
     private String userPassword;
 
+    @Column(nullable = false, name = "is_anonymous")
+    private Boolean isAnonymous;
+
+    @Column(nullable = false, name = "stat_games_won")
+    private Integer statGamesWon;
+
+    @Column(nullable = false, name = "stat_games_lost")
+    private Integer statGamesLost;
+
     @CreationTimestamp
     @Column(updatable = false, name = "created_at")
     private Date createdAt;
