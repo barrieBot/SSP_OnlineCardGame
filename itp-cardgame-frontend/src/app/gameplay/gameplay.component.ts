@@ -1,7 +1,16 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HlmButtonDirective } from '@spartan-ng/ui-button-helm';
 import { SvgIconComponent } from '../svg-icon/svg-icon.component';
+import { Subscription } from 'rxjs';
+import { WebsocketService } from '../services/websocket.service';
+
+interface StartGameData {
+  handCards: { cardName: string; cardValue: number }[];
+  centerCard: { cardName: string; cardValue: number };
+  turnOrder: { [key: string]: string };
+  sender: string;
+}
 
 @Component({
   selector: 'app-gameplay',
@@ -14,8 +23,9 @@ import { SvgIconComponent } from '../svg-icon/svg-icon.component';
   templateUrl: './gameplay.component.html',
   styleUrl: './gameplay.component.css'
 })
-export class GameplayComponent implements OnInit {
-  allCards: string[] = [
+
+export class GameplayComponent implements OnInit, OnDestroy {
+  readonly allCards: string[] = [
     'assets/svg/cards/numeric_cards/schere1.svg',
     'assets/svg/cards/numeric_cards/schere2.svg',
     'assets/svg/cards/numeric_cards/schere3.svg',
@@ -45,15 +55,51 @@ export class GameplayComponent implements OnInit {
     'assets/svg/cards/numeric_cards/papier9.svg',
   ];
 
+  private websocketService = inject(WebsocketService);
+
   playerCards: string[] = [];
-  //playerCards vielleicht nicht nur string sondern ein Card-Type oder so
-  middleCard: string = 'assets/svg/cards/numeric_cards/papier5.svg';
-  //vielleicht auch hier ein Card-Type
+  middleCard: string = '';
+  playerNames: { [key: string]: string } = {};
+  currentPlayer: string = '';
+  
+  myPlayerName: string = '';
+  activePlayer: string = '';
+
+  gameUpdatesSub?: Subscription;
   selectedCardIndex: number | null = null;
   cardSpacing = 60;
 
   ngOnInit(): void {
-    this.playerCards = this.getRandomCards(7);
+    this.gameUpdatesSub = this.websocketService.getGameUpdates().subscribe((data) => {
+      if ((data.responseType === 'START_GAME' || data.action === 'START_GAME')) {
+        this.handleStartGame(data);
+      }
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.gameUpdatesSub?.unsubscribe();
+  }
+
+  handleStartGame(data: StartGameData) {
+    const mappedCards = data.handCards.map((card: any) => {
+      const mapped = this.mapCardToAsset(card);
+      return mapped;
+    });
+    this.middleCard = this.mapCardToAsset(data.centerCard);
+    this.playerCards = mappedCards;
+    this.playerNames = data.turnOrder;
+    this.currentPlayer = data.sender;
+  }
+
+  mapCardToAsset(card: { cardName: string, cardValue: number }): string {
+    const nameMap: { [key: string]: string } = {
+      'Scissors': 'schere',
+      'Rock': 'stein',
+      'Paper': 'papier'
+    };
+    const fileName = `${nameMap[card.cardName]}${card.cardValue}.svg`;
+    return `assets/svg/cards/numeric_cards/${fileName}`;
   }
 
   getRandomCards(count: number): string[] {
@@ -73,14 +119,53 @@ export class GameplayComponent implements OnInit {
   }
 
   placeCard(index: number) {
-    const card = this.playerCards[index];
-    this.middleCard = card;
+    if (this.myPlayerName !== this.activePlayer) {
+      console.log('Not your turn');
+      return;
+    }
+
+    const cardAssetPath = this.playerCards[index];
+    const card = this.extractCardFromAsset(cardAssetPath);
+    this.middleCard = cardAssetPath;
     this.playerCards.splice(index, 1);
+
+    const gameCode = this.websocketService.getGameCode();
+    //TODO: grad noch kein game code found
+    if (!gameCode) {
+      console.warn('No game code found - cannot send card');
+      return;
+    }
+
+    this.websocketService.sendCardPlayer(gameCode, card);
+
+  }
+
+  extractCardFromAsset(assetPath: string): { cardName: string, cardValue: number } {
+    const fileName = assetPath.split('/').pop()?.replace('.svg', '') ?? '';
+    const match = fileName.match(/(schere|stein|papier)(\d)/);
+
+    const nameMap: { [key: string]: string } = {
+      'schere': 'Scissors',
+      'stein': 'Rock',
+      'papier': 'Paper'
+    };
+
+    if (!match) {
+      throw new Error('Invalid card asset path');
+    }
+
+    return {
+      cardName: nameMap[match[1]],
+      cardValue: parseInt(match[2], 10)
+    };
   }
 
   validCardCheck(index:number) {
+
     //Card[index] beats middleCard
+
     return true;
+
     // else return false
   }
 
