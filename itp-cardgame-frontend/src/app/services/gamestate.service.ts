@@ -1,7 +1,6 @@
-import { inject, Injectable, signal } from '@angular/core';
+import { inject, Injectable, OnDestroy, signal } from '@angular/core';
 import { WebsocketService } from './websocket.service';
 import { Subscription } from 'rxjs';
-
 
 export const allCards: string[] = [
     'assets/svg/cards/numeric_cards/schere1.svg',
@@ -33,139 +32,179 @@ export const allCards: string[] = [
     'assets/svg/cards/numeric_cards/papier9.svg',
   ];
 
+export type CardFace = 'Scissors' | 'Rock' | 'Paper';
 
-export interface StartGameData {
-  handCards: { cardName: string; cardValue: number }[];
-  centerCard: { cardName: string; cardValue: number };
-  turnOrder: { [key: string]: string };
-  sender: string;
-}
-
-
-export interface Player{
-  nick: string,
-  card_count: number,
-  placement: null | number
+export enum CardEffects{ 
+  NORMAL = 'NORMAL',
+  DRAW = 'DRAW'
 }
 
 export interface Card{
   face: string,
   value: number,
-  effect: card_effects,
+  effect: CardEffects,
   asset: string,
   id: null | number
 }
 
-export enum card_effects{ 
-  NORMAL,
-  DRAW
+export interface CardDto {
+  cardName: CardFace;
+  cardValue: number;
 }
 
+export interface StartGameData {
+  handCards: CardDto[];
+  centerCard: CardDto;
+  turnOrder: { [playerId: string]: string };
+  sender: string;
+}
+
+export interface Player{
+  nickname: string,
+  card_count: number,
+  placement: null | number
+}
 
 @Injectable({
   providedIn: 'root'
 })
-export class GamestateService {
+export class GamestateService implements OnDestroy {
 
-
-  connection = inject(WebsocketService)
+  private connection = inject(WebsocketService)
   
-  public readonly player_deck = signal<Card[]>([])
-  public readonly current_top_card = signal<Card[]>([])
-
+  public readonly playerDeck = signal<Card[]>([])
+  public readonly currentTopCard = signal<Card[]>([])
   public readonly players = signal<Player[]>([])
-
-  public readonly draw_modifier = signal(0)
-  public readonly active_player_pos = signal(0)
+  public readonly drawModifier = signal(0)
+  public readonly activePlayerPos = signal(0)
 
   ///Inject web-socket? oder umgekehrt? inject handler von hier in WS
 
-  gameUpdatesSub?: Subscription;
+  private gameUpdatesSub?: Subscription;
 
   constructor() { 
-
     this.gameUpdatesSub = this.connection.getGameUpdates().subscribe((data) => {
       if ((data.responseType === 'START_GAME' || data.action === 'START_GAME')) {
-        //this.setupGame(data);
+        this.setupGame(data);
       }
 
-      ////Switch-Case für die ganzen Response-types/Actions 
+      if ((data.responseType === 'DRAW_CARD' || data.action === 'DRAW_CARD')) {
+        this.addCardToHand(data);
+      }
 
+      if ((data.responseType === 'PLACE_CARD' || data.action === 'PLACE_CARD')) {
+        this.updateTopCard(data);
+      }
+      // switch (data.action) {
+      //   case 'START_GAME':
+      //       this.setupGame(data);
+      //       break;
+          
+      //   case 'DRAW_CARD':
+      //     this.addCardToHand(data.card);
+      //     break;
+        
+      //   case 'PLACE_CARD':
+      //     this.updateTopCard(data.card);
+      //     break;
+      // }
+      //Switch-Case für die ganzen Response-types/Actions 
     });
-
+  }
+  
+  ngOnDestroy(): void {
+    this.gameUpdatesSub?.unsubscribe;
   }
 
+  setupGame(data: StartGameData): void {
+    const hand = data.handCards.map(this.parseCard.bind(this));
+    this.playerDeck.set(hand);
 
-  setupGame(data: StartGameData){
-    ///Set Up Players
-    ///Set Up Cards? 
-    
-    this.player_deck.set( data.handCards.map((card: any) => {
-      const parsed = this.parseCard(card);
-      return parsed;
-    })) ;
+    // set top card
+    this.currentTopCard.set([]);
+    this.currentTopCard.update((cards) => [this.parseCard(data.centerCard), ...cards])
 
-    this.current_top_card.set([]) /// Then add newest 
-    this.current_top_card.update((cards) => [this.parseCard(data.centerCard), ...cards])
+    const playerList: Player[] = Object.entries(data.turnOrder).map(([playerId, nickname]) => ({
+      nickname,
+      card_count: 0,
+      placement: null
+    }));
+    this.players.set(playerList);
 
-  }
-
-
-
-  drawCardAction(){
-    this.draw_modifier.set(0)
-
-
-
-  }
-
-  placeCardAction(card: Card){
-
-    if(this.checkCardValiditiy(card)){
-      ///Push to websocket here 
-
+    // set active player based on sender value
+    const activeIndex = playerList.findIndex(player => player.nickname === data.sender);
+    if (activeIndex !== -1) {
+      this.activePlayerPos.set(activeIndex);
     }
 
-
-
   }
 
-  pushAction(){
+  drawCardAction() {
+    this.drawModifier.set(0)
 
+    const gameCode = this.connection.getGameCode();
+    if (!gameCode) {
+      return;
+    }
+
+    this.connection.sendMessage('/app/game.draw.card', {
+      gameCode,
+      action: 'DRAW_CARD'
+    });
   }
 
-
-
-  checkCardValiditiy(card: Card): boolean{
+  placeCardAction(card: Card) {
+    if (!this.checkCardValidity(card)) {
+      return;
+    }
     
+    const gameCode = this.connection.getGameCode();
+    if (!gameCode) {
+      return;
+    }
 
-
-    const value = card.value >= this.current_top_card()[0].value
-    const face = (card.face === this.current_top_card()[0].face) 
-                || (card.face === "Scissors" && this.current_top_card()[0].face === "Paper")
-                || (card.face === "Paper" && this.current_top_card()[0].face === "Rock")
-                || (card.face === "Rock" && this.current_top_card()[0].face === "Scissors")
-
-
-    if(value && face) { return true}
-    return false;
+    this.connection.sendMessage('/app/game.play.card', {
+      gameCode,  
+      action: 'PLACE_CARD',
+      card: {
+        face: card.face,
+        value: card.value,
+        id: card.id
+      }
+    });
   }
 
-  parseCard(card: {cardName: string, cardValue: number }): Card{
+  // pushAction(){
 
-    const new_card = {
+  // }
+
+  checkCardValidity(card: Card): boolean {
+    const topCard = this.currentTopCard()[0];
+    if (!topCard) {
+      return false;
+    }
+
+    const valueValid = card.value >= topCard.value;
+    const faceValid =
+      card.face === topCard.face ||
+      (card.face === 'Scissors' && topCard.face === 'Paper') ||
+      (card.face === 'Paper' && topCard.face === 'Rock') ||
+      (card.face === 'Rock' && topCard.face === 'Scissors');
+
+    return valueValid && faceValid;
+  }
+
+  private parseCard(card: CardDto): Card {
+    return {
       face: card.cardName,
       value: card.cardValue, 
-      effect: card_effects.NORMAL,
+      effect: CardEffects.NORMAL,
       asset: this.mapCardToAsset(card),
       id: null
-    }
-
-    return new_card
+    };
   }
 
-
-  mapCardToAsset(card: { cardName: string, cardValue: number }): string {
+  private mapCardToAsset(card: CardDto): string {
     const nameMap: { [key: string]: string } = {
       'Scissors': 'schere',
       'Rock': 'stein',
@@ -174,5 +213,14 @@ export class GamestateService {
     const fileName = `${nameMap[card.cardName]}${card.cardValue}.svg`;
     return `assets/svg/cards/numeric_cards/${fileName}`;
   }
-  
+
+  private addCardToHand(cardDto: CardDto) {
+    const newCard = this.parseCard(cardDto);
+    this.playerDeck.update(deck => [...deck, newCard]);
+  }
+
+  private updateTopCard(cardDto: CardDto) {
+    const newTopCard = this.parseCard(cardDto);
+    this.currentTopCard.update(cards => [newTopCard, ...cards]);
+  }
 }

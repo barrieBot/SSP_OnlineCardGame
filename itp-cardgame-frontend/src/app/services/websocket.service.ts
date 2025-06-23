@@ -185,4 +185,27 @@ export class WebsocketService {
 
     console.log('[WebSocket] sent playCardDto:', playCardDto);
   }
+
+  sendMessage(destination: string, payload: any): void {
+    if (!this.stompClient || !this.stompClient.connected) {
+      console.warn('[WebSocket] not connected, cannot send message');
+      return;
+    }
+
+    const token = this.localStorageService.getJwtToken();
+    if (!token) {
+      console.warn('[WebSocket] no JWT token found, cannot authenticate');
+      return;
+    }
+
+    this.stompClient.publish({
+      destination,
+      headers: {
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify(payload),
+    });
+
+    console.log(`[WebSocket] sent to ${destination}:`, payload);
+  }
 }

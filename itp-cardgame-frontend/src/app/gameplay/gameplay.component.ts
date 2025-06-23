@@ -1,10 +1,8 @@
-import { Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, inject, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HlmButtonDirective } from '@spartan-ng/ui-button-helm';
 import { SvgIconComponent } from '../svg-icon/svg-icon.component';
-import { Subscription } from 'rxjs';
-import { WebsocketService } from '../services/websocket.service';
-import { StartGameData, allCards, Card, Player, GamestateService } from '../services/gamestate.service';
+import { GamestateService, Card, CardDto } from '../services/gamestate.service';
 
 
 @Component({
@@ -19,122 +17,42 @@ import { StartGameData, allCards, Card, Player, GamestateService } from '../serv
   styleUrl: './gameplay.component.css'
 })
 
-export class GameplayComponent implements OnInit, OnDestroy {
-  
-
-  private websocketService = inject(WebsocketService);
+export class GameplayComponent {
   private gameState = inject(GamestateService)
-
-  playerCards: string[] = [];
-  middleCard: string = '';
-  playerNames: { [key: string]: string } = {};
-  currentPlayer: string = '';
   
-  myPlayerName: string = '';
-  activePlayer: string = '';
+  playerCards: Card[] = [];
+  topCard: Card | null = null;
 
-  gameUpdatesSub?: Subscription;
-  selectedCardIndex: number | null = null;
   cardSpacing = 60;
 
-  ngOnInit(): void {
-    this.gameUpdatesSub = this.websocketService.getGameUpdates().subscribe((data) => {
-      if ((data.responseType === 'START_GAME' || data.action === 'START_GAME')) {
-        this.handleStartGame(data);
-      }
+  constructor() {
+    effect(() => {
+      this.playerCards = this.gameState.playerDeck();
+      this.topCard = this.gameState.currentTopCard()[0] ?? null;
     });
   }
 
-  ngOnDestroy(): void {
-    this.gameUpdatesSub?.unsubscribe();
+  drawCard() {
+    this.gameState.drawCardAction();
   }
 
-  handleStartGame(data: StartGameData) {
-    const mappedCards = data.handCards.map((card: any) => {
-      const mapped = this.mapCardToAsset(card);
-      return mapped;
-    });
-    this.middleCard = this.mapCardToAsset(data.centerCard);
-    this.playerCards = mappedCards;
-    this.playerNames = data.turnOrder;
-    this.currentPlayer = data.sender;
+  placeCard(index: number): boolean {
+    const card = this.playerCards[index];
+    const valid = this.gameState.checkCardValidity(card);
+    if (valid) {
+      this.gameState.placeCardAction(card);
+    }
+    return valid;
   }
 
-  mapCardToAsset(card: { cardName: string, cardValue: number }): string {
+  mapCardToAsset(card: Card): string {
     const nameMap: { [key: string]: string } = {
       'Scissors': 'schere',
       'Rock': 'stein',
       'Paper': 'papier'
     };
-    const fileName = `${nameMap[card.cardName]}${card.cardValue}.svg`;
+    const fileName = `${nameMap[card.face]}${card.value}.svg`;
     return `assets/svg/cards/numeric_cards/${fileName}`;
-  }
-
-  getRandomCards(count: number): string[] {
-    const shuffled = [...allCards].sort(() => 0.5 - Math.random());
-    return shuffled.slice(0, count);
-  }
-
-  drawCard() {
-    const remainingCards = allCards.filter(card => !this.playerCards.includes(card));
-
-    if (remainingCards.length === 0) {
-      return;
-    }
-
-    const randomCard = remainingCards[Math.floor(Math.random() * remainingCards.length)];
-    this.playerCards.push(randomCard);
-  }
-
-  placeCard(index: number) {
-    if (this.myPlayerName !== this.activePlayer) {
-      console.log('Not your turn');
-      return;
-    }
-
-    const cardAssetPath = this.playerCards[index];
-    const card = this.extractCardFromAsset(cardAssetPath);
-    this.middleCard = cardAssetPath;
-    this.playerCards.splice(index, 1);
-
-    const gameCode = this.websocketService.getGameCode();
-    //TODO: grad noch kein game code found
-    if (!gameCode) {
-      console.warn('No game code found - cannot send card');
-      return;
-    }
-
-    this.websocketService.sendCardPlayer(gameCode, card);
-
-  }
-
-  extractCardFromAsset(assetPath: string): { cardName: string, cardValue: number } {
-    const fileName = assetPath.split('/').pop()?.replace('.svg', '') ?? '';
-    const match = fileName.match(/(schere|stein|papier)(\d)/);
-
-    const nameMap: { [key: string]: string } = {
-      'schere': 'Scissors',
-      'stein': 'Rock',
-      'papier': 'Paper'
-    };
-
-    if (!match) {
-      throw new Error('Invalid card asset path');
-    }
-
-    return {
-      cardName: nameMap[match[1]],
-      cardValue: parseInt(match[2], 10)
-    };
-  }
-
-  validCardCheck(index:number) {
-
-    //Card[index] beats middleCard
-
-    return true;
-
-    // else return false
   }
 
   getCardStyle(index: number, total: number): { [key: string]: string } {

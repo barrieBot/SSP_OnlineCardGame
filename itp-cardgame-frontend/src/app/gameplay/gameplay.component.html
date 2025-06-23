@@ -21,10 +21,12 @@
                 draw card
             </button>
 
+            <!-- middle card -->
             <div class="w-32 sm:w-48 h-48 sm:h-60 relative flex flex-col bg-transparent border-none rounded-lg items-center justify-center">
                 <app-svg-icon
+                    *ngIf="topCard"
                     class="w-full h-full object-contain"
-                    [src]="middleCard">
+                    [src]="mapCardToAsset(topCard)">
                 </app-svg-icon>
             </div>
         </div>
@@ -60,20 +62,17 @@
     <div class="col-start-2 row-start-3 relative flex justify-center p-6">
         <div class="relative flex justify-center items-center sm:h-[25vh] w-full max-w-7xl">
             <ng-container *ngFor="let card of playerCards; let i = index">
-            <div
-                class="absolute sm:w-56 sm-h-72 md:w-64 md:h-80 
-                transition-transform 
-                hover:scale-105
-                hover:-translate-y-10 cursor-pointer"
-                [ngStyle]="getCardStyle(i, playerCards.length)"
-                (click)="placeCard(i)">
-                <div  class="relative inline-block bg-transparent  border-none p-0 m-0 shadow-none">
-                    <app-svg-icon
-                    class=" pointer-events-none"
-                    [src]="card">
-                    </app-svg-icon>
+                <div
+                    class="absolute sm:w-56 sm-h-72 md:w-64 md:h-80 transition-transform hover:scale-105 hover:-translate-y-10 cursor-pointer"
+                    [ngStyle]="getCardStyle(i, playerCards.length)"
+                    (click)="placeCard(i)">
+                    <div class="relative inline-block bg-transparent  border-none p-0 m-0 shadow-none">
+                        <app-svg-icon
+                        class="pointer-events-none"
+                        [src]="mapCardToAsset(card)">
+                        </app-svg-icon>
+                    </div>
                 </div>
-            </div>
             </ng-container>
         </div>
     </div>
