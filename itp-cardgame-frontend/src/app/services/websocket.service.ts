@@ -1,17 +1,17 @@
 import { inject, Injectable } from '@angular/core';
 import SockJS from 'sockjs-client';
 import { Client, Stomp } from '@stomp/stompjs';
-import { Subject, Observable } from 'rxjs';
+import { Subject, Observable, ReplaySubject } from 'rxjs';
 import { LocalStorageService } from './local-storage.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class WebsocketService {
+  private currentGameCode: string | null = null;
   private stompClient: Client | null = null;
-  private gameUpdates$ = new Subject<any>();
+  private gameUpdates$ = new ReplaySubject<any>(1);
   private localStorageService = inject(LocalStorageService);
-
 
   connect(): void {
     if (this.stompClient && this.stompClient.connected) {
@@ -59,6 +59,14 @@ export class WebsocketService {
     }
   }
 
+  setGameCode(code: string): void {
+    this.currentGameCode = code;
+  }
+
+  getGameCode(): string | null {
+    return this.currentGameCode;
+  }
+
   createGame(displayName: string): void {
     if (!this.stompClient || !this.stompClient.connected) {
       console.warn('[WebSocket] not connected, cannot send createGame');
@@ -85,9 +93,16 @@ export class WebsocketService {
   }
   
   joinGame(gameCode: string, displayName: string): void {
+    this.setGameCode(gameCode);
+
     if (!this.stompClient || !this.stompClient.connected) {
       this.connect();
-      setTimeout(() => this.joinGame(gameCode, displayName), 500);
+      const interval = setInterval(() => {
+        if (this.stompClient?.connected) {
+          clearInterval(interval);
+          this.joinGame(gameCode, displayName);
+        }
+      }, 200);
       return;
     }
 
@@ -140,5 +155,34 @@ export class WebsocketService {
     });
 
     console.log('[WebSocket] sent startGameDto:', startGameDto);
+  }
+
+  sendCardPlayer(gameCode: string, card: { cardName: string, cardValue: number }): void {
+    if (!this.stompClient || !this.stompClient.connected) {
+      console.warn('[WebSocket] not connected, cannot send played card');
+      return;
+    }
+
+    const token = this.localStorageService.getJwtToken();
+    if (!token) {
+      console.warn('[WebSocket] no JWT token found, cannot authenticate');
+      return;
+    }
+
+    const playCardDto = {
+      gameCode,
+      action: 'PLAY_CARD',
+      card
+    };
+
+    this.stompClient.publish({
+      destination: '/app/game.play.card',
+      headers: {
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify(playCardDto),
+    });
+
+    console.log('[WebSocket] sent playCardDto:', playCardDto);
   }
 }

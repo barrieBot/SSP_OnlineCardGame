@@ -59,13 +59,14 @@ export class LobbyComponent implements OnInit {
     this.webSocketService.getGameUpdates().subscribe(update => {
       console.log('Lobby WebSocket Update:', update);
 
+      // new game
       if (update?.responseType === 'NEW_GAME' && update.id) {
         if (!this.hostUsername && this.currentUser) {
           this.hostUsername = this.currentUser?.username;
         }
       }
 
-      // add joining player to array players
+      // join game
       if (update?.responseType === 'JOIN_GAME') {
         const newPlayerUsername = update.sender;
 
@@ -81,12 +82,16 @@ export class LobbyComponent implements OnInit {
         if (!this.players.find(p => p.username === newPlayerUsername)) {
           this.players.push({ username: newPlayerUsername });
         }
+      }
 
-        // start game
-        if (update?.responseType === 'START_GAME') {
-          const gameId = update.gameId;
-          console.log('Game started, navigating to gameplay...');
+      // start game
+      if ((update?.action === 'START_GAME' || update?.responseType === 'START_GAME')) {
+        const gameId = update.gameCode ?? this.gameId;
+        console.log('Game started, navigating to gameplay...');
+        if (gameId) {
           this.router.navigate(['/gameplay', gameId]);
+        } else {
+          console.error('Cannot navigate: gameId is missing');
         }
       }
     });
