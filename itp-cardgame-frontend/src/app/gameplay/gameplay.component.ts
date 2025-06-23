@@ -4,13 +4,8 @@ import { HlmButtonDirective } from '@spartan-ng/ui-button-helm';
 import { SvgIconComponent } from '../svg-icon/svg-icon.component';
 import { Subscription } from 'rxjs';
 import { WebsocketService } from '../services/websocket.service';
+import { StartGameData, allCards, Card, Player, GamestateService } from '../services/gamestate.service';
 
-interface StartGameData {
-  handCards: { cardName: string; cardValue: number }[];
-  centerCard: { cardName: string; cardValue: number };
-  turnOrder: { [key: string]: string };
-  sender: string;
-}
 
 @Component({
   selector: 'app-gameplay',
@@ -25,37 +20,10 @@ interface StartGameData {
 })
 
 export class GameplayComponent implements OnInit, OnDestroy {
-  readonly allCards: string[] = [
-    'assets/svg/cards/numeric_cards/schere1.svg',
-    'assets/svg/cards/numeric_cards/schere2.svg',
-    'assets/svg/cards/numeric_cards/schere3.svg',
-    'assets/svg/cards/numeric_cards/schere4.svg',
-    'assets/svg/cards/numeric_cards/schere5.svg',
-    'assets/svg/cards/numeric_cards/schere6.svg',
-    'assets/svg/cards/numeric_cards/schere7.svg',
-    'assets/svg/cards/numeric_cards/schere8.svg',
-    'assets/svg/cards/numeric_cards/schere9.svg',
-    'assets/svg/cards/numeric_cards/stein1.svg',
-    'assets/svg/cards/numeric_cards/stein2.svg',
-    'assets/svg/cards/numeric_cards/stein3.svg',
-    'assets/svg/cards/numeric_cards/stein4.svg',
-    'assets/svg/cards/numeric_cards/stein5.svg',
-    'assets/svg/cards/numeric_cards/stein6.svg',
-    'assets/svg/cards/numeric_cards/stein7.svg',
-    'assets/svg/cards/numeric_cards/stein8.svg',
-    'assets/svg/cards/numeric_cards/stein9.svg',
-    'assets/svg/cards/numeric_cards/papier1.svg',
-    'assets/svg/cards/numeric_cards/papier2.svg',
-    'assets/svg/cards/numeric_cards/papier3.svg',
-    'assets/svg/cards/numeric_cards/papier4.svg',
-    'assets/svg/cards/numeric_cards/papier5.svg',
-    'assets/svg/cards/numeric_cards/papier6.svg',
-    'assets/svg/cards/numeric_cards/papier7.svg',
-    'assets/svg/cards/numeric_cards/papier8.svg',
-    'assets/svg/cards/numeric_cards/papier9.svg',
-  ];
+  
 
   private websocketService = inject(WebsocketService);
+  private gameState = inject(GamestateService)
 
   playerCards: string[] = [];
   middleCard: string = '';
@@ -103,12 +71,12 @@ export class GameplayComponent implements OnInit, OnDestroy {
   }
 
   getRandomCards(count: number): string[] {
-    const shuffled = [...this.allCards].sort(() => 0.5 - Math.random());
+    const shuffled = [...allCards].sort(() => 0.5 - Math.random());
     return shuffled.slice(0, count);
   }
 
   drawCard() {
-    const remainingCards = this.allCards.filter(card => !this.playerCards.includes(card));
+    const remainingCards = allCards.filter(card => !this.playerCards.includes(card));
 
     if (remainingCards.length === 0) {
       return;
