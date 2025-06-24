@@ -2,36 +2,6 @@ import { inject, Injectable, OnDestroy, signal } from '@angular/core';
 import { WebsocketService } from './websocket.service';
 import { Subscription } from 'rxjs';
 
-export const allCards: string[] = [
-    'assets/svg/cards/numeric_cards/schere1.svg',
-    'assets/svg/cards/numeric_cards/schere2.svg',
-    'assets/svg/cards/numeric_cards/schere3.svg',
-    'assets/svg/cards/numeric_cards/schere4.svg',
-    'assets/svg/cards/numeric_cards/schere5.svg',
-    'assets/svg/cards/numeric_cards/schere6.svg',
-    'assets/svg/cards/numeric_cards/schere7.svg',
-    'assets/svg/cards/numeric_cards/schere8.svg',
-    'assets/svg/cards/numeric_cards/schere9.svg',
-    'assets/svg/cards/numeric_cards/stein1.svg',
-    'assets/svg/cards/numeric_cards/stein2.svg',
-    'assets/svg/cards/numeric_cards/stein3.svg',
-    'assets/svg/cards/numeric_cards/stein4.svg',
-    'assets/svg/cards/numeric_cards/stein5.svg',
-    'assets/svg/cards/numeric_cards/stein6.svg',
-    'assets/svg/cards/numeric_cards/stein7.svg',
-    'assets/svg/cards/numeric_cards/stein8.svg',
-    'assets/svg/cards/numeric_cards/stein9.svg',
-    'assets/svg/cards/numeric_cards/papier1.svg',
-    'assets/svg/cards/numeric_cards/papier2.svg',
-    'assets/svg/cards/numeric_cards/papier3.svg',
-    'assets/svg/cards/numeric_cards/papier4.svg',
-    'assets/svg/cards/numeric_cards/papier5.svg',
-    'assets/svg/cards/numeric_cards/papier6.svg',
-    'assets/svg/cards/numeric_cards/papier7.svg',
-    'assets/svg/cards/numeric_cards/papier8.svg',
-    'assets/svg/cards/numeric_cards/papier9.svg',
-  ];
-
 export type CardFace = 'Scissors' | 'Rock' | 'Paper';
 
 export enum CardEffects{ 
@@ -70,7 +40,7 @@ export interface Player{
 })
 export class GamestateService implements OnDestroy {
 
-  private connection = inject(WebsocketService)
+  private websocketService = inject(WebsocketService)
   
   public readonly playerDeck = signal<Card[]>([])
   public readonly currentTopCard = signal<Card[]>([])
@@ -78,46 +48,37 @@ export class GamestateService implements OnDestroy {
   public readonly drawModifier = signal(0)
   public readonly activePlayerPos = signal(0)
 
-  ///Inject web-socket? oder umgekehrt? inject handler von hier in WS
-
   private gameUpdatesSub?: Subscription;
 
   constructor() { 
-    this.gameUpdatesSub = this.connection.getGameUpdates().subscribe((data) => {
-      if ((data.responseType === 'START_GAME' || data.action === 'START_GAME')) {
-        this.setupGame(data);
-      }
+    this.gameUpdatesSub = this.websocketService.getGameUpdates().subscribe((data) => {
+      const type = data.responseType || data.action;
 
-      if ((data.responseType === 'DRAW_CARD' || data.action === 'DRAW_CARD')) {
-        this.addCardToHand(data);
-      }
-
-      if ((data.responseType === 'PLACE_CARD' || data.action === 'PLACE_CARD')) {
-        this.updateTopCard(data);
-      }
-      // switch (data.action) {
-      //   case 'START_GAME':
-      //       this.setupGame(data);
-      //       break;
-          
-      //   case 'DRAW_CARD':
-      //     this.addCardToHand(data.card);
-      //     break;
+      switch (type) {
+        case 'START_GAME':
+          this.setupGame(data);
+          break;
         
-      //   case 'PLACE_CARD':
-      //     this.updateTopCard(data.card);
-      //     break;
-      // }
-      //Switch-Case für die ganzen Response-types/Actions 
+        case 'DRAW_CARD':
+          this.addCardToHand(data);
+          break;
+        
+        case 'PLACE_CARD':
+          this.updateTopCard(data);
+          break;
+      }
+
     });
   }
   
   ngOnDestroy(): void {
-    this.gameUpdatesSub?.unsubscribe;
+    this.gameUpdatesSub?.unsubscribe();
   }
 
   setupGame(data: StartGameData): void {
-    const hand = data.handCards.map(this.parseCard.bind(this));
+    const hand = data.handCards.map((cardDto, index) => 
+      ({ ...this.parseCard(cardDto), id: index })
+    );
     this.playerDeck.set(hand);
 
     // set top card
@@ -136,18 +97,17 @@ export class GamestateService implements OnDestroy {
     if (activeIndex !== -1) {
       this.activePlayerPos.set(activeIndex);
     }
-
   }
 
   drawCardAction() {
     this.drawModifier.set(0)
 
-    const gameCode = this.connection.getGameCode();
+    const gameCode = this.websocketService.getGameCode();
     if (!gameCode) {
       return;
     }
 
-    this.connection.sendMessage('/app/game.draw.card', {
+    this.websocketService.sendMessage('/app/game.card.draw', {
       gameCode,
       action: 'DRAW_CARD'
     });
@@ -158,12 +118,12 @@ export class GamestateService implements OnDestroy {
       return;
     }
     
-    const gameCode = this.connection.getGameCode();
+    const gameCode = this.websocketService.getGameCode();
     if (!gameCode) {
       return;
     }
 
-    this.connection.sendMessage('/app/game.play.card', {
+    this.websocketService.sendMessage('/app/game.card.play', {
       gameCode,  
       action: 'PLACE_CARD',
       card: {
@@ -173,10 +133,6 @@ export class GamestateService implements OnDestroy {
       }
     });
   }
-
-  // pushAction(){
-
-  // }
 
   checkCardValidity(card: Card): boolean {
     const topCard = this.currentTopCard()[0];
