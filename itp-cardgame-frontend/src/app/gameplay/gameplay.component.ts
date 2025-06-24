@@ -42,6 +42,7 @@ export class GameplayComponent {
     if (valid) {
       this.gameState.placeCardAction(card);
     }
+    
     return valid;
   }
 

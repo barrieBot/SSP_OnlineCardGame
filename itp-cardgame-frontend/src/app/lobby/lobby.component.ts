@@ -57,8 +57,6 @@ export class LobbyComponent implements OnInit {
     }
 
     this.webSocketService.getGameUpdates().subscribe(update => {
-      console.log('Lobby WebSocket Update:', update);
-
       // new game
       if (update?.responseType === 'NEW_GAME' && update.id) {
         if (!this.hostUsername && this.currentUser) {

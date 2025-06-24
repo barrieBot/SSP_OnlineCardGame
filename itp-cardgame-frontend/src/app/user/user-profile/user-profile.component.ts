@@ -77,7 +77,6 @@ export class UserProfileComponent implements OnInit {
 
       if (update?.responseType === 'JOIN_GAME' && update?.gameCode) {
         this.router.navigate(['/lobby', update.gameCode]);
-        console.log("für testzwecke:", update.gameCode);
       }
     });
   }
