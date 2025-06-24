@@ -12,7 +12,7 @@ import {
   HlmDialogTitleDirective,
 } from '@spartan-ng/ui-dialog-helm';
 import { WebsocketService } from '../services/websocket.service';
-import { UserService } from '../services/user.service';
+import { UserService, User } from '../services/user.service';
 
 
 @Component({
@@ -36,15 +36,21 @@ import { UserService } from '../services/user.service';
 export class MainMenuComponent implements OnInit {
   joinCode: string = '';
   nickname: string = '';
-  // constructor(private router: Router) {}
+  
   private router = inject(Router);
   private websocketService = inject(WebsocketService);
   private userService = inject(UserService);
 
   ngOnInit(): void {
     this.websocketService.getGameUpdates().subscribe((update) => {
-      if (update?.responseType === 'JOIN_GAME') {
+      if (update?.responseType === 'JOIN_GAME' || update?.responseType === 'CREATE_GAME') {
         const code = update.gameCode ?? this.websocketService.getGameCode();
+        const user: User = {
+          username: update.sender,
+          token: update.jwt
+        };
+
+        this.userService.setUser(user);
 
         if (code) {
           this.router.navigate(['/lobby', code]);
@@ -80,10 +86,6 @@ export class MainMenuComponent implements OnInit {
       alert('Please enter gamecode and nickname');
       return;
     }
-
-    this.userService.setUser({
-      username: this.nickname.trim()
-    });
     
     this.websocketService.joinGameAnonymous(this.joinCode.trim(), this.nickname.trim());
     console.log('[MainMenu] joinGameAnonymous sent');

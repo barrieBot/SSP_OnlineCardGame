@@ -5,7 +5,7 @@ import { Subscription } from 'rxjs';
 export type CardFace = 'Scissors' | 'Rock' | 'Paper';
 
 export enum CardEffects{ 
-  NORMAL = 'NORMAL',
+  NONE = 'NONE',
   DRAW = 'DRAW'
 }
 
@@ -20,6 +20,21 @@ export interface Card{
 export interface CardDto {
   cardName: CardFace;
   cardValue: number;
+  cardEvent: CardEffects;
+}
+
+export interface CardPlacedMessage {
+  responseType: 'CARD_PLACED';
+  playedCard: CardDto;
+  newCurrentPlayer: string;
+  sender: string;
+}
+
+interface CardDrawnMessage {
+  sender: string;
+  responseType: 'CARD_DRAWN';
+  drawnCards: CardDto[];
+  drawCount: number;
 }
 
 export interface StartGameData {
@@ -52,22 +67,45 @@ export class GamestateService implements OnDestroy {
 
   constructor() { 
     this.gameUpdatesSub = this.websocketService.getGameUpdates().subscribe((data) => {
-      const type = data.responseType || data.action;
+      if (!data || (!data.responseType && !data.action)) {
+        console.warn('Received unexpected message:', data);
+        return;
+      }
+
+      const type = data.responseType || data.action || data.type;
+      console.log('update type:', type);
 
       switch (type) {
         case 'START_GAME':
           this.setupGame(data);
           break;
         
-        case 'DRAW_CARD':
-          this.addCardToHand(data);
+        case 'CARD_DRAWN':
+          const cardDrawnData = data as CardDrawnMessage;
+          if (Array.isArray(cardDrawnData.drawnCards)) {
+            cardDrawnData.drawnCards.forEach(card => this.addCardToHand(card));
+          } else {
+            console.warn('Warning: received CARD_DRAWN without valid drawnCards-array:', data);
+          }
           break;
         
-        case 'PLACE_CARD':
-          this.updateTopCard(data);
-          break;
-      }
+        case 'CARD_PLACED':
+          this.removeCardFromHand(data.playedCard);
+          this.updateTopCard(data.playedCard);
 
+          const newIndex = this.players().findIndex(p => p.nickname === data.newCurrentPlayer);
+          if (newIndex !== -1) {
+            this.activePlayerPos.set(newIndex);
+          }
+          break;
+
+        case 'GAME_FINISHED':
+          // TODO
+          break;
+
+        default:
+          console.warn('Unknown update type:', type);
+      }
     });
   }
   
@@ -123,15 +161,34 @@ export class GamestateService implements OnDestroy {
       return;
     }
 
-    this.websocketService.sendMessage('/app/game.card.play', {
-      gameCode,  
+    // this.websocketService.sendMessage('/app/game.card.play', {
+    //   gameCode,  
+    //   action: 'PLACE_CARD',
+    //   card: {
+    //     cardName: card.face as CardFace,
+    //     cardValue: card.value,
+    //     cardEvent: card.effect
+    //   }
+    // });
+    const cardDto: CardDto = {
+      cardName: card.face as CardFace,
+      cardValue: card.value,
+      cardEvent: card.effect
+    };
+
+    if (card.effect !== 'NONE' && card.effect !== 'DRAW') {
+      console.error('❌ Ungültiger CardEffect:', card.effect);
+    }
+
+
+    const payload = {
+      gameCode,
       action: 'PLACE_CARD',
-      card: {
-        face: card.face,
-        value: card.value,
-        id: card.id
-      }
-    });
+      card: cardDto
+    };
+
+    console.log('👉 Sending to backend:', payload);
+    this.websocketService.sendMessage('/app/game.card.play', payload);
   }
 
   checkCardValidity(card: Card): boolean {
@@ -154,7 +211,7 @@ export class GamestateService implements OnDestroy {
     return {
       face: card.cardName,
       value: card.cardValue, 
-      effect: CardEffects.NORMAL,
+      effect: card.cardEvent,
       asset: this.mapCardToAsset(card),
       id: null
     };
@@ -173,6 +230,12 @@ export class GamestateService implements OnDestroy {
   private addCardToHand(cardDto: CardDto) {
     const newCard = this.parseCard(cardDto);
     this.playerDeck.update(deck => [...deck, newCard]);
+  }
+
+  private removeCardFromHand(cardDto: { cardName: string; cardValue: number }) {
+    this.playerDeck.update(deck => deck.filter(
+      c => !(c.face === cardDto.cardName && c.value === cardDto.cardValue)
+    ));
   }
 
   private updateTopCard(cardDto: CardDto) {
