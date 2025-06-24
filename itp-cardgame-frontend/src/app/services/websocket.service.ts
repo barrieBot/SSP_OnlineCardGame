@@ -234,10 +234,6 @@ export class WebsocketService {
       return;
     }
 
-    console.log('[sendMessage] client connected:', this.stompClient?.connected);
-    console.log('[sendMessage] destination:', destination);
-    console.log('[sendMessage] payload:', payload);
-
     const token = this.localStorageService.getJwtToken();
     if (!token) {
       console.warn('[WebSocket] no JWT token found, cannot authenticate');
