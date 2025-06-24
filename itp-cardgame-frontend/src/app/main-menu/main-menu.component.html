@@ -10,12 +10,14 @@
             <button brnDialogTrigger hlmBtn (click)="onJoinLobbyClick()" class="bg-blue-500 hover:bg-blue-700 text-white font-bold text-lg py-2 px-4 w-34 h-12 rounded">Join lobby</button>
             <hlm-dialog-content class="sm:max-w-[425px]" *brnDialogContent="let ctx">
                 <hlm-dialog-header>
-                    <h3 hlmDialogTitle>Enter passcode</h3>
+                    <h3 hlmDialogTitle>Join lobby anonymously</h3>
                     <p hlmDialogDescription>Only registered players can send codes.</p>
                 </hlm-dialog-header>
-                <div class="flex items-center w-full max-w-sm space-x-2">
-                    <input class="w-40" hlmInput />
-                    <button hlmBtn>Enter</button>
+
+                <div class="flex flex-col w-full max-w-sm space-y-4">
+                    <input hlmInput [(ngModel)]="nickname" placeholder="Nickname" class="w-full" />
+                    <input hlmInput [(ngModel)]="joinCode" placeholder="Gamecode" class="w-full" />
+                    <button hlmBtn (click)="joinAnonymously()" class="w-full">Enter</button>
                 </div>
             </hlm-dialog-content>
         </hlm-dialog>

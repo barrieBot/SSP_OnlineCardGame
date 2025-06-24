@@ -19,33 +19,39 @@ export class WebsocketService {
       return;
     }
 
-    const socketUrl = '/ws';
-    const socket = new SockJS(socketUrl);
+    const token = this.localStorageService.getJwtToken();
+    if (!token) {
+      console.warn('[WebSocket] no JWT token found, cannot authenticate');
+      return;
+    }
 
-    this.stompClient = Stomp.over(socket);
-    this.stompClient.debug = (msg) => console.log(msg);
-    this.stompClient.reconnectDelay = 5000;
+    this.stompClient = new Client({
+      brokerURL: undefined, // not used with SockJS
+      webSocketFactory: () => new SockJS('/ws'),
+      reconnectDelay: 5000,
+      connectHeaders: {
+        Authorization: `Bearer ${token}`
+      },
+      debug: (msg) => console.log('[STOMP DEBUG]', msg),
+      onConnect: () => {
+        console.log('[WebSocket] Connected with server');
+        this.stompClient?.subscribe('/user/queue/private', (message) => {
+          const body = JSON.parse(message.body);
+          this.gameUpdates$.next(body);
+        });
+      },
+      onStompError: (frame) => {
+        console.error('[WebSocket] STOMP-Error:', frame.headers['message']);
+      },
+      onWebSocketError: (error) => {
+        console.error('[WebSocket] connection failed:', error);
+      }
+    });
 
-    this.stompClient.onConnect = () => {
-      console.log('[WebSocket] Connected with serve');
-      this.stompClient?.subscribe('/user/queue/private', (message) => {
-        const body = JSON.parse(message.body);
-        console.log('[WebSocket] received message:', body);
-        this.gameUpdates$.next(body);
-      });
-    };
-
-    this.stompClient.onStompError = (frame) => {
-      console.error('[WebSocket] STOMP-Error:', frame.headers['message']);
-    };
-
-    this.stompClient.onWebSocketError = (error) => {
-      console.error('[WebSocket] connection failed:', error);
-    };
-
-    console.log('[WebSocket] Connect with:', socketUrl);
+    console.log('[WebSocket] Connecting...');
     this.stompClient.activate();
   }
+
 
   getGameUpdates(): Observable<any> {
     return this.gameUpdates$.asObservable();
@@ -129,6 +135,36 @@ export class WebsocketService {
     console.log('[WebSocket] sent joinGameDto:', joinGameDto);
   }
 
+  joinGameAnonymous(gameCode: string, displayName: string): void {
+    if (!this.stompClient || !this.stompClient.connected) {
+      this.connect();
+      const interval = setInterval(() => {
+        if (this.stompClient?.connected) {
+          clearInterval(interval);
+          this.setGameCode(gameCode);
+          this.joinGameAnonymous(gameCode, displayName);
+        }
+      }, 200);
+      return;
+    }
+
+    this.setGameCode(gameCode);
+
+    const joinGameDto = {
+      gameCode,
+      displayName,
+      action: 'JOIN_GAME'
+    };
+
+    this.stompClient.publish({
+      destination: '/app/game.join.anonymous',
+      headers: {},
+      body: JSON.stringify(joinGameDto),
+    });
+
+    console.log('[WebSocket] sent anonymousJoinDto:', joinGameDto);
+  }
+
   startGame(gameCode: string): void {
     if (!this.stompClient || !this.stompClient.connected) {
       console.warn('[WebSocket] not connected, cannot send startGame');
@@ -188,9 +224,19 @@ export class WebsocketService {
 
   sendMessage(destination: string, payload: any): void {
     if (!this.stompClient || !this.stompClient.connected) {
-      console.warn('[WebSocket] not connected, cannot send message');
+      this.connect();
+      const interval = setInterval(() => {
+        if (this.stompClient?.connected) {
+          clearInterval(interval);
+          this.sendMessage(destination, payload);
+        }
+      }, 200);
       return;
     }
+
+    console.log('[sendMessage] client connected:', this.stompClient?.connected);
+    console.log('[sendMessage] destination:', destination);
+    console.log('[sendMessage] payload:', payload);
 
     const token = this.localStorageService.getJwtToken();
     if (!token) {

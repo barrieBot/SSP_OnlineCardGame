@@ -2,9 +2,9 @@ import { Injectable, inject } from '@angular/core';
 import { LocalStorageService } from './local-storage.service';
 
 export interface User {
-  id: number;
+  id?: number;
   username: string;
-  token: string;
+  token?: string;
 }
 
 @Injectable({
