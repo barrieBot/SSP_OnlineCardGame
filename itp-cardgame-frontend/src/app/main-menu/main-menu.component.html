@@ -1,16 +1,14 @@
 
 
 <div class="flex flex-col items-center justify-center h-screen gap-6">
-    <h1 class="text-center text-white text-4xl font-bold">ITP-CardGame</h1>
+    <h1 class="text-center text-white text-4xl font-bold">Scissors Paper Rock - TCG</h1>
+    <br/><br/>
     <div class="flex flex-col gap-4">
-        <button hlmBtn (click)="onLoginClick()" class="bg-blue-500 hover:bg-blue-700 text-white font-bold text-lg py-2 px-4 w-34 h-12 rounded">Login</button>
-        <button hlmBtn (click)="onRegisterClick()" class="bg-blue-500 hover:bg-blue-700 text-white font-bold text-lg py-2 px-4 w-34 h-12 rounded">Register</button>
-
         <hlm-dialog>
-            <button brnDialogTrigger hlmBtn (click)="onJoinLobbyClick()" class="bg-blue-500 hover:bg-blue-700 text-white font-bold text-lg py-2 px-4 w-34 h-12 rounded">Join lobby</button>
+            <button brnDialogTrigger hlmBtn (click)="onJoinLobbyClick()" class="bg-green-900 text-white hover:bg-green-700   font-bold text-lg py-2 px-4 w-54 h-22 rounded-15">Join Game</button>
             <hlm-dialog-content class="sm:max-w-[425px]" *brnDialogContent="let ctx">
                 <hlm-dialog-header>
-                    <h3 hlmDialogTitle>Join lobby anonymously</h3>
+                    <h3 hlmDialogTitle>Join Game</h3>
                     <p hlmDialogDescription>Only registered players can send codes.</p>
                 </hlm-dialog-header>
 
@@ -22,6 +20,6 @@
             </hlm-dialog-content>
         </hlm-dialog>
         
-        <button hlmBtn (click)="onAllCardsClick()" class="bg-blue-500 hover:bg-blue-700 text-white font-bold text-lg py-2 px-4 w-34 h-12 rounded">All cards</button>
+        <!----button hlmBtn (click)="onAllCardsClick()" class="bg-blue-500 hover:bg-blue-700 text-white font-bold text-lg py-2 px-4 w-34 h-12 rounded">All cards</button---->
     </div>
 </div>

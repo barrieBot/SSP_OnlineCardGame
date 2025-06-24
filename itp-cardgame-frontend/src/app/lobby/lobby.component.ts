@@ -20,19 +20,7 @@ import { CommonModule } from '@angular/common';
 @Component({
   selector: 'app-lobby',
   providers: [provideIcons({ lucideSettings, lucideCircleUserRound, lucideUser, lucideLogOut })],
-  imports: [
-    HlmIconDirective,
-    BrnMenuTriggerDirective,
-    HlmButtonDirective,
-    NgIcon,
-    HlmMenuComponent,
-    HlmMenuGroupComponent,
-    HlmMenuItemDirective,
-    HlmMenuItemIconDirective,
-    HlmMenuLabelComponent,
-    HlmMenuSeparatorComponent,
-    CommonModule
-  ],
+  imports: [ CommonModule ],
   templateUrl: './lobby.component.html',
   styleUrl: './lobby.component.css'
 })
