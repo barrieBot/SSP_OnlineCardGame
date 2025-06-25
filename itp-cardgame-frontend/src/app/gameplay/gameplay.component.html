@@ -26,7 +26,7 @@
                 <app-svg-icon
                     *ngIf="topCard"
                     class="w-full h-full object-contain"
-                    [src]="mapCardToAsset(topCard)">
+                    [src]="topCard.asset">
                 </app-svg-icon>
             </div>
         </div>
@@ -69,7 +69,7 @@
                     <div class="relative inline-block bg-transparent  border-none p-0 m-0 shadow-none">
                         <app-svg-icon
                         class="pointer-events-none"
-                        [src]="mapCardToAsset(card)">
+                        [src]="card.asset">
                         </app-svg-icon>
                     </div>
                 </div>

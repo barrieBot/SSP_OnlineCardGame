@@ -52,10 +52,10 @@ export class NavbarComponent {
 
       if(this.user_status.getUser()) { this.loggedIn.set(true) }
       if (event instanceof NavigationEnd){
-
+        const routes_hidden = ['/login', '/register', '/settings', '/profile']
+        this.nav_visible.set(!routes_hidden.includes(event.urlAfterRedirects))
       }
     })
   }
 
-  
 }

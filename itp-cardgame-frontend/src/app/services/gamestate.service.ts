@@ -223,7 +223,10 @@ export class GamestateService implements OnDestroy {
       'Rock': 'stein',
       'Paper': 'papier'
     };
-    const fileName = `${nameMap[card.cardName]}${card.cardValue}.svg`;
+
+
+    const fileName = `${nameMap[card.cardName]}${card.cardValue}${(card.cardEvent === CardEffects.NONE) ? '' : '_draw' }.svg`;
+    //const fileName = `${nameMap[card.cardName]}${card.cardValue}.svg`;
     return `assets/svg/cards/numeric_cards/${fileName}`;
   }
 

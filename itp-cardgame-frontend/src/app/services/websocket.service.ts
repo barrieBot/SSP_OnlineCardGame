@@ -19,7 +19,8 @@ export class WebsocketService {
       return;
     }
 
-    const token = this.localStorageService.getJwtToken();
+    //const token = this.localStorageService.getJwtToken();
+    const token = this.localStorageService.token
     if (!token) {
       console.warn('[WebSocket] no JWT token found, cannot authenticate');
       return;

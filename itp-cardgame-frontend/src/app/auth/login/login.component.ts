@@ -17,6 +17,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from 'src/app/services/auth.service';
 import { UserService } from 'src/app/services/user.service';
+import { LocalStorageService } from 'src/app/services/local-storage.service';
 
 function decodeJwt(token: string): any {
   const payload = token.split('.')[1];
@@ -53,16 +54,19 @@ export class LoginComponent {
   password: string = '';
   private authService = inject(AuthService);
   private userService = inject(UserService);
+  private dataPresistance = inject(LocalStorageService);
 
   constructor(private router: Router) {}
 
   login() {
     this.authService.login(this.username, this.password).subscribe({
       next: (response) => {
-        alert("Login success");
+        //alert("Login success");
 
         const token = response.token;
-        localStorage.setItem('jwt', token);
+        this.dataPresistance.setJwtToken(token);
+
+        //localStorage.setItem('jwt', token);
 
         const payload = decodeJwt(token);
         console.log('Decoded JWT payload:', payload);

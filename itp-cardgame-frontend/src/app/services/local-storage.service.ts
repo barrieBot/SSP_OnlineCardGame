@@ -4,6 +4,9 @@ import { Injectable } from '@angular/core';
   providedIn: 'root'
 })
 export class LocalStorageService {
+
+  token: string | null = null
+
   getItem<T>(key: string): T  | null {
     const value = localStorage.getItem(key);
 
@@ -21,7 +24,9 @@ export class LocalStorageService {
   }
 
   getJwtToken(): string | null {
-    return localStorage.getItem('jwt');
+    //return localStorage.getItem('jwt');
+    console.log(this.token)
+    return this.token
   }
 
   setItem<T>(key: string, value: T): void {
@@ -29,6 +34,7 @@ export class LocalStorageService {
   }
 
   setJwtToken(token: string): void {
+    this.token = token
     localStorage.setItem('jwt', token);
   }
 
@@ -38,5 +44,6 @@ export class LocalStorageService {
 
   removeJwtToken(): void {
     localStorage.removeItem('jwt');
+    this.token = null
   }
 }

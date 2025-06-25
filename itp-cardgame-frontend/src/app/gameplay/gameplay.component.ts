@@ -2,7 +2,7 @@ import { Component, inject, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HlmButtonDirective } from '@spartan-ng/ui-button-helm';
 import { SvgIconComponent } from '../svg-icon/svg-icon.component';
-import { GamestateService, Card, CardDto } from '../services/gamestate.service';
+import { GamestateService, Card, CardDto, CardEffects } from '../services/gamestate.service';
 
 
 @Component({
@@ -46,15 +46,6 @@ export class GameplayComponent {
     return valid;
   }
 
-  mapCardToAsset(card: Card): string {
-    const nameMap: { [key: string]: string } = {
-      'Scissors': 'schere',
-      'Rock': 'stein',
-      'Paper': 'papier'
-    };
-    const fileName = `${nameMap[card.face]}${card.value}.svg`;
-    return `assets/svg/cards/numeric_cards/${fileName}`;
-  }
 
   getCardStyle(index: number, total: number): { [key: string]: string } {
     const spread = 20;
