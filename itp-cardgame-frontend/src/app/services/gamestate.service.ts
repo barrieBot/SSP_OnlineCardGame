@@ -1,15 +1,16 @@
 import { inject, Injectable, OnDestroy, signal } from '@angular/core';
 import { WebsocketService } from './websocket.service';
 import { Subscription } from 'rxjs';
+import { UserService } from './user.service';
 
 export type CardFace = 'Scissors' | 'Rock' | 'Paper';
 
-export enum CardEffects{ 
+export enum CardEffects {
   NONE = 'NONE',
   DRAW = 'DRAW'
 }
 
-export interface Card{
+export interface Card {
   face: string,
   value: number,
   effect: CardEffects,
@@ -44,7 +45,7 @@ export interface StartGameData {
   sender: string;
 }
 
-export interface Player{
+export interface Player {
   nickname: string,
   card_count: number,
   placement: null | number
@@ -56,16 +57,19 @@ export interface Player{
 export class GamestateService implements OnDestroy {
 
   private websocketService = inject(WebsocketService)
-  
+  private user = inject(UserService)
+
   public readonly playerDeck = signal<Card[]>([])
   public readonly currentTopCard = signal<Card[]>([])
   public readonly players = signal<Player[]>([])
   public readonly drawModifier = signal(0)
-  public readonly activePlayerPos = signal(0)
+  readonly activePlayerPos = signal(0)
+  readonly activeOffsetPos = signal(0)
+  readonly isHost = signal(false)
 
   private gameUpdatesSub?: Subscription;
 
-  constructor() { 
+  constructor() {
     this.gameUpdatesSub = this.websocketService.getGameUpdates().subscribe((data) => {
       if (!data || (!data.responseType && !data.action)) {
         console.warn('Received unexpected message:', data);
@@ -76,23 +80,37 @@ export class GamestateService implements OnDestroy {
       console.log('update type:', type);
 
       switch (type) {
+
+        case 'NEW_GAME':
+          console.log("New Game: ", data)
+          break;
+
+        case 'JOIN_GAME':
+          this.playerJoined(data);
+          console.log("Just joined: ", data)
+          break;
+
         case 'START_GAME':
           this.setupGame(data);
           break;
-        
+
         case 'CARD_DRAWN':
           const cardDrawnData = data as CardDrawnMessage;
+
+          ///Update index as well 
           if (Array.isArray(cardDrawnData.drawnCards)) {
             cardDrawnData.drawnCards.forEach(card => this.addCardToHand(card));
           } else {
             console.warn('Warning: received CARD_DRAWN without valid drawnCards-array:', data);
           }
           break;
-        
+
         case 'CARD_PLACED':
           this.removeCardFromHand(data.playedCard);
           this.updateTopCard(data.playedCard);
 
+          ///Teste ob das funktioniert...? 
+          
           const newIndex = this.players().findIndex(p => p.nickname === data.newCurrentPlayer);
           if (newIndex !== -1) {
             this.activePlayerPos.set(newIndex);
@@ -108,13 +126,13 @@ export class GamestateService implements OnDestroy {
       }
     });
   }
-  
+
   ngOnDestroy(): void {
     this.gameUpdatesSub?.unsubscribe();
   }
 
   setupGame(data: StartGameData): void {
-    const hand = data.handCards.map((cardDto, index) => 
+    const hand = data.handCards.map((cardDto, index) =>
       ({ ...this.parseCard(cardDto), id: index })
     );
     this.playerDeck.set(hand);
@@ -123,18 +141,37 @@ export class GamestateService implements OnDestroy {
     this.currentTopCard.set([]);
     this.currentTopCard.update((cards) => [this.parseCard(data.centerCard), ...cards])
 
-    const playerList: Player[] = Object.entries(data.turnOrder).map(([playerId, nickname]) => ({
-      nickname,
-      card_count: 0,
-      placement: null
-    }));
+    let placement_number = 0
+    const playerList: Player[] = Object.entries(data.turnOrder).map(([playerId, nickname]) => (
+      {
+        nickname,
+        card_count: 5,
+        placement: placement_number++
+      }));
     this.players.set(playerList);
 
     // set active player based on sender value
-    const activeIndex = playerList.findIndex(player => player.nickname === data.sender);
-    if (activeIndex !== -1) {
-      this.activePlayerPos.set(activeIndex);
+    //Active Offset 
+    const activeOffset = playerList.findIndex(player => player.nickname === this.user.getUser()?.username);
+
+    if (activeOffset !== -1) {
+      this.activeOffsetPos.set(activeOffset);
     }
+
+  }
+
+
+  playerJoined(data: any): void {
+    const newPlayerUsername = data.sender;
+    this.isHost.set(data.sender === data.host)
+    const all_players = new Set([...data.otherPlayers, data.sender])
+
+      for (const other_player of all_players) {
+        if (!this.players().find(p => p.nickname === other_player)) {
+          const new_player = { nickname: other_player, card_count: 5, placement: 0 }
+          this.players.update(player => [...player, new_player]);
+        }
+      }
   }
 
   drawCardAction() {
@@ -151,14 +188,14 @@ export class GamestateService implements OnDestroy {
     });
   }
 
-  placeCardAction(card: Card) {
+  placeCardAction(card: Card): boolean {
     if (!this.checkCardValidity(card)) {
-      return;
+      return false;
     }
-    
+
     const gameCode = this.websocketService.getGameCode();
     if (!gameCode) {
-      return;
+      return false;
     }
 
     // this.websocketService.sendMessage('/app/game.card.play', {
@@ -170,6 +207,8 @@ export class GamestateService implements OnDestroy {
     //     cardEvent: card.effect
     //   }
     // });
+
+
     const cardDto: CardDto = {
       cardName: card.face as CardFace,
       cardValue: card.value,
@@ -189,7 +228,12 @@ export class GamestateService implements OnDestroy {
 
     console.log('👉 Sending to backend:', payload);
     this.websocketService.sendMessage('/app/game.card.play', payload);
+    return true;
   }
+
+
+
+
 
   checkCardValidity(card: Card): boolean {
     const topCard = this.currentTopCard()[0];
@@ -197,20 +241,32 @@ export class GamestateService implements OnDestroy {
       return false;
     }
 
-    const valueValid = card.value >= topCard.value;
+    const type = (card.effect === topCard.effect) ||
+      (topCard.effect === CardEffects.NONE && card.effect === CardEffects.DRAW)
+    const valueValid = (card.value >= topCard.value)
     const faceValid =
-      card.face === topCard.face ||
+      (card.face === topCard.face) ||
       (card.face === 'Scissors' && topCard.face === 'Paper') ||
       (card.face === 'Paper' && topCard.face === 'Rock') ||
       (card.face === 'Rock' && topCard.face === 'Scissors');
 
+
+    console.log('Cardcheck:')
+    console.log('Effect ', type)
+    console.log('Type ', faceValid)
+    console.log('Face ', valueValid)
+
     return valueValid && faceValid;
   }
+
+
+
+
 
   private parseCard(card: CardDto): Card {
     return {
       face: card.cardName,
-      value: card.cardValue, 
+      value: card.cardValue,
       effect: card.cardEvent,
       asset: this.mapCardToAsset(card),
       id: null
@@ -224,11 +280,12 @@ export class GamestateService implements OnDestroy {
       'Paper': 'papier'
     };
 
-
-    const fileName = `${nameMap[card.cardName]}${card.cardValue}${(card.cardEvent === CardEffects.NONE) ? '' : '_draw' }.svg`;
-    //const fileName = `${nameMap[card.cardName]}${card.cardValue}.svg`;
+    const fileName = `${nameMap[card.cardName]}${card.cardValue}${(card.cardEvent === CardEffects.NONE) ? '' : '_draw'}.svg`;
     return `assets/svg/cards/numeric_cards/${fileName}`;
+
   }
+
+
 
   private addCardToHand(cardDto: CardDto) {
     const newCard = this.parseCard(cardDto);

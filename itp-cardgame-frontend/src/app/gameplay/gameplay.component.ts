@@ -10,7 +10,7 @@ import { GamestateService, Card, CardDto, CardEffects } from '../services/gamest
   imports: [
     CommonModule,
     HlmButtonDirective,
-    SvgIconComponent
+    SvgIconComponent,
   ],
   providers: [],
   templateUrl: './gameplay.component.html',
@@ -18,7 +18,7 @@ import { GamestateService, Card, CardDto, CardEffects } from '../services/gamest
 })
 
 export class GameplayComponent {
-  private gameState = inject(GamestateService)
+  gameState = inject(GamestateService)
   
   playerCards: Card[] = [];
   topCard: Card | null = null;
@@ -38,12 +38,7 @@ export class GameplayComponent {
 
   placeCard(index: number): boolean {
     const card = this.playerCards[index];
-    const valid = this.gameState.checkCardValidity(card);
-    if (valid) {
-      this.gameState.placeCardAction(card);
-    }
-    
-    return valid;
+    return this.gameState.placeCardAction(card);
   }
 
 
@@ -60,4 +55,9 @@ export class GameplayComponent {
       zIndex: `${10 + (total - index)}`
     };
   }
+
+  asArray(i: number) {
+    return [...Array(i).keys()]
+  }
+
 }

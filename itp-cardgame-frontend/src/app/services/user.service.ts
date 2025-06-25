@@ -13,6 +13,7 @@ export interface User {
 
 export class UserService {
   private user: User | null = null;
+  private player: User | null = null;
   private localStorageService = inject(LocalStorageService);
 
   constructor() {

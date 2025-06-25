@@ -1,21 +1,12 @@
-import { Component, inject, OnInit } from '@angular/core';
-import { HlmButtonDirective } from '@spartan-ng/ui-button-helm';
-import { NgIcon, provideIcons } from '@ng-icons/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
+import { provideIcons } from '@ng-icons/core';
 import { lucideCircleUserRound, lucideSettings, lucideUser, lucideLogOut } from '@ng-icons/lucide';
-import { BrnMenuTriggerDirective } from '@spartan-ng/brain/menu';
-import { 
-  HlmMenuComponent,
-  HlmMenuGroupComponent,
-  HlmMenuItemDirective,
-  HlmMenuItemIconDirective,
-  HlmMenuLabelComponent,
-  HlmMenuSeparatorComponent
-} from 'libs/ui/ui-menu-helm/src';
-import { HlmIconDirective } from '@spartan-ng/ui-icon-helm';
+
 import { ActivatedRoute, Router } from '@angular/router';
 import { UserService, User } from '../services/user.service';
 import { WebsocketService } from '../services/websocket.service';
 import { CommonModule } from '@angular/common';
+import { GamestateService } from '../services/gamestate.service';
 
 @Component({
   selector: 'app-lobby',
@@ -28,21 +19,18 @@ export class LobbyComponent implements OnInit {
   gameId: string | null = null;
   currentUser: User | null = null;
   hostUsername: string | null = null;
-  players: { username: string }[] = [];
 
   private userService = inject(UserService);
   private route = inject(ActivatedRoute);
   private webSocketService = inject(WebsocketService);
   private router = inject(Router);
+  game = inject(GamestateService);
+  isHost = signal(true)
 
   ngOnInit() {
     this.currentUser = this.userService.getUser();
     this.gameId = this.route.snapshot.paramMap.get('id');
     console.log('Joined lobby-id: ', this.gameId);
-
-    if (this.currentUser && this.gameId) {
-      this.players = [{ username: this.currentUser.username }];
-    }
 
     this.webSocketService.getGameUpdates().subscribe(update => {
       // new game
@@ -54,19 +42,10 @@ export class LobbyComponent implements OnInit {
 
       // join game
       if (update?.responseType === 'JOIN_GAME') {
-        const newPlayerUsername = update.sender;
-
         if (Array.isArray(update.otherPlayers)) {
-          this.players = update.otherPlayers.map((username: string) => ({ username }));
-
           if (update.host) {
             this.hostUsername = update.host;
           }
-        }
-
-        // add new player to array players
-        if (!this.players.find(p => p.username === newPlayerUsername)) {
-          this.players.push({ username: newPlayerUsername });
         }
       }
 
