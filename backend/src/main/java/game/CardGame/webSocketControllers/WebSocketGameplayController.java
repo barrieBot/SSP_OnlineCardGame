@@ -93,6 +93,7 @@ public class WebSocketGameplayController {
                 .sender(webSocketResponse.getSender())
                 .responseType(webSocketResponse.getResponseType())
                 .drawCount(webSocketResponse.getDrawCount())
+                .newCurrentPlayer(webSocketResponse.getNewCurrentPlayer())
                 .build();
         webSocketUtilService.broadcastToOthers(gameCode, webSocketDrawCardResponse, headerAccessor.getMessageHeaders());
     }

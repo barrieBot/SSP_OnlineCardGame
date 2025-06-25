@@ -224,6 +224,7 @@ public class WebSocketGameplayService {
                 .responseType(ResponseType.CARD_DRAWN)
                 .drawnCards(drawnCards)
                 .drawCount(drawCount)
+                .newCurrentPlayer(callingPlayer.getDisplayName())
                 .build();
     }
 

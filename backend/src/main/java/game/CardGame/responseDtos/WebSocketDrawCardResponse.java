@@ -13,4 +13,5 @@ public class WebSocketDrawCardResponse extends WebSocketResponseDto {
     String sender;
     ResponseType responseType;
     Integer drawCount;
+    String newCurrentPlayer;
 }
