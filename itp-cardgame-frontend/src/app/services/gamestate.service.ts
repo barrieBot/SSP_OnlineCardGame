@@ -2,6 +2,7 @@ import { inject, Injectable, OnDestroy, signal } from '@angular/core';
 import { WebsocketService } from './websocket.service';
 import { Subscription } from 'rxjs';
 import { UserService } from './user.service';
+import { LocalStorageService } from './local-storage.service';
 
 export type CardFace = 'Scissors' | 'Rock' | 'Paper';
 
@@ -57,6 +58,7 @@ export interface Player {
 export class GamestateService implements OnDestroy {
 
   private websocketService = inject(WebsocketService)
+  private localStorageService = inject(LocalStorageService);
   private user = inject(UserService)
 
   public readonly playerDeck = signal<Card[]>([])
@@ -76,8 +78,8 @@ export class GamestateService implements OnDestroy {
         console.warn('Received unexpected message:', data);
         return;
       }
-      
-      if(data.gameCode){
+
+      if (data.gameCode) {
         this.websocketService.setGameCode(data.gameCode)
       }
 
@@ -103,8 +105,8 @@ export class GamestateService implements OnDestroy {
 
         case 'CARD_DRAWN':
           const cardDrawnData = data as CardDrawnMessage;
+          this.updatePlayerHand(data.sender, data.value as number)
 
-          ///Update index as well 
           if (Array.isArray(cardDrawnData.drawnCards)) {
             cardDrawnData.drawnCards.forEach(card => this.addCardToHand(card));
           } else {
@@ -113,9 +115,12 @@ export class GamestateService implements OnDestroy {
           break;
 
         case 'CARD_PLACED':
-          this.removeCardFromHand(data.playedCard);
+          if (data.sender === this.user.getUser()?.username) {
+            this.removeCardFromHand(data.playedCard);
+          }
+          this.updatePlayerHand(data.sender, -(data.value as number))
           this.updateTopCard(data.playedCard);
-          
+
           const newIndex = this.players().findIndex(p => p.nickname === data.newCurrentPlayer);
           if (newIndex !== -1) {
             this.activePlayerPos.set(newIndex);
@@ -165,18 +170,26 @@ export class GamestateService implements OnDestroy {
 
   }
 
+  updatePlayerHand(player_name: string, value: number) {
+    this.players.update(players =>
+      players.map(player =>
+        player.nickname === player_name
+          ? { ...player, card_count: player.card_count + value }
+          : player))
+  }
 
   playerJoined(data: any): void {
     const newPlayerUsername = data.sender;
+    if(data.jwt) { this.localStorageService.setJwtToken(data.jwt) }
     this.isHost.set(data.sender === data.host)
     const all_players = new Set([...data.otherPlayers, data.sender])
 
-      for (const other_player of all_players) {
-        if (!this.players().find(p => p.nickname === other_player)) {
-          const new_player = { nickname: other_player, card_count: 5, placement: 0 }
-          this.players.update(player => [...player, new_player]);
-        }
+    for (const other_player of all_players) {
+      if (!this.players().find(p => p.nickname === other_player)) {
+        const new_player = { nickname: other_player, card_count: 5, placement: 0 }
+        this.players.update(player => [...player, new_player]);
       }
+    }
   }
 
   drawCardAction() {
@@ -295,6 +308,11 @@ export class GamestateService implements OnDestroy {
 
   private updateTopCard(cardDto: CardDto) {
     const newTopCard = this.parseCard(cardDto);
+
+    this.drawModifier.set(newTopCard.effect == CardEffects.DRAW
+      ? this.drawModifier() + newTopCard.value
+      : 0)
+
     this.currentTopCard.update(cards => [newTopCard, ...cards]);
   }
 }

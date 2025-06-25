@@ -107,33 +107,14 @@ export class WebsocketService {
       const interval = setInterval(() => {
         if (this.stompClient?.connected) {
           clearInterval(interval);
-          this.joinGame(gameCode, displayName);
+          this.sendJoinGame(gameCode, displayName, true);
         }
       }, 200);
       return;
     }
 
-    const token = this.localStorageService.getJwtToken();
-    if (!token) {
-      console.warn('[WebSocket] no JWT token found, cannot authenticate');
-      return;
-    }
+    this.sendJoinGame(gameCode, displayName, true);
 
-    const joinGameDto = {
-      gameCode,
-      displayName,
-      action: 'JOIN_GAME'
-    };
-
-    this.stompClient.publish({
-      destination: '/app/game.join',
-      headers: {
-        Authorization: `Bearer ${token}`
-      },
-      body: JSON.stringify(joinGameDto),
-    });
-
-    console.log('[WebSocket] sent joinGameDto:', joinGameDto);
   }
 
   joinGameAnonymous(gameCode: string, displayName: string): void {
@@ -143,28 +124,37 @@ export class WebsocketService {
         if (this.stompClient?.connected) {
           clearInterval(interval);
           this.setGameCode(gameCode);
-          this.joinGameAnonymous(gameCode, displayName);
+          this.sendJoinGame(gameCode, displayName, false);
         }
       }, 200);
       return;
     }
 
-    this.setGameCode(gameCode);
+    this.sendJoinGame(gameCode, displayName, false);
+
+  }
+
+  sendJoinGame(gameCode: string, nickname: string, mode: boolean){
 
     const joinGameDto = {
       gameCode,
-      displayName,
+      nickname,
       action: 'JOIN_GAME'
     };
 
-    this.stompClient.publish({
-      destination: '/app/game.join.anonymous',
-      headers: {},
+    this.stompClient!.publish({
+      destination: '/app/game.join'+ (mode ? '' : '.anonymous'),
+      headers: mode ? {Authorization: `Bearer ${this.localStorageService.getJwtToken()}`} : {},
       body: JSON.stringify(joinGameDto),
     });
 
-    console.log('[WebSocket] sent anonymousJoinDto:', joinGameDto);
+    console.log('[WebSocket] sent JoinDto:', joinGameDto);
   }
+
+
+
+
+
 
   startGame(gameCode: string): void {
     if (!this.stompClient || !this.stompClient.connected) {
