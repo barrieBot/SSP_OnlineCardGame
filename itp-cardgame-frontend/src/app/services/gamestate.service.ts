@@ -68,6 +68,7 @@ export class GamestateService implements OnDestroy {
   readonly isHost = signal(false)
 
   private gameUpdatesSub?: Subscription;
+  private gameCode: null | string = null;
 
   constructor() {
     this.gameUpdatesSub = this.websocketService.getGameUpdates().subscribe((data) => {
@@ -75,12 +76,14 @@ export class GamestateService implements OnDestroy {
         console.warn('Received unexpected message:', data);
         return;
       }
+      
+      if(data.gameCode){
+        this.websocketService.setGameCode(data.gameCode)
+      }
 
       const type = data.responseType || data.action || data.type;
-      console.log('update type:', type);
 
       switch (type) {
-
         case 'NEW_GAME':
           console.log("New Game: ", data)
           break;
@@ -91,7 +94,11 @@ export class GamestateService implements OnDestroy {
           break;
 
         case 'START_GAME':
-          this.setupGame(data);
+          if (data.gameCode) {
+            this.websocketService.setGameCode(data.gameCode);
+          } else {
+            this.setupGame(data);
+          }
           break;
 
         case 'CARD_DRAWN':
@@ -108,8 +115,6 @@ export class GamestateService implements OnDestroy {
         case 'CARD_PLACED':
           this.removeCardFromHand(data.playedCard);
           this.updateTopCard(data.playedCard);
-
-          ///Teste ob das funktioniert...? 
           
           const newIndex = this.players().findIndex(p => p.nickname === data.newCurrentPlayer);
           if (newIndex !== -1) {
@@ -189,36 +194,17 @@ export class GamestateService implements OnDestroy {
   }
 
   placeCardAction(card: Card): boolean {
-    if (!this.checkCardValidity(card)) {
-      return false;
-    }
-
     const gameCode = this.websocketService.getGameCode();
     if (!gameCode) {
+      console.log('gamecode false')
       return false;
     }
-
-    // this.websocketService.sendMessage('/app/game.card.play', {
-    //   gameCode,  
-    //   action: 'PLACE_CARD',
-    //   card: {
-    //     cardName: card.face as CardFace,
-    //     cardValue: card.value,
-    //     cardEvent: card.effect
-    //   }
-    // });
-
 
     const cardDto: CardDto = {
       cardName: card.face as CardFace,
       cardValue: card.value,
       cardEvent: card.effect
     };
-
-    if (card.effect !== 'NONE' && card.effect !== 'DRAW') {
-      console.error('❌ Ungültiger CardEffect:', card.effect);
-    }
-
 
     const payload = {
       gameCode,
@@ -231,10 +217,6 @@ export class GamestateService implements OnDestroy {
     return true;
   }
 
-
-
-
-
   checkCardValidity(card: Card): boolean {
     const topCard = this.currentTopCard()[0];
     if (!topCard) {
@@ -245,11 +227,30 @@ export class GamestateService implements OnDestroy {
       (topCard.effect === CardEffects.NONE && card.effect === CardEffects.DRAW)
     const valueValid = (card.value >= topCard.value)
     const faceValid =
-      (card.face === topCard.face) ||
       (card.face === 'Scissors' && topCard.face === 'Paper') ||
       (card.face === 'Paper' && topCard.face === 'Rock') ||
       (card.face === 'Rock' && topCard.face === 'Scissors');
 
+    if (!type) {
+      return false;
+    }
+
+    const faceIdentical = (card.face === topCard.face);
+    if (faceIdentical && card.effect === CardEffects.DRAW) {
+      return false;
+    }
+
+    if (valueValid && faceValid) {
+      return true;
+    }
+
+    if (faceValid && faceIdentical) {
+      return true;
+    }
+
+    if (valueValid && type) {
+      return true;
+    }
 
     console.log('Cardcheck:')
     console.log('Effect ', type)
@@ -258,10 +259,6 @@ export class GamestateService implements OnDestroy {
 
     return valueValid && faceValid;
   }
-
-
-
-
 
   private parseCard(card: CardDto): Card {
     return {
@@ -284,8 +281,6 @@ export class GamestateService implements OnDestroy {
     return `assets/svg/cards/numeric_cards/${fileName}`;
 
   }
-
-
 
   private addCardToHand(cardDto: CardDto) {
     const newCard = this.parseCard(cardDto);
