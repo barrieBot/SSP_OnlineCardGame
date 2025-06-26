@@ -9,61 +9,18 @@ import { LocalStorageService } from './local-storage.service';
 })
 export class WebsocketService {
   private currentGameCode: string | null = null;
+
   private stompClient: Client | null = null;
+  private connect_to_ws: Promise<void> | null = null;
+  private disconnect_now = false
+  private reconnection_tries = 0
+
   private gameUpdates$ = new ReplaySubject<any>(1);
   private localStorageService = inject(LocalStorageService);
-
-  connect(): void {
-    if (this.stompClient && this.stompClient.connected) {
-      console.log('[WebSocket] already connected');
-      return;
-    }
-
-    const token = this.localStorageService.getJwtToken();
-    //const token = this.localStorageService.token
-    if (!token) {
-      console.warn('[WebSocket] no JWT token found, cannot authenticate');
-      return;
-    }
-
-    this.stompClient = new Client({
-      brokerURL: undefined, // not used with SockJS
-      webSocketFactory: () => new SockJS('/ws'),
-      reconnectDelay: 5000,
-      connectHeaders: {
-        Authorization: `Bearer ${token}`
-      },
-      debug: (msg) => console.log('[STOMP DEBUG]', msg),
-      onConnect: () => {
-        console.log('[WebSocket] Connected with server');
-        this.stompClient?.subscribe('/user/queue/private', (message) => {
-          const body = JSON.parse(message.body);
-          this.gameUpdates$.next(body);
-        });
-      },
-      onStompError: (frame) => {
-        console.error('[WebSocket] STOMP-Error:', frame.headers['message']);
-      },
-      onWebSocketError: (error) => {
-        console.error('[WebSocket] connection failed:', error);
-      }
-    });
-
-    console.log('[WebSocket] Connecting...');
-    this.stompClient.activate();
-  }
 
 
   getGameUpdates(): Observable<any> {
     return this.gameUpdates$.asObservable();
-  }
-
-  disconnect(): void {
-    if (this.stompClient) {
-      console.log('[WebSocket] Connection closed...');
-      this.stompClient.deactivate();
-      this.stompClient = null;
-    }
   }
 
   setGameCode(code: string): void {
@@ -74,31 +31,123 @@ export class WebsocketService {
     return this.currentGameCode;
   }
 
-  createGame(displayName: string): void {
-    if (!this.stompClient || !this.stompClient.connected) {
-      console.warn('[WebSocket] not connected, cannot send createGame');
+
+
+
+  async connect(): Promise<void> {
+
+    if (this.stompClient && this.stompClient.connected) {
+      console.log('[WebSocket] already connected');
       return;
     }
 
-    const token = this.localStorageService.getJwtToken();
-    if (!token) {
-      console.warn('[WebSocket] no JWT token found, cannot authenticate');
-      return;
-    }
+    this.disconnect_now = false
+    this.connect_to_ws = new Promise(() => {
 
-    const createGameDto = { displayName };
+      const token = this.localStorageService.getJwtToken();
 
-    this.stompClient.publish({
-      destination: '/app/game.new',
-      headers: {
-        Authorization: `Bearer ${token}`
-      },
-      body: JSON.stringify(createGameDto),
-    });
+      this.stompClient = new Client({
+        brokerURL: undefined, // not used with SockJS
+        webSocketFactory: () => new SockJS('/ws'),
+        reconnectDelay: 5000,
+        connectHeaders: token ? { Authorization: `Bearer ${this.localStorageService.getJwtToken()}` } : {},
+        debug: (msg) => console.log('[STOMP DEBUG]', msg),
+        onConnect: () => {
+          console.log('[WebSocket] Connected with server');
+          this.reconnection_tries = 0
+          this.stompClient?.subscribe('/user/queue/private', (message) => {
+            const body = JSON.parse(message.body);
+            this.gameUpdates$.next(body);
+          });
+          this.send_reconnection_msg();
+        },
+        onStompError: (frame) => {
+          console.error('[WebSocket] STOMP-Error:', frame.headers['message']);
+        },
+        onWebSocketError: (error) => {
+          console.error('[WebSocket] connection failed:', error);
+        },
+        onDisconnect: () => {
+          if(!this.disconnect_now){
 
-    console.log('[WebSocket] Sent createGameDto:', createGameDto);
+          }
+        }
+      });
+
+      console.log('[WebSocket] Connecting...');
+      this.stompClient.activate();
+    })
+
+    return this.connect_to_ws.finally(() => {
+      this.connect_to_ws = null;
+    })
   }
-  
+
+  disconnect(): void {
+    if (this.stompClient) {
+      console.log('[WebSocket] Connection closed...');
+
+
+      if(this.disconnect_now) {
+        /// Löschen aus LS
+      } else {
+        ///Update timestamp aus LS? 
+      }
+
+      this.stompClient.deactivate();
+      this.stompClient = null;
+    }
+  }
+
+  reconnect() {
+    /*
+    if(this.reconnection_tries >= 3)  {
+    ///Clear localstorage
+    }
+    if (!this.localStorage.getReconnectInfo){ this.disconnect_now = true 
+    //return 
+    }*/
+
+    this.reconnection_tries++
+    setTimeout(() => this.connect(), 5000)
+
+
+  }
+
+  private async send_reconnection_msg(): Promise<void>{
+    ///Local-Storage - Make 'game-object' 
+    // mit allen daten für Reconnect und vielleicht time-Stamp?
+    // Wenn nicht vorhanden oder zu alt -> null
+
+    /*
+    if (!this.localStorage.getReconnectInfo){ return }
+
+    try {
+      await send_via_ws ()
+
+      console.log('Attempted reconnection')
+    } catch (err) { 
+      console.log('Error trying to reconnect: ', err)
+    }
+    */
+    
+  }
+
+  leaveGame(){
+    /// Delete Reconnect-Infos aus dem Local-Storage 
+    ///Close connection
+    ///this.disconnect()?
+  }
+
+  createGame(displayName: string): void {
+    const createGameDto = { displayName };
+    this.send_via_WS(
+      '/app/game.new',
+      JSON.stringify(createGameDto),
+      true
+    )
+  }
+
   joinGame(gameCode: string, displayName: string): void {
     this.setGameCode(gameCode);
 
@@ -134,111 +183,52 @@ export class WebsocketService {
 
   }
 
-  sendJoinGame(gameCode: string, nickname: string, mode: boolean){
-
-    const joinGameDto = {
-      gameCode,
-      nickname,
-      action: 'JOIN_GAME'
-    };
-
-    this.stompClient!.publish({
-      destination: '/app/game.join'+ (mode ? '' : '.anonymous'),
-      headers: mode ? {Authorization: `Bearer ${this.localStorageService.getJwtToken()}`} : {},
-      body: JSON.stringify(joinGameDto),
-    });
-
-    console.log('[WebSocket] sent JoinDto:', joinGameDto);
+  startGame(gameCode: string): void {
+    const startGameDto = { gameCode, action: 'START_GAME' };
+    this.send_via_WS(
+      '/app/game.start',
+      JSON.stringify(startGameDto),
+      true
+    )
   }
 
+  sendCardPlayer(gameCode: string, card: { cardName: string, cardValue: number }): void {
+    const playCardDto = { gameCode, action: 'PLAY_CARD', card };
+    this.send_via_WS(
+      '/app/game.play.card',
+      JSON.stringify(playCardDto),
+      true
+    )
+  }
 
+  private sendJoinGame(gameCode: string, nickname: string, mode: boolean) {
+    const joinGameDto = { gameCode, displayName: nickname, action: 'JOIN_GAME' };
+    this.send_via_WS(
+      '/app/game.join' + (mode ? '' : '.anonymous'),
+      JSON.stringify(joinGameDto),
+      mode
+    )
+  }
 
+  async send_via_WS(adress: string, msg_body: string, authorised: boolean) {
 
-
-
-  startGame(gameCode: string): void {
     if (!this.stompClient || !this.stompClient.connected) {
       console.warn('[WebSocket] not connected, cannot send startGame');
       return;
     }
 
-    const token = this.localStorageService.getJwtToken();
-    if (!token) {
+    if (!this.localStorageService.getJwtToken() && authorised) {
       console.warn('[WebSocket] not JWT token found, cannot authenticate');
       return;
     }
 
-    const startGameDto = {
-      gameCode,
-      action: 'START_GAME'
-    };
-
-    this.stompClient.publish({
-      destination: '/app/game.start',
-      headers: {
-        Authorization: `Bearer ${token}`
-      },
-      body: JSON.stringify(startGameDto),
+    this.stompClient!.publish({
+      destination: adress,
+      headers: authorised ? { Authorization: `Bearer ${this.localStorageService.getJwtToken()}` } : {},
+      body: msg_body,
     });
 
-    console.log('[WebSocket] sent startGameDto:', startGameDto);
-  }
+    console.log('[WebSocket] Msg sent:', msg_body);
 
-  sendCardPlayer(gameCode: string, card: { cardName: string, cardValue: number }): void {
-    if (!this.stompClient || !this.stompClient.connected) {
-      console.warn('[WebSocket] not connected, cannot send played card');
-      return;
-    }
-
-    const token = this.localStorageService.getJwtToken();
-    if (!token) {
-      console.warn('[WebSocket] no JWT token found, cannot authenticate');
-      return;
-    }
-
-    const playCardDto = {
-      gameCode,
-      action: 'PLAY_CARD',
-      card
-    };
-
-    this.stompClient.publish({
-      destination: '/app/game.play.card',
-      headers: {
-        Authorization: `Bearer ${token}`
-      },
-      body: JSON.stringify(playCardDto),
-    });
-
-    console.log('[WebSocket] sent playCardDto:', playCardDto);
-  }
-
-  sendMessage(destination: string, payload: any): void {
-    if (!this.stompClient || !this.stompClient.connected) {
-      this.connect();
-      const interval = setInterval(() => {
-        if (this.stompClient?.connected) {
-          clearInterval(interval);
-          this.sendMessage(destination, payload);
-        }
-      }, 200);
-      return;
-    }
-
-    const token = this.localStorageService.getJwtToken();
-    if (!token) {
-      console.warn('[WebSocket] no JWT token found, cannot authenticate');
-      return;
-    }
-
-    this.stompClient.publish({
-      destination,
-      headers: {
-        Authorization: `Bearer ${token}`
-      },
-      body: JSON.stringify(payload),
-    });
-
-    console.log(`[WebSocket] sent to ${destination}:`, payload);
   }
 }

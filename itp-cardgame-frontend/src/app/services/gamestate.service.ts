@@ -106,12 +106,12 @@ export class GamestateService implements OnDestroy {
         case 'CARD_DRAWN':
           const cardDrawnData = data as CardDrawnMessage;
           this.updatePlayerHand(data.sender, data.value as number)
+          this.update_active_player(data.newCurrentPlayer)
 
           if (Array.isArray(cardDrawnData.drawnCards)) {
             cardDrawnData.drawnCards.forEach(card => this.addCardToHand(card));
-          } else {
-            console.warn('Warning: received CARD_DRAWN without valid drawnCards-array:', data);
           }
+          
           break;
 
         case 'CARD_PLACED':
@@ -120,11 +120,7 @@ export class GamestateService implements OnDestroy {
           }
           this.updatePlayerHand(data.sender, -(data.value as number))
           this.updateTopCard(data.playedCard);
-
-          const newIndex = this.players().findIndex(p => p.nickname === data.newCurrentPlayer);
-          if (newIndex !== -1) {
-            this.activePlayerPos.set(newIndex);
-          }
+          this.update_active_player(data.newCurrentPlayer)
           break;
 
         case 'GAME_FINISHED':
@@ -170,17 +166,25 @@ export class GamestateService implements OnDestroy {
 
   }
 
+
+  update_active_player(new_active_nick: string){
+    const newIndex = this.players().findIndex(p => p.nickname === new_active_nick);
+          if (newIndex !== -1) {
+            this.activePlayerPos.set(newIndex);
+        }
+  }
+
   updatePlayerHand(player_name: string, value: number) {
     this.players.update(players =>
       players.map(player =>
-        player.nickname === player_name
-          ? { ...player, card_count: player.card_count + value }
-          : player))
+        player.nickname === player_name ? { ...player, card_count: player.card_count + value } : player))
+
+    console.log(this.players())
   }
 
   playerJoined(data: any): void {
     const newPlayerUsername = data.sender;
-    if(data.jwt) { this.localStorageService.setJwtToken(data.jwt) }
+    if (data.jwt) { this.localStorageService.setJwtToken(data.jwt) }
     this.isHost.set(data.sender === data.host)
     const all_players = new Set([...data.otherPlayers, data.sender])
 
@@ -200,10 +204,15 @@ export class GamestateService implements OnDestroy {
       return;
     }
 
-    this.websocketService.sendMessage('/app/game.card.draw', {
+    const drawCardDto = {
       gameCode,
       action: 'DRAW_CARD'
-    });
+    }
+
+    this.websocketService.send_via_WS('/app/game.card.draw',
+      JSON.stringify(drawCardDto),
+      true
+    );
   }
 
   placeCardAction(card: Card): boolean {
@@ -226,7 +235,12 @@ export class GamestateService implements OnDestroy {
     };
 
     console.log('👉 Sending to backend:', payload);
-    this.websocketService.sendMessage('/app/game.card.play', payload);
+
+    this.websocketService.send_via_WS(
+      '/app/game.card.play',
+      JSON.stringify(payload),
+      true);
+
     return true;
   }
 

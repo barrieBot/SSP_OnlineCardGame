@@ -19,6 +19,13 @@ import { GamestateService, Card, CardDto, CardEffects } from '../services/gamest
 
 export class GameplayComponent {
   gameState = inject(GamestateService)
+  player2 = computed(() => Array.from({length: this.gameState.players()[(3+this.gameState.activeOffsetPos())%4].card_count }, (_, i) => i + 1));
+  player3 = computed(() => Array.from({length: this.gameState.players()[(2+this.gameState.activeOffsetPos())%4].card_count }, (_, i) => i + 1));
+  player4 = computed(() => Array.from({length: this.gameState.players()[(1+this.gameState.activeOffsetPos())%4].card_count }, (_, i) => i + 1));
+
+  player2_pos = computed(() => {
+    return this.gameState.players()[(3+this.gameState.activeOffsetPos())%4].placement
+  })
   
   playerCards: Card[] = [];
   topCard: Card | null = null;
@@ -56,8 +63,5 @@ export class GameplayComponent {
     };
   }
 
-  asArray(i: number) {
-    return [...Array(i).keys()]
-  }
 
 }

@@ -2,13 +2,14 @@
 
     <!-- Player 2: row 2, col 1 -->
     <div class="col-start-1 row-start-2 flex flex-col items-center justify-center p-6 relative">
-        <div class="w-full text-center text-white font-bold text-lg sm:text-xl mb-2">{{ gameState.players()[(3+gameState.activeOffsetPos())%4].nickname }}</div>
+        <div class="w-full text-center text-white font-bold text-lg sm:text-xl mb-2">{{ this.gameState.players()[(3+this.gameState.activeOffsetPos())%4].nickname }}</div>
         <div 
-        [class]="{ 'shadow-lg shadow-yellow-200': (gameState.players()[(3+gameState.activeOffsetPos())%4].placement == gameState.activePlayerPos()) }"
+        [class.shadow-lg]="this.player2_pos() === gameState.activePlayerPos()"
+
         class="relative h-48 sm:h-64 w-32">
-            @for (i of asArray(gameState.players()[(3+gameState.activeOffsetPos())%4].card_count); track i) {
+            @for (i of this.player2(); track i) {
             <div 
-                [ngStyle]="{top: (i*6) + 'px'}"
+                [ngStyle]="{top: (i*12) + 'px'}"
                 class="absolute w-24 h-36 bg-blue-400 border-white border-2 rounded shadow flex items-center justify-center text-white rotate-[90deg] transform">ITP</div>
             }
         </div>
@@ -19,7 +20,14 @@
         <div class="flex items-center justify-center mb-6 space-x-4">
             <!-- draw card stack -->
             <button hlmBtn (click)="drawCard()" class="w-32 sm:w-48 h-48 sm:h-60 rounded-lg shadow flex items-center justify-center text-white text-lg sm:text-3xl cursor-pointer transition-transform hover:scale-105">
-                draw card
+                <!---Nicht optimal... Vielleicht mit absolute pos? -->
+                <span>DRAW</span>
+                <span class="h-6"></span>
+                @if (gameState.drawModifier() !== 0){
+                    +{{gameState.drawModifier()}}
+                } @else {
+                    &nbsp;
+                }
             </button>
 
             <!-- middle card -->
@@ -37,11 +45,12 @@
     <div class="col-start-2 row-start-1 flex flex-col items-center justify-center p-6">
         <div class="text-white mb-2 font-bold text-lg sm:text-xl">{{ gameState.players()[(2+gameState.activeOffsetPos())%4].nickname }}</div>
         <div 
-        [class]="{ 'shadow-lg shadow-yellow-200': (gameState.players()[(2+gameState.activeOffsetPos())%4].placement == gameState.activePlayerPos()) }"
+        [class.shadow-lg]="gameState.players()[(2+gameState.activeOffsetPos())%4].placement == gameState.activePlayerPos()"
+
         class="relative h-32 w-[140px] sm:w-[160px]">
-            @for (i of asArray(gameState.players()[(2+gameState.activeOffsetPos())%4].card_count); track i) {
+            @for (i of this.player3(); track i) {
             <div 
-                [ngStyle]="{left: (i*6) + 'px'}"
+                [ngStyle]="{left: (i*12) + 'px'}"
                 class="absolute w-24 h-36 bg-blue-400 border-white border-2 rounded shadow flex items-center justify-center text-white">ITP</div>
             } </div>
     </div>
@@ -50,12 +59,13 @@
     <div class="col-start-3 row-start-2 flex flex-col items-center justify-center p-6 relative">
         <div class="w-full text-center text-white font-bold text-lg sm:text-xl mb-2">{{ gameState.players()[(1+gameState.activeOffsetPos())%4].nickname }}</div>
         <div 
-        [class]="{ 'shadow-lg shadow-yellow-200': (gameState.players()[(1+gameState.activeOffsetPos())%4].placement == gameState.activePlayerPos()) }"
+        [class.shadow-lg]="gameState.players()[(1+gameState.activeOffsetPos())%4].placement == gameState.activePlayerPos()"
+
         class="relative h-48 sm:h-64 w-32">
 
-            @for (i of asArray(gameState.players()[(1+gameState.activeOffsetPos())%4].card_count); track i) {
+            @for (i of this.player4(); track i) {
                 <div 
-                [ngStyle]="{top: (i*6) + 'px'}"
+                [ngStyle]="{top: (i*12) + 'px'}"
                 class="absolute left-0 w-24 h-36 bg-blue-400 border-white border-2 rounded shadow flex items-center justify-center text-white rotate-[270deg] transform">ITP</div>
             }
         </div>
