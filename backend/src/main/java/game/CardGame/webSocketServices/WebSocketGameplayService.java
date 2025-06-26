@@ -67,7 +67,28 @@ public class WebSocketGameplayService {
         // Check if card is playable
         CardModel topCard = webSocketUtilService.viewTopCard(game.getDiscardPile());
         boolean validCardPlay = false;
-        if(topCard.getCardType().getCardEvent().equals("NONE")) {
+        if(topCard.getCardType().getCardEvent().equals("DRAW") && playCardDto.getCard().getCardEvent().equals("DRAW")) {
+            if(playCardDto.getCard().getCardValue().equals(topCard.getCardType().getCardValue())) {
+                switch (topCard.getCardType().getCardName()) {
+                    case "Rock" -> {
+                        if (playCardDto.getCard().getCardName().equals("Paper")) {
+                            validCardPlay = true;
+                        }
+                    }
+                    case "Paper" -> {
+                        if (playCardDto.getCard().getCardName().equals("Scissors")) {
+                            validCardPlay = true;
+                        }
+                    }
+                    case "Scissors" -> {
+                        if (playCardDto.getCard().getCardName().equals("Rock")) {
+                            validCardPlay = true;
+                        }
+                    }
+                }
+            }
+        }
+        else if(topCard.getCardType().getCardEvent().equals("NONE") || game.getDrawCount() == 0) {
             switch (topCard.getCardType().getCardName()) {
                 case "Rock" -> {
                     if (playCardDto.getCard().getCardName().equals("Paper")) {
@@ -95,33 +116,14 @@ public class WebSocketGameplayService {
                 }
             }
         }
-        else if(topCard.getCardType().getCardEvent().equals("DRAW")) {
-            if(playCardDto.getCard().getCardValue().equals(topCard.getCardType().getCardValue())) {
-                switch (topCard.getCardType().getCardName()) {
-                    case "Rock" -> {
-                        if (playCardDto.getCard().getCardName().equals("Paper")) {
-                            validCardPlay = true;
-                        }
-                    }
-                    case "Paper" -> {
-                        if (playCardDto.getCard().getCardName().equals("Scissors")) {
-                            validCardPlay = true;
-                        }
-                    }
-                    case "Scissors" -> {
-                        if (playCardDto.getCard().getCardName().equals("Rock")) {
-                            validCardPlay = true;
-                        }
-                    }
-                }
-            }
-        }
         if(!validCardPlay) {
             throw new IllegalArgumentException("Card cannot be played");
         }
 
-        game.setDrawCount(game.getDrawCount() + playCardDto.getCard().getCardValue());
-        gameRepository.save(game);
+        if(playCardDto.getCard().getCardEvent().equals("DRAW")) {
+            game.setDrawCount(game.getDrawCount() + playCardDto.getCard().getCardValue());
+            gameRepository.save(game);
+        }
 
         // Play card
         cardToPlay.setDeckId(game.getDiscardPile());
