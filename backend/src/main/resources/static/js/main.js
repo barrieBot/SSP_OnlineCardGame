@@ -29,6 +29,7 @@ var sub_draw_card = document.querySelector("#drawCardButton")
 var sub_join_game_anonymous = document.querySelector("#but_join_game_anonymous")
 var sub_close_game = document.querySelector("#closeGameButton")
 var sub_restart_game = document.querySelector("#restartGameButton")
+var sub_reconnect = document.querySelector("#reconnectButton")
 
 
 
@@ -285,6 +286,23 @@ function restartGame() {
     event.preventDefault();
 }
 
+function reconnectWebSocket(event) {
+    let gameCodeContent = gameCodeInput.value;
+    if(stompClient){
+        const gameState = {
+            gameCode: gameCodeContent,
+            action: 'RESTART_GAME'
+        };
+
+        let jwt = jwtInput.value;
+        stompClient.send('/app/reconnect', {
+                                            Authorization: `Bearer ${jwt}`
+                                          }, JSON.stringify(gameState))
+    }
+
+    event.preventDefault();
+}
+
 /*function  placeCard(event){
 
     //Methode for Selecting Card
@@ -329,3 +347,4 @@ sub_draw_card.addEventListener("click", drawCard);
 sub_join_game_anonymous.addEventListener("click", joinGameAnonymous)
 sub_close_game.addEventListener("click", closeGame)
 sub_restart_game.addEventListener("click", restartGame)
+sub_reconnect.addEventListener("click", reconnectWebSocket)
