@@ -105,7 +105,7 @@ export class GamestateService implements OnDestroy {
 
         case 'CARD_DRAWN':
           const cardDrawnData = data as CardDrawnMessage;
-          this.updatePlayerHand(data.sender, Number(data.value))
+          this.updatePlayerHand(data.sender, Number(data.drawCount))
           this.update_active_player(data.newCurrentPlayer)
 
           if (Array.isArray(cardDrawnData.drawnCards)) {
@@ -118,7 +118,7 @@ export class GamestateService implements OnDestroy {
           if (data.sender === this.user.getUser()?.username) {
             this.removeCardFromHand(data.playedCard);
           }
-          this.updatePlayerHand(data.sender, -(Number(data.value)))
+          this.updatePlayerHand(data.sender, -1)
           this.updateTopCard(data.playedCard);
           this.update_active_player(data.newCurrentPlayer)
           break;
