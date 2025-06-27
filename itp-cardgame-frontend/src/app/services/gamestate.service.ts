@@ -45,6 +45,18 @@ export interface StartGameData {
   sender: string;
 }
 
+export interface InGameData {
+  sender: string;
+  responseType: 'RECONNECT';
+  turnOrder: { [playerId: string]: string };
+  cardAmounts: { [playerId: string]: number };
+  centerCard: CardDto;
+  handCards: CardDto[];
+  currentPlayer: string;
+  drawCount: number
+}
+
+
 export interface Player {
   nickname: string,
   card_count: number,
@@ -102,6 +114,7 @@ export class GamestateService implements OnDestroy {
           break;
 
         case 'CARD_DRAWN':
+          this.drawModifier.set(0);
           const cardDrawnData = data as CardDrawnMessage;
           this.updatePlayerHand(data.sender, Number(data.drawCount))
           this.update_active_player(data.newCurrentPlayer)
@@ -109,7 +122,7 @@ export class GamestateService implements OnDestroy {
           if (Array.isArray(cardDrawnData.drawnCards)) {
             cardDrawnData.drawnCards.forEach(card => this.addCardToHand(card));
           }
-          
+
           break;
 
         case 'CARD_PLACED':
@@ -121,8 +134,8 @@ export class GamestateService implements OnDestroy {
           this.update_active_player(data.newCurrentPlayer)
           break;
 
-        case 'reconnect':
-          /// Wie ist der Reconnect flag...?
+        case 'RECONNECT':
+          this.setupReconnect(data)
           break;
 
         case 'GAME_FINISHED':
@@ -135,8 +148,8 @@ export class GamestateService implements OnDestroy {
     });
   }
 
-  init(){
-    if(this.websocketService.getConnectionStatus() === false){
+  init() {
+    if (this.websocketService.getConnectionStatus() === false) {
       this.websocketService.connect();
     }
   }
@@ -147,42 +160,61 @@ export class GamestateService implements OnDestroy {
   }
 
   setupGame(data: StartGameData): void {
-    const hand = data.handCards.map((cardDto, index) =>
+    this.setupPlayerHand(data.handCards)
+    this.setupPlayerList(data.turnOrder, {"default": 5})
+    this.setupTopCard(data.centerCard)
+  }
+
+  setupReconnect(data: InGameData){
+    this.setupPlayerHand(data.handCards)
+    this.setupPlayerList(data.turnOrder, data.cardAmounts)
+    this.setupTopCard(data.centerCard)
+
+    this.drawModifier.set(data.drawCount)
+    this.update_active_player(data.currentPlayer)
+
+
+  }
+
+  setupPlayerHand(handCards: CardDto[]) {
+    const hand = handCards.map((cardDto, index) =>
       ({ ...this.parseCard(cardDto), id: index })
     );
     this.playerDeck.set(hand);
+  }
 
-    // set top card
-    this.currentTopCard.set([]);
-    this.currentTopCard.update((cards) => [this.parseCard(data.centerCard), ...cards])
-
+  setupPlayerList(turnOrder:  { [playerId: string]: string }, cardAmounts: { [playerId: string]: number }) {
     let placement_number = 0
-    const playerList: Player[] = Object.entries(data.turnOrder).map(([playerId, nickname]) => (
+    const playerList: Player[] = Object.entries(turnOrder).map(([playerId, nickname]) => (
       {
         nickname,
-        card_count: 5,
+        card_count: cardAmounts[playerId] ?? 5,
         placement: placement_number++
       }));
     this.players.set(playerList);
 
-    // set active player based on sender value
-    //Active Offset 
-    const activeOffset = playerList.findIndex(player => 
+    const activeOffset = playerList.findIndex(player =>
       player.nickname === this.localStorageService.getUser()?.username
     );
 
-    if (activeOffset !== -1) {
-      this.activeOffsetPos.set(activeOffset);
-    }
+    if (activeOffset !== -1) { this.activeOffsetPos.set(activeOffset); }
+  }
 
+  setupTopCard(card: CardDto){
+    this.currentTopCard.set([]);
+    this.currentTopCard.update((cards) => [this.parseCard(card), ...cards])
   }
 
 
-  update_active_player(new_active_nick: string){
+
+
+
+
+  update_active_player(new_active_nick: string) {
     const newIndex = this.players().findIndex(p => p.nickname === new_active_nick);
-          if (newIndex !== -1) {
-            this.activePlayerPos.set(newIndex);
-        }
+    if (newIndex !== -1) {
+      this.activePlayerPos.set(newIndex);
+    }
   }
 
   updatePlayerHand(player_name: string, value: number) {
@@ -209,17 +241,9 @@ export class GamestateService implements OnDestroy {
 
   drawCardAction() {
     this.drawModifier.set(0)
-
     const gameCode = this.websocketService.getGameCode();
-    if (!gameCode) {
-      return;
-    }
-
-    const drawCardDto = {
-      gameCode,
-      action: 'DRAW_CARD'
-    }
-
+    if (!gameCode) { return;}
+    const drawCardDto = { gameCode, action: 'DRAW_CARD' }
     this.websocketService.send_via_WS('/app/game.card.draw',
       JSON.stringify(drawCardDto),
       true
@@ -254,6 +278,54 @@ export class GamestateService implements OnDestroy {
 
     return true;
   }
+
+
+  private parseCard(card: CardDto): Card {
+    return {
+      face: card.cardName,
+      value: card.cardValue,
+      effect: card.cardEvent,
+      asset: this.mapCardToAsset(card),
+      id: null
+    };
+  }
+
+  private mapCardToAsset(card: CardDto): string {
+    const nameMap: { [key: string]: string } = {
+      'Scissors': 'schere',
+      'Rock': 'stein',
+      'Paper': 'papier'
+    };
+
+    const fileName = `${nameMap[card.cardName]}${card.cardValue}${(card.cardEvent === CardEffects.NONE) ? '' : '_draw'}.svg`;
+    return `assets/svg/cards/numeric_cards/${fileName}`;
+
+  }
+
+  private addCardToHand(cardDto: CardDto) {
+    const newCard = this.parseCard(cardDto);
+    this.playerDeck.update(deck => [...deck, newCard]);
+  }
+
+  private removeCardFromHand(cardDto: { cardName: string; cardValue: number }) {
+    this.playerDeck.update(deck => deck.filter(
+      c => !(c.face === cardDto.cardName && c.value === cardDto.cardValue)
+    ));
+  }
+
+  private updateTopCard(cardDto: CardDto) {
+    const newTopCard = this.parseCard(cardDto);
+
+    this.drawModifier.set(newTopCard.effect == CardEffects.DRAW
+      ? this.drawModifier() + newTopCard.value
+      : 0)
+
+    this.currentTopCard.update(cards => [newTopCard, ...cards]);
+  }
+
+
+
+
 
   checkCardValidity(card: Card): boolean {
     const topCard = this.currentTopCard()[0];
@@ -298,46 +370,5 @@ export class GamestateService implements OnDestroy {
     return valueValid && faceValid;
   }
 
-  private parseCard(card: CardDto): Card {
-    return {
-      face: card.cardName,
-      value: card.cardValue,
-      effect: card.cardEvent,
-      asset: this.mapCardToAsset(card),
-      id: null
-    };
-  }
 
-  private mapCardToAsset(card: CardDto): string {
-    const nameMap: { [key: string]: string } = {
-      'Scissors': 'schere',
-      'Rock': 'stein',
-      'Paper': 'papier'
-    };
-
-    const fileName = `${nameMap[card.cardName]}${card.cardValue}${(card.cardEvent === CardEffects.NONE) ? '' : '_draw'}.svg`;
-    return `assets/svg/cards/numeric_cards/${fileName}`;
-
-  }
-
-  private addCardToHand(cardDto: CardDto) {
-    const newCard = this.parseCard(cardDto);
-    this.playerDeck.update(deck => [...deck, newCard]);
-  }
-
-  private removeCardFromHand(cardDto: { cardName: string; cardValue: number }) {
-    this.playerDeck.update(deck => deck.filter(
-      c => !(c.face === cardDto.cardName && c.value === cardDto.cardValue)
-    ));
-  }
-
-  private updateTopCard(cardDto: CardDto) {
-    const newTopCard = this.parseCard(cardDto);
-
-    this.drawModifier.set(newTopCard.effect == CardEffects.DRAW
-      ? this.drawModifier() + newTopCard.value
-      : 0)
-
-    this.currentTopCard.update(cards => [newTopCard, ...cards]);
-  }
 }

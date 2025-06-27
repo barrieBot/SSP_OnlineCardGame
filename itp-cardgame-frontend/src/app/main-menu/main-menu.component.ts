@@ -69,6 +69,11 @@ export class MainMenuComponent implements OnInit {
     this.router.navigate(['/login']);
   }
 
+  onLogoutClick(){
+    this.userService.logout()
+    this.router.navigate(['/'])
+  }
+
   onRegisterClick() {
     console.log("Register button clicked");
     this.router.navigate(['/register']);

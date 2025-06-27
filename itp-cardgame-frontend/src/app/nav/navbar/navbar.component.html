@@ -1,6 +1,7 @@
 <div *ngIf="nav_visible()" class="absolute top-2 right-2 md:top-4 md:right-4 z-50">
     <div class="pt-4 pr-4">
-        <button hlmBtn aria-label="User menu" align="end" [brnMenuTriggerFor]="menu" class="py-3 px-6 shadow hover-bg-gray-100">
+        <button hlmBtn aria-label="User menu" align="end" [brnMenuTriggerFor]="menu"
+            class="py-3 px-6 shadow hover-bg-gray-100">
             <ng-icon name="lucideCircleUserRound" class="text-2xl" />
         </button>
     </div>
@@ -38,10 +39,13 @@
 
             <hlm-menu-separator />
 
-            <button hlmMenuItem>
-                <ng-icon hlm name="lucideLogOut" hlmMenuIcon />
-                <span>Log out</span>
-            </button>
+            <a href="#">
+                <button hlmMenuItem>
+                    <ng-icon hlm name="lucideLogOut" hlmMenuIcon />
+                    <span>Log out</span>
+                </button>
+            </a>
+
 
         </hlm-menu-group>
     </hlm-menu>

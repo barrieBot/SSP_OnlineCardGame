@@ -3,7 +3,6 @@ import { provideIcons } from '@ng-icons/core';
 import { lucideCircleUserRound, lucideSettings, lucideUser, lucideLogOut } from '@ng-icons/lucide';
 
 import { ActivatedRoute, Router } from '@angular/router';
-import { UserService } from '../services/user.service';
 import { WebsocketService } from '../services/websocket.service';
 import { CommonModule } from '@angular/common';
 import { GamestateService } from '../services/gamestate.service';

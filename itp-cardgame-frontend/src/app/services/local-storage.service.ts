@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 
-export interface GameInstance{
+export interface GameInstance {
   gameCode: string,
   username: string,
   timeStamp: Date
@@ -25,21 +25,28 @@ export class LocalStorageService {
   token: string | null = null
 
 
-  constructor(){
+  constructor() {
     ///Get User/Token/Game-Instance
-
+    this.retrieveLS()
   }
 
 
-  retrieveLS(){
+  retrieveLS() {
     this.token = this.getItem('ssp_tcg_jwt');
     this.game = this.getItem<GameInstance>('ssp_tcg_game');
     this.user = this.getItem<User>('ssp_tcg_user');
     this.player = this.getItem<User>('ssp_tcg_player');
   }
 
+  logout() {
+    this.removeUser()
+    this.removeJwtToken()
+    this.removeItem('ssp_tcg_game')
+    this.removeItem('ssp_tcg_player')
+  }
 
-  getItem<T>(key: string): T  | null {
+
+  getItem<T>(key: string): T | null {
     const value = localStorage.getItem(key);
 
     if (!value) {
@@ -80,6 +87,21 @@ export class LocalStorageService {
   }
 
 
+
+  setPlayer(u: User | null) {
+    const p = u ?? this.user;
+
+    if (u) {
+      this.player = u
+      this.setItem('ssp_tcg_player', u);
+    } else {
+      console.warn('Error setting up Player-Instance')
+    }
+  }
+
+  getPlayer() {
+    return this.player;
+  }
 
 
   getJwtToken(): string | null {
