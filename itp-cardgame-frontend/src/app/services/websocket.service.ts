@@ -77,7 +77,7 @@ export class WebsocketService {
 
         },
         onWebSocketClose: () => {
-          if(!this.disconnect_now){
+          if (!this.disconnect_now) {
             ///Speicher daten ins Local-Storage
             this.reconnect()
           }
@@ -104,25 +104,29 @@ export class WebsocketService {
   }
 
   reconnect() {
-    
-    if(this.reconnection_tries >= 5)  {
-    ///Clear localstorage
+
+    if (this.reconnection_tries >= 5) {
+      ///Clear localstorage
       this.disconnect_now = true
+      return
     }
-    if (!this.localStorageService.getItem('ssp_tcg_reconnect_data')){ 
-      this.disconnect_now = true 
+    if (!this.localStorageService.getGameInstance()) {
+      this.disconnect_now = true
+      return
     }
 
     this.reconnection_tries++
     setTimeout(() => this.connect(), 5000)
+
   }
 
-  private async send_reconnection_msg(): Promise<void>{
+  private async send_reconnection_msg(): Promise<void> {
 
-    const reconnect_token = JSON.parse(this.localStorageService.getItem('ssp_tcg_reconnect_data') || '')
-    if (!reconnect_token ){ return }
-    if (Date.now() - reconnect_token.timeStamp > 5*60*1000) {
-      this.localStorageService.removeItem('ssp_tcg_reconnect_data')
+    const reconnect_token = this.localStorageService.getGameInstance()
+    if (!reconnect_token) { return }
+
+    if (Date.now() - reconnect_token.timeStamp > 15 * 60 * 1000) {
+      this.localStorageService.leaveGame()
       return
     }
 
@@ -134,16 +138,17 @@ export class WebsocketService {
       )
       console.log('Attempted reconnection')
 
-    } catch (err) { 
+    } catch (err) {
       console.log('Error trying to reconnect: ', err)
     }
-    
+
   }
 
-  leaveGame(){
-    this.localStorageService.removeItem('ssp_tcg_reconnect_data')
+  leaveGame() {
+    this.localStorageService.leaveGame()
     this.disconnect()
   }
+
 
   createGame(displayName: string): void {
     const createGameDto = { displayName };

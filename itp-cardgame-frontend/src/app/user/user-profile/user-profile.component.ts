@@ -16,7 +16,7 @@ import {
 import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { WebsocketService } from 'src/app/services/websocket.service';
-import { LocalStorageService, User } from 'src/app/services/local-storage.service';
+import { GameInstance, LocalStorageService, User } from 'src/app/services/local-storage.service';
 
 
 @Component({
@@ -63,6 +63,15 @@ export class UserProfileComponent implements OnInit {
       }
 
       if (update?.responseType === 'JOIN_GAME' && update?.gameCode) {
+        ///Wie oft wird das ausgeführt? Nur einmal, oder jedes mal wenn JOIN_GAME kommt
+        console.log('Joined Game successfully: ', update)
+        this.userService.setGameInstance({
+          gameCode: update.gameCode,
+          username: update.sender,
+          timeStamp: Date.now()
+        })
+        this.userService.setPlayer(null)
+
         this.router.navigate(['/lobby', update.gameCode]);
       }
     });

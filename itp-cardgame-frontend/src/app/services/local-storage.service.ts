@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 
 export interface GameInstance {
-  gameCode: string,
-  username: string,
-  timeStamp: Date
+  gameCode: string;
+  username: string;
+  timeStamp: number;
 }
 
 export interface User {
@@ -22,7 +22,7 @@ export class LocalStorageService {
   private user: User | null = null
   private player: User | null = null
   private game: GameInstance | null = null
-  token: string | null = null
+  private token: string | null = null
 
 
   constructor() {
@@ -45,6 +45,10 @@ export class LocalStorageService {
     this.removeItem('ssp_tcg_player')
   }
 
+  leaveGame(){
+    this.removeItem('ssp_tcg_game')
+    this.removeItem('ssp_tcg_player')
+  }
 
   getItem<T>(key: string): T | null {
     const value = localStorage.getItem(key);
@@ -78,7 +82,7 @@ export class LocalStorageService {
   }
 
   getUser(): User | null {
-    return this.user;
+    return this.user ?? this.getItem<User>('ssp_tcg_user');
   }
 
   removeUser() {
@@ -100,14 +104,23 @@ export class LocalStorageService {
   }
 
   getPlayer() {
-    return this.player;
+    return this.player ?? this.getItem<User>('ssp_tcg_player');
+  }
+
+  setGameInstance(game_instance: GameInstance){
+    this.game = game_instance;
+    this.setItem<GameInstance>('ssp_tcg_game', game_instance);
+  }
+
+  getGameInstance(): GameInstance | null{
+    return this.game ?? this.getItem<GameInstance>('ssp_tcg_game')
   }
 
 
   getJwtToken(): string | null {
     //return localStorage.getItem('jwt');
     console.log(this.token)
-    return this.token
+    return this.token ?? this.getItem<string>('ssp_tcg_jwt')
   }
 
   setJwtToken(token: string): void {

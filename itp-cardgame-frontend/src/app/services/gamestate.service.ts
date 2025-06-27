@@ -79,8 +79,8 @@ export class GamestateService implements OnDestroy {
   readonly activeOffsetPos = signal(0)
   readonly isHost = signal(false)
 
-  private gameUpdatesSub?: Subscription;
-  private gameCode: null | string = null;
+  private gameUpdatesSub?: Subscription
+  private game_host: string | null = null
 
   constructor() {
     this.gameUpdatesSub = this.websocketService.getGameUpdates().subscribe((data) => {
@@ -97,10 +97,16 @@ export class GamestateService implements OnDestroy {
 
       switch (type) {
         case 'NEW_GAME':
+          this.game_host = data.sender
           console.log("New Game: ", data)
           break;
 
         case 'JOIN_GAME':
+          if(!this.game_host && data.host) { 
+            this.game_host = data.host
+            this.isHost.set(this.localStorageService.getPlayer()?.username === data.host)
+          }
+
           this.playerJoined(data);
           console.log("Just joined: ", data)
           break;
@@ -126,7 +132,7 @@ export class GamestateService implements OnDestroy {
           break;
 
         case 'CARD_PLACED':
-          if (data.sender === this.localStorageService.getUser()?.username) {
+          if (data.sender === this.localStorageService.getPlayer()?.username) {
             this.removeCardFromHand(data.playedCard);
           }
           this.updatePlayerHand(data.sender, -1)
@@ -194,7 +200,7 @@ export class GamestateService implements OnDestroy {
     this.players.set(playerList);
 
     const activeOffset = playerList.findIndex(player =>
-      player.nickname === this.localStorageService.getUser()?.username
+      player.nickname === this.localStorageService.getPlayer()?.username
     );
 
     if (activeOffset !== -1) { this.activeOffsetPos.set(activeOffset); }
@@ -228,7 +234,6 @@ export class GamestateService implements OnDestroy {
   playerJoined(data: any): void {
     const newPlayerUsername = data.sender;
     if (data.jwt) { this.localStorageService.setJwtToken(data.jwt) }
-    this.isHost.set(data.sender === data.host)
     const all_players = new Set([...data.otherPlayers, data.sender])
 
     for (const other_player of all_players) {

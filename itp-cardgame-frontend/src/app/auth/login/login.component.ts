@@ -64,8 +64,6 @@ export class LoginComponent {
         const token = response.token;
         this.dataPresistance.setJwtToken(token);
 
-        //localStorage.setItem('jwt', token);
-
         const payload = decodeJwt(token);
         console.log('Decoded JWT payload:', payload);
 

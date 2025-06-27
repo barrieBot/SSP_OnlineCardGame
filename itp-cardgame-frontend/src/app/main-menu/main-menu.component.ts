@@ -52,8 +52,13 @@ export class MainMenuComponent implements OnInit {
           token: update.jwt
         };
 
-        this.userService.setUser(user);
-
+        this.userService.setPlayer(user);
+        this.userService.setGameInstance({
+          gameCode: update.gameCode,
+          username: update.sender,
+          timeStamp: Date.now()
+        })
+        
         if (code) {
           this.router.navigate(['/lobby', code]);
           console.log('[MainMenu] navigating to lobby:', code);
