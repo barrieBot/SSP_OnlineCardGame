@@ -24,7 +24,13 @@
             <!-- description -->
             <div class="w-80 p-4 border rounded-lg border-gray-200 bg-gray-200 shadow-md text-black text-center md:text-left">
                 <h3 class="text-xl font-bold">Numeric Scissor Cards</h3>
-                <p>Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.</p>
+                <p>
+                    Diese Karten repräsentieren die Schere und tragen jeweils einen Zahlenwert von 1 bis 9. <br>
+                    Sie können <strong>Papierkarten</strong> jeder Zahl schlagen, unterliegen aber <strong>Steinkarten</strong>. <br>
+                    Eine Scherenkarte kann nur auf eine Karte gelegt werden, die entweder ebenfalls eine Schere oder ein Papier ist. <br>
+                    Dabei gilt: Sie darf nur gelegt werden, wenn ihr Zahlenwert <strong>gleich oder höher</strong> ist als der der liegenden Karte. <br>
+                    <strong>Beispiel:</strong> Liegt eine Schere 2, darf eine Schere 3 oder höher darauf gelegt werden.
+                </p>
             </div>
         </div>
 
@@ -50,7 +56,13 @@
             <!-- description -->
             <div class="w-80 p-4 border rounded-lg border-gray-200 bg-gray-200 shadow-md text-black text-center md:text-left">
                 <h3 class="text-xl font-bold">Numeric Stone Cards</h3>
-                <p>Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.</p>
+                <p>
+                    Steinkarten besitzen ebenfalls einen Zahlenwert zwischen 1 und 9. <br>
+                    Sie schlagen <strong>Scherenkarten</strong>, sind jedoch schwächer als <strong>Papierkarten</strong>. <br>
+                    Eine Steinkarte kann nur auf eine andere Stein- oder Scherenkarte gelegt werden. <br>
+                    Auch hier muss der Zahlenwert <strong>gleich oder höher</strong> sein als der der vorherigen Karte. <br>
+                    <strong>Beispiel:</strong> Liegt ein Stein 4, darf ein Stein 4 oder höher gespielt werden.
+                </p>
             </div>
         </div>
 
@@ -76,7 +88,42 @@
             <!-- description -->
             <div class="w-80 p-4 border rounded-lg border-gray-200 bg-gray-200 shadow-md text-black text-center md:text-left">
                 <h3 class="text-xl font-bold">Numeric Paper Cards</h3>
-                <p>Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.</p>
+                <p>
+                    Papierkarten sind die Konterkarten gegen Stein und reichen von 1 bis 9. <br>
+                    Sie besiegen <strong>Steinkarten</strong>, verlieren jedoch gegen <strong>Scherenkarten</strong>. <br>
+                    Eine Papierkarte darf nur auf eine Karte gelegt werden, die entweder Papier oder Stein ist. <br>
+                    Die neue Karte muss dabei den <strong>gleichen oder einen höheren Zahlenwert</strong> besitzen. <br>
+                    <strong>Beispiel:</strong> Liegt ein Papier 5, darf ein Papier 5 oder höher gespielt werden.
+                </p>
+            </div>
+        </div>
+
+        <!-- special cards -->
+        <div class="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-20">
+            <hlm-carousel class="w-full max-w-xs">
+                <hlm-carousel-content class="flex gap-5">
+                    <ng-container *ngFor="let card of specialCards">
+                        <hlm-carousel-item>
+                            <app-svg-icon
+                                brnDialogTrigger
+                                class="w-64 h-80 cursor-pointer"
+                                [src]="card"
+                                (click)="openDialog(card)"> 
+                            </app-svg-icon>
+                        </hlm-carousel-item>
+                    </ng-container>
+                </hlm-carousel-content>
+                <button hlm-carousel-previous></button>
+                <button class="absolute -right-12" hlm-carousel-next></button>
+            </hlm-carousel>
+
+            <!-- description -->
+            <div class="w-80 p-4 border rounded-lg border-gray-200 bg-gray-200 shadow-md text-black text-center md:text-left">
+                <h3 class="text-xl font-bold">Numeric Paper Cards</h3>
+                <p>
+                    Spezialkarten zwingen den nächsten Spieler, zwei oder vier Karten zu ziehen - es sei denn, er kann die vorherige Spezialkarte schlagen. <br>
+                    Beispiel: Liegt eine "Draw 2" vom TYP <strong>Schere</strong>, kann nur eine "Draw 2" vom Typ <strong>Stein</strong> darauf gelegt werden. Andernfalls muss der Spieler <strong>zwei Karten ziehen.</strong>
+                </p>
             </div>
         </div>
     </div>

@@ -32,6 +32,7 @@ export class CardsPageComponent {
   numericScissorCards: string[] = [];
   numericStoneCards: string[] = [];
   numericPaperCards: string[] = [];
+  specialCards: string[] = [];
   // variable for the clicked card
   activeCard: string | null = null;
 
@@ -39,10 +40,10 @@ export class CardsPageComponent {
     this.showNumericScissorCards();
     this.showNumericStoneCards();
     this.showNumericPaperCards();
+    this.showSpecialCards();
   }
 
   showNumericScissorCards() {
-    console.log("CardsPageComponent wird geladen.");
     this.numericScissorCards = Array.from({length: 9}, (_, i) => 
       `assets/svg/cards/numeric_cards/schere${i + 1}.svg`
     );
@@ -50,7 +51,6 @@ export class CardsPageComponent {
   }
 
   showNumericStoneCards() {
-    console.log("CardsPageComponent wird geladen.");
     this.numericStoneCards = Array.from({length: 9}, (_, i) => 
       `assets/svg/cards/numeric_cards/stein${i + 1}.svg`
     );
@@ -58,11 +58,21 @@ export class CardsPageComponent {
   }
 
   showNumericPaperCards() {
-    console.log("CardsPageComponent wird geladen.");
     this.numericPaperCards = Array.from({length: 9}, (_, i) => 
       `assets/svg/cards/numeric_cards/papier${i + 1}.svg`
     );
     console.log(this.numericPaperCards);
+  }
+
+  showSpecialCards() {
+    this.specialCards = [
+      'assets/svg/cards/numeric_cards/papier2_draw.svg',
+      'assets/svg/cards/numeric_cards/papier4_draw.svg',
+      'assets/svg/cards/numeric_cards/schere2_draw.svg',
+      'assets/svg/cards/numeric_cards/schere4_draw.svg',
+      'assets/svg/cards/numeric_cards/stein2_draw.svg',
+      'assets/svg/cards/numeric_cards/stein4_draw.svg'
+    ];
   }
 
   openDialog(card: string) {
