@@ -12,9 +12,8 @@ import {
   HlmDialogTitleDirective,
 } from '@spartan-ng/ui-dialog-helm';
 import { WebsocketService } from '../services/websocket.service';
-import { UserService } from '../services/user.service';
 import { GamestateService } from '../services/gamestate.service';
-import { User } from '../services/local-storage.service';
+import { LocalStorageService, User } from '../services/local-storage.service';
 
 
 @Component({
@@ -41,7 +40,7 @@ export class MainMenuComponent implements OnInit {
   
   private router = inject(Router);
   private websocketService = inject(WebsocketService);
-  private userService = inject(UserService);
+  private userService = inject(LocalStorageService);
   private gamestate = inject(GamestateService);
 
   ngOnInit(): void {

@@ -21,7 +21,6 @@ export class LobbyComponent implements OnInit {
   currentUser: User | null = null;
   hostUsername: string | null = null;
 
-  private userService = inject(UserService);
   private route = inject(ActivatedRoute);
   private webSocketService = inject(WebsocketService);
   private router = inject(Router);
@@ -31,7 +30,7 @@ export class LobbyComponent implements OnInit {
   isHost = signal(true)
 
   ngOnInit() {
-    this.currentUser = this.userService.getUser();
+    this.currentUser = this.localStorage.getUser();
     this.gameId = this.route.snapshot.paramMap.get('id');
     console.log('Joined lobby-id: ', this.gameId);
 

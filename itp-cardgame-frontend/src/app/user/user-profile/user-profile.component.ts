@@ -1,16 +1,9 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { HlmButtonDirective } from '@spartan-ng/ui-button-helm';
-import { HlmIconDirective } from '@spartan-ng/ui-icon-helm';
-import { NgIcon, provideIcons } from '@ng-icons/core';
+import { provideIcons } from '@ng-icons/core';
 import { lucidePen, lucideTrophy } from '@ng-icons/lucide';
 import { HlmSeparatorDirective } from '@spartan-ng/ui-separator-helm';
 import { BrnSeparatorComponent } from '@spartan-ng/brain/separator';
-import {
-  HlmTableComponent,
-  HlmTdComponent,
-  HlmThComponent,
-  HlmTrowComponent,
-} from '@spartan-ng/ui-table-helm';
 import { HlmInputDirective } from '@spartan-ng/ui-input-helm';
 import { BrnDialogContentDirective, BrnDialogTriggerDirective } from '@spartan-ng/brain/dialog';
 import {
@@ -22,9 +15,8 @@ import {
 } from '@spartan-ng/ui-dialog-helm';
 import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { UserService } from 'src/app/services/user.service';
 import { WebsocketService } from 'src/app/services/websocket.service';
-import { User } from 'src/app/services/local-storage.service';
+import { LocalStorageService, User } from 'src/app/services/local-storage.service';
 
 
 @Component({
@@ -32,14 +24,8 @@ import { User } from 'src/app/services/local-storage.service';
   providers: [provideIcons({ lucidePen, lucideTrophy })],
   imports: [
     HlmButtonDirective,
-    HlmIconDirective,
-    NgIcon,
     HlmSeparatorDirective,
     BrnSeparatorComponent,
-    HlmTableComponent,
-    HlmTdComponent,
-    HlmThComponent,
-    HlmTrowComponent,
     HlmInputDirective,
     BrnDialogContentDirective,
     BrnDialogTriggerDirective,
@@ -57,13 +43,13 @@ import { User } from 'src/app/services/local-storage.service';
 export class UserProfileComponent implements OnInit {
   user: User | null = null;
   lobbyCode: string = '';
-  private userService = inject(UserService);
+  private userService = inject(LocalStorageService);
   private webSocketService = inject(WebsocketService);
   private router = inject(Router);
 
   ngOnInit(): void {
     this.user = this.userService.getUser();
-    const token = this.userService.getToken();
+    const token = this.userService.getJwtToken();
 
     if (token) {
       this.webSocketService.connect();
