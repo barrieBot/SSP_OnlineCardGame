@@ -98,14 +98,6 @@ export class WebsocketService {
     this.disconnect_now = true
     if (this.stompClient) {
       console.log('[WebSocket] Connection closed...');
-
-
-      if(this.disconnect_now) {
-        /// Löschen aus LS
-      } else {
-        ///Update timestamp aus LS? 
-      }
-
       this.stompClient.deactivate();
       this.stompClient = null;
     }

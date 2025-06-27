@@ -6,6 +6,13 @@ export interface GameInstance{
   timeStamp: Date
 }
 
+export interface User {
+  id?: number;
+  username: string;
+  token: string;
+}
+
+
 
 @Injectable({
   providedIn: 'root'

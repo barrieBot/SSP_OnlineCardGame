@@ -1,11 +1,6 @@
 import { Injectable, inject } from '@angular/core';
-import { LocalStorageService } from './local-storage.service';
+import { LocalStorageService, User } from './local-storage.service';
 
-export interface User {
-  id?: number;
-  username: string;
-  token: string;
-}
 
 @Injectable({
   providedIn: 'root'
@@ -13,7 +8,6 @@ export interface User {
 
 export class UserService {
   private user: User | null = null;
-  private player: User | null = null;
   private localStorageService = inject(LocalStorageService);
 
   constructor() {

@@ -3,15 +3,16 @@ import { provideIcons } from '@ng-icons/core';
 import { lucideCircleUserRound, lucideSettings, lucideUser, lucideLogOut } from '@ng-icons/lucide';
 
 import { ActivatedRoute, Router } from '@angular/router';
-import { UserService, User } from '../services/user.service';
+import { UserService } from '../services/user.service';
 import { WebsocketService } from '../services/websocket.service';
 import { CommonModule } from '@angular/common';
 import { GamestateService } from '../services/gamestate.service';
+import { LocalStorageService, User } from '../services/local-storage.service';
 
 @Component({
   selector: 'app-lobby',
   providers: [provideIcons({ lucideSettings, lucideCircleUserRound, lucideUser, lucideLogOut })],
-  imports: [ CommonModule ],
+  imports: [CommonModule],
   templateUrl: './lobby.component.html',
   styleUrl: './lobby.component.css'
 })
@@ -24,7 +25,9 @@ export class LobbyComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private webSocketService = inject(WebsocketService);
   private router = inject(Router);
+  private localStorage = inject(LocalStorageService);
   game = inject(GamestateService);
+
   isHost = signal(true)
 
   ngOnInit() {
@@ -34,7 +37,7 @@ export class LobbyComponent implements OnInit {
 
 
     /// Das muss so auch in die gameplay
-    if(this.webSocketService.getConnectionStatus() === false){
+    if (this.webSocketService.getConnectionStatus() === false) {
       this.webSocketService.connect();
     }
 
@@ -49,6 +52,13 @@ export class LobbyComponent implements OnInit {
 
       // join game
       if (update?.responseType === 'JOIN_GAME') {
+        if (update.sender === this.currentUser?.username) {
+          this.localStorage.setItem('ssp_tcg_reconnect_data', JSON.stringify({
+            gameCode: update.gameCode,
+            username: update.sender,
+            timeStamp: Date.now()
+          }))
+        }
         if (Array.isArray(update.otherPlayers)) {
           if (update.host) {
             this.hostUsername = update.host;

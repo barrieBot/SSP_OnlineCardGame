@@ -105,7 +105,7 @@ export class GamestateService implements OnDestroy {
 
         case 'CARD_DRAWN':
           const cardDrawnData = data as CardDrawnMessage;
-          this.updatePlayerHand(data.sender, data.value as number)
+          this.updatePlayerHand(data.sender, Number(data.value))
           this.update_active_player(data.newCurrentPlayer)
 
           if (Array.isArray(cardDrawnData.drawnCards)) {
@@ -118,9 +118,13 @@ export class GamestateService implements OnDestroy {
           if (data.sender === this.user.getUser()?.username) {
             this.removeCardFromHand(data.playedCard);
           }
-          this.updatePlayerHand(data.sender, -(data.value as number))
+          this.updatePlayerHand(data.sender, -(Number(data.value)))
           this.updateTopCard(data.playedCard);
           this.update_active_player(data.newCurrentPlayer)
+          break;
+
+        case 'reconnect':
+          /// Wie ist der Reconnect flag...?
           break;
 
         case 'GAME_FINISHED':
