@@ -14,8 +14,10 @@ import java.util.List;
 public class WebSocketReconnectGameResponse extends WebSocketReconnectResult {
     ResponseType responseType;
     String sender;
-    TurnOrderDto turnOrderDto;
+    TurnOrderDto turnOrder;
     CardDto centerCard;
     List<CardDto> handCards;
     Integer drawCount;
+    String currentPlayer;
+    CardAmountsDto cardAmounts;
 }

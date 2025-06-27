@@ -8,10 +8,7 @@ import game.CardGame.models.PlayerModel;
 import game.CardGame.repositories.CardRepository;
 import game.CardGame.repositories.GameRepository;
 import game.CardGame.repositories.PlayerRepository;
-import game.CardGame.responseDtos.TurnOrderDto;
-import game.CardGame.responseDtos.WebSocketReconnectGameResponse;
-import game.CardGame.responseDtos.WebSocketReconnectLobbyResponse;
-import game.CardGame.responseDtos.WebSocketReconnectResult;
+import game.CardGame.responseDtos.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -31,12 +28,12 @@ public class WebSocketGeneralService {
     private CardRepository cardRepository;
 
     public WebSocketReconnectResult reconnectWebSocket(String username, String gameCode, String newWebSocketId) throws IllegalArgumentException, IllegalStateException {
-        PlayerModel player = webSocketUtilService.findPlayer(username, gameCode);
-        if(player == null) {
+        PlayerModel callingPlayer = webSocketUtilService.findPlayer(username, gameCode);
+        if(callingPlayer == null) {
             throw new IllegalArgumentException("Invalid Game Code");
         }
-        player.setWebSocketId(newWebSocketId);
-        playerRepository.save(player);
+        callingPlayer.setWebSocketId(newWebSocketId);
+        playerRepository.save(callingPlayer);
 
         GameModel game = gameRepository.findByGameCode(gameCode).get();
         switch (game.getGameStatus()) {
@@ -46,8 +43,8 @@ public class WebSocketGeneralService {
                     playersOfGame.add(p.getDisplayName());
                 }
                 return WebSocketReconnectLobbyResponse.builder()
-                        .sender(player.getDisplayName())
-                        .responseType(ResponseType.RECONNECT)
+                        .sender(callingPlayer.getDisplayName())
+                        .responseType(ResponseType.RECONNECT_LOBBY)
                         .players(playersOfGame)
                         .build();
             case "Running":
@@ -60,7 +57,7 @@ public class WebSocketGeneralService {
                 TurnOrderDto turnOrderDto = webSocketUtilService.createTurnOrderDto(game);
 
                 ArrayList<CardDto> handCards = new ArrayList<>();
-                Set<CardModel> cards =  cardRepository.findByDeckId(player.getHandCards()).get();
+                Set<CardModel> cards =  cardRepository.findByDeckId(callingPlayer.getHandCards()).get();
                 for(CardModel card : cards) {
                     CardDto cardDto = new CardDto();
                     cardDto.setCardName(card.getCardType().getCardName());
@@ -68,13 +65,17 @@ public class WebSocketGeneralService {
                     cardDto.setCardEvent(card.getCardType().getCardEvent());
                     handCards.add(cardDto);
                 }
+
+                CardAmountsDto cardAmountsDto = webSocketUtilService.createCardAmountsDto(game);
                 return WebSocketReconnectGameResponse.builder()
-                        .sender(player.getDisplayName())
-                        .responseType(ResponseType.RECONNECT)
-                        .turnOrderDto(turnOrderDto)
+                        .sender(callingPlayer.getDisplayName())
+                        .responseType(ResponseType.RECONNECT_GAME)
+                        .turnOrder(turnOrderDto)
                         .centerCard(centerCardDto)
                         .handCards(handCards)
                         .drawCount(game.getDrawCount())
+                        .currentPlayer(game.getCurrentPlayerId().getDisplayName())
+                        .cardAmounts(cardAmountsDto)
                         .build();
             default:
                 throw new IllegalStateException("Game is not running");
