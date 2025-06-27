@@ -2,16 +2,24 @@
 
     <!-- Player 2: row 2, col 1 -->
     <div class="col-start-1 row-start-2 flex flex-col items-center justify-center p-6 relative">
-        <div class="text-black mb-2 font-bold text-lg sm:text-xl px-2 py-1 rounded"
-             [class.bg-white]="this.player2_pos() === gameState.activePlayerPos()">
-                {{ this.gameState.players()[(3+this.gameState.activeOffsetPos())%4].nickname }}</div>
         <div 
+            class="mb-2 font-bold text-lg sm:text-xl px-2 py-1 rounded transition-colors"
+            [ngClass]="{
+                'bg-white text-black': player2_pos() === gameState.activePlayerPos(),
+                'text-white': player2_pos() !== gameState.activePlayerPos()
+            }">
+            {{ gameState.players()[(3 + gameState.activeOffsetPos()) % 4].nickname }}
+        </div>
 
-        class="relative h-48 sm:h-64 w-32">
+        <div class="relative h-48 sm:h-64 w-32">
             @for (i of this.player2(); track i) {
             <div 
-                [ngStyle]="{top: (i*12) + 'px'}"
-                class="absolute w-24 h-36 bg-blue-400 border-white border-2 rounded shadow flex items-center justify-center text-white rotate-[90deg] transform">ITP</div>
+                [ngStyle]="{
+                    top: (i*12) + 'px',
+                    'background-image': 'url(assets/svg/cards/card_background/background.svg)'
+                }"
+                class="absolute w-24 h-36 bg-no-repeat bg-cover bg-center border-white border-2 rounded shadow flex items-center justify-center text-white rotate-[90deg] transform">
+            </div>
             }
         </div>
     </div>
@@ -21,7 +29,6 @@
         <div class="flex items-center justify-center mb-6 space-x-4">
             <!-- draw card stack -->
             <button hlmBtn (click)="drawCard()" class="w-32 sm:w-48 h-48 sm:h-60 rounded-lg shadow flex items-center justify-center text-white text-lg sm:text-3xl cursor-pointer transition-transform hover:scale-105">
-                <!---Nicht optimal... Vielleicht mit absolute pos? -->
                 <span>DRAW</span>
                 <span class="h-6"></span>
                 @if (gameState.drawModifier() !== 0){
@@ -44,29 +51,48 @@
 
     <!-- Player 3: row 1, col 2 -->
     <div class="col-start-2 row-start-1 flex flex-col items-center justify-center p-6">
-        <div class="text-black mb-2 font-bold text-lg sm:text-xl px-2 py-1 rounded"
-             [class.bg-white]="gameState.players()[(2+gameState.activeOffsetPos())%4].placement == gameState.activePlayerPos()">
+        <div
+            class="text-black mb-2 font-bold text-lg sm:text-xl px-2 py-1 rounded"
+            [ngClass]="{
+                'bg-white text-black': gameState.players()[(2+gameState.activeOffsetPos())%4].placement == gameState.activePlayerPos(),
+                'text-white': gameState.players()[(2+gameState.activeOffsetPos())%4].placement !== gameState.activePlayerPos()
+            }">
                 {{ gameState.players()[(2+gameState.activeOffsetPos())%4].nickname }}
         </div>
+
         <div class="relative h-32 w-[140px] sm:w-[160px]">
             @for (i of this.player3(); track i) {
             <div 
-                [ngStyle]="{left: (i*12) + 'px'}"
-                class="absolute w-24 h-36 bg-blue-400 border-white border-2 rounded shadow flex items-center justify-center text-white">ITP</div>
-            } </div>
+                [ngStyle]="{
+                    left: (i*12) + 'px',
+                    'background-image': 'url(assets/svg/cards/card_background/background.svg)'
+                }"
+                class="absolute w-24 h-36 bg-no-repeat bg-cover bg-center border-white border-2 rounded shadow flex items-center justify-center text-white">
+            </div>
+            }
+        </div>
     </div>
 
     <!-- Player 4: row 2, col 3 -->
     <div class="col-start-3 row-start-2 flex flex-col items-center justify-center p-6 relative">
         <div 
             class="text-black mb-2 font-bold text-lg sm:text-xl px-2 py-1 rounded"
-            [class.bg-white]="gameState.players()[(1+gameState.activeOffsetPos())%4].placement == gameState.activePlayerPos()">
-                {{ gameState.players()[(1+gameState.activeOffsetPos())%4].nickname }}</div>
+            [ngClass]="{
+                'bg-white text-black': gameState.players()[(1+gameState.activeOffsetPos())%4].placement == gameState.activePlayerPos(),
+                'text-white': gameState.players()[(1+gameState.activeOffsetPos())%4].placement !== gameState.activePlayerPos()
+            }">
+                {{ gameState.players()[(1+gameState.activeOffsetPos())%4].nickname }}
+        </div>
+
         <div class="relative h-48 sm:h-64 w-32">
             @for (i of this.player4(); track i) {
-                <div 
-                [ngStyle]="{top: (i*12) + 'px'}"
-                class="absolute left-0 w-24 h-36 bg-blue-400 border-white border-2 rounded shadow flex items-center justify-center text-white rotate-[270deg] transform">ITP</div>
+            <div 
+                [ngStyle]="{
+                    top: (i*12) + 'px',
+                    'background-image': 'url(assets/svg/cards/card_background/background.svg)'
+                }"
+                class="absolute w-24 h-36 bg-no-repeat bg-cover bg-center border-white border-2 rounded shadow flex items-center justify-center text-white rotate-[90deg] transform">
+            </div>
             }
         </div>
     </div>
@@ -81,11 +107,12 @@
                     (click)="placeCard(i)">
                     <div class="relative inline-block bg-transparent  border-none p-0 m-0 shadow-none">
                         <app-svg-icon
-                        class="pointer-events-none"
-                        [src]="card.asset">
+                            class="pointer-events-none"
+                            [src]="card.asset">
                         </app-svg-icon>
                     </div>
                 </div>
             </ng-container>
         </div>
     </div>
+</div>
