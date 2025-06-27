@@ -1,6 +1,7 @@
 package game.CardGame.webSocketServices;
 
 import game.CardGame.dtos.CardDto;
+import game.CardGame.responseDtos.TurnOrderDto;
 import game.CardGame.responseDtos.WebSocketResponseDto;
 import game.CardGame.models.CardModel;
 import game.CardGame.models.DeckModel;
@@ -52,6 +53,17 @@ public class WebSocketUtilService {
             }
         }
         return player;
+    }
+
+
+    public TurnOrderDto createTurnOrderDto(GameModel game) {
+        TurnOrderDto turnOrderDto = new TurnOrderDto();
+        List<PlayerModel> playersByTurnOrder = playerRepository.findByGameIdOrderByTurnIndicatorDesc(game).get();
+        turnOrderDto.setPlayer1(playersByTurnOrder.get(3).getDisplayName());
+        turnOrderDto.setPlayer2(playersByTurnOrder.get(2).getDisplayName());
+        turnOrderDto.setPlayer3(playersByTurnOrder.get(1).getDisplayName());
+        turnOrderDto.setPlayer4(playersByTurnOrder.get(0).getDisplayName());
+        return turnOrderDto;
     }
 
 

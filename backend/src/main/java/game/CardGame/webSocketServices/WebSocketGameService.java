@@ -263,7 +263,7 @@ public class WebSocketGameService {
         cardDto.setCardValue(topCard.getCardType().getCardValue());
         cardDto.setCardEvent(topCard.getCardType().getCardEvent());
 
-        TurnOrderDto turnOrderDto = createTurnOrderDto(game);
+        TurnOrderDto turnOrderDto = webSocketUtilService.createTurnOrderDto(game);
 
         return WebSocketStartGameResponse.builder()
                 .sender(callingPlayer.getDisplayName())
@@ -355,7 +355,7 @@ public class WebSocketGameService {
         cardDto.setCardValue(topCard.getCardType().getCardValue());
         cardDto.setCardEvent(topCard.getCardType().getCardEvent());
 
-        TurnOrderDto turnOrderDto = createTurnOrderDto(game);
+        TurnOrderDto turnOrderDto = webSocketUtilService.createTurnOrderDto(game);
 
         return WebSocketStartGameResponse.builder()
                 .sender(callingPlayer.getDisplayName())
@@ -363,17 +363,6 @@ public class WebSocketGameService {
                 .centerCard(cardDto)
                 .turnOrder(turnOrderDto)
                 .build();
-    }
-
-
-    private TurnOrderDto createTurnOrderDto(GameModel game) {
-        TurnOrderDto turnOrderDto = new TurnOrderDto();
-        List<PlayerModel> playersByTurnOrder = playerRepository.findByGameIdOrderByTurnIndicatorDesc(game).get();
-        turnOrderDto.setPlayer1(playersByTurnOrder.get(3).getDisplayName());
-        turnOrderDto.setPlayer2(playersByTurnOrder.get(2).getDisplayName());
-        turnOrderDto.setPlayer3(playersByTurnOrder.get(1).getDisplayName());
-        turnOrderDto.setPlayer4(playersByTurnOrder.get(0).getDisplayName());
-        return turnOrderDto;
     }
 
 
