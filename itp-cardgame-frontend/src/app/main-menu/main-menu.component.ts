@@ -12,8 +12,9 @@ import {
   HlmDialogTitleDirective,
 } from '@spartan-ng/ui-dialog-helm';
 import { WebsocketService } from '../services/websocket.service';
-import { UserService, User } from '../services/user.service';
+import { UserService } from '../services/user.service';
 import { GamestateService } from '../services/gamestate.service';
+import { User } from '../services/local-storage.service';
 
 
 @Component({

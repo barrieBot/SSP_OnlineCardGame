@@ -22,8 +22,9 @@ import {
 } from '@spartan-ng/ui-dialog-helm';
 import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { User, UserService } from 'src/app/services/user.service';
+import { UserService } from 'src/app/services/user.service';
 import { WebsocketService } from 'src/app/services/websocket.service';
+import { User } from 'src/app/services/local-storage.service';
 
 
 @Component({
