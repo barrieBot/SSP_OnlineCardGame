@@ -8,11 +8,15 @@ import { WebsocketService } from '../services/websocket.service';
 import { CommonModule } from '@angular/common';
 import { GamestateService } from '../services/gamestate.service';
 import { LocalStorageService, User } from '../services/local-storage.service';
+import { SvgIconComponent } from '../svg-icon/svg-icon.component';
 
 @Component({
   selector: 'app-lobby',
   providers: [provideIcons({ lucideSettings, lucideCircleUserRound, lucideUser, lucideLogOut })],
-  imports: [CommonModule],
+  imports: [
+    CommonModule,
+    SvgIconComponent
+  ],
   templateUrl: './lobby.component.html',
   styleUrl: './lobby.component.css'
 })

@@ -1,16 +1,9 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { HlmButtonDirective } from '@spartan-ng/ui-button-helm';
-import { HlmIconDirective } from '@spartan-ng/ui-icon-helm';
-import { NgIcon, provideIcons } from '@ng-icons/core';
+import { provideIcons } from '@ng-icons/core';
 import { lucidePen, lucideTrophy } from '@ng-icons/lucide';
 import { HlmSeparatorDirective } from '@spartan-ng/ui-separator-helm';
 import { BrnSeparatorComponent } from '@spartan-ng/brain/separator';
-import {
-  HlmTableComponent,
-  HlmTdComponent,
-  HlmThComponent,
-  HlmTrowComponent,
-} from '@spartan-ng/ui-table-helm';
 import { HlmInputDirective } from '@spartan-ng/ui-input-helm';
 import { BrnDialogContentDirective, BrnDialogTriggerDirective } from '@spartan-ng/brain/dialog';
 import {
@@ -32,14 +25,8 @@ import { User } from 'src/app/services/local-storage.service';
   providers: [provideIcons({ lucidePen, lucideTrophy })],
   imports: [
     HlmButtonDirective,
-    HlmIconDirective,
-    NgIcon,
     HlmSeparatorDirective,
     BrnSeparatorComponent,
-    HlmTableComponent,
-    HlmTdComponent,
-    HlmThComponent,
-    HlmTrowComponent,
     HlmInputDirective,
     BrnDialogContentDirective,
     BrnDialogTriggerDirective,
