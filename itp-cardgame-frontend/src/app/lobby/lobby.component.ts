@@ -32,6 +32,13 @@ export class LobbyComponent implements OnInit {
     this.gameId = this.route.snapshot.paramMap.get('id');
     console.log('Joined lobby-id: ', this.gameId);
 
+
+    /// Das muss so auch in die gameplay
+    if(this.webSocketService.getConnectionStatus() === false){
+      this.webSocketService.connect();
+    }
+
+    ///Irgendwo hier muss die Game-Instance im LocalStorage erstellt werden
     this.webSocketService.getGameUpdates().subscribe(update => {
       // new game
       if (update?.responseType === 'NEW_GAME' && update.id) {

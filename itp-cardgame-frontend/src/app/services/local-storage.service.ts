@@ -1,5 +1,12 @@
 import { Injectable } from '@angular/core';
 
+export interface GameInstance{
+  gameCode: string,
+  username: string,
+  timeStamp: Date
+}
+
+
 @Injectable({
   providedIn: 'root'
 })

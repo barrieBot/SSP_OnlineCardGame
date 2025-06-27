@@ -133,6 +133,13 @@ export class GamestateService implements OnDestroy {
     });
   }
 
+  init(){
+    if(this.websocketService.getConnectionStatus() === false){
+      this.websocketService.connect();
+    }
+  }
+
+
   ngOnDestroy(): void {
     this.gameUpdatesSub?.unsubscribe();
   }

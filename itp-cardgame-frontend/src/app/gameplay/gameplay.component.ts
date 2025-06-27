@@ -39,6 +39,10 @@ export class GameplayComponent {
     });
   }
 
+  ngOnInit(){
+    this.gameState.init()
+  }
+
   drawCard() {
     this.gameState.drawCardAction();
   }

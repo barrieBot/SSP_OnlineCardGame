@@ -2,7 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import SockJS from 'sockjs-client';
 import { Client, Stomp } from '@stomp/stompjs';
 import { Subject, Observable, ReplaySubject } from 'rxjs';
-import { LocalStorageService } from './local-storage.service';
+import { GameInstance, LocalStorageService } from './local-storage.service';
 
 @Injectable({
   providedIn: 'root'
@@ -31,7 +31,9 @@ export class WebsocketService {
     return this.currentGameCode;
   }
 
-
+  getConnectionStatus(): boolean {
+    return this.stompClient?.connected ?? false;
+  }
 
 
   async connect(): Promise<void> {
@@ -42,11 +44,12 @@ export class WebsocketService {
     }
 
     this.disconnect_now = false
-    this.connect_to_ws = new Promise(() => {
+    this.connect_to_ws = new Promise((resolve, reject) => {
 
       const token = this.localStorageService.getJwtToken();
 
       this.stompClient = new Client({
+
         brokerURL: undefined, // not used with SockJS
         webSocketFactory: () => new SockJS('/ws'),
         reconnectDelay: 5000,
@@ -60,18 +63,26 @@ export class WebsocketService {
             this.gameUpdates$.next(body);
           });
           this.send_reconnection_msg();
+          resolve();
+
         },
         onStompError: (frame) => {
           console.error('[WebSocket] STOMP-Error:', frame.headers['message']);
+          reject(new Error(frame.headers['message']));
+
         },
         onWebSocketError: (error) => {
           console.error('[WebSocket] connection failed:', error);
-        },
-        onDisconnect: () => {
-          if(!this.disconnect_now){
+          reject(error);
 
+        },
+        onWebSocketClose: () => {
+          if(!this.disconnect_now){
+            ///Speicher daten ins Local-Storage
+            this.reconnect()
           }
         }
+
       });
 
       console.log('[WebSocket] Connecting...');
@@ -84,6 +95,7 @@ export class WebsocketService {
   }
 
   disconnect(): void {
+    this.disconnect_now = true
     if (this.stompClient) {
       console.log('[WebSocket] Connection closed...');
 
@@ -100,43 +112,45 @@ export class WebsocketService {
   }
 
   reconnect() {
-    /*
-    if(this.reconnection_tries >= 3)  {
+    
+    if(this.reconnection_tries >= 5)  {
     ///Clear localstorage
+      this.disconnect_now = true
     }
-    if (!this.localStorage.getReconnectInfo){ this.disconnect_now = true 
-    //return 
-    }*/
+    if (!this.localStorageService.getItem('ssp_tcg_reconnect_data')){ 
+      this.disconnect_now = true 
+    }
 
     this.reconnection_tries++
     setTimeout(() => this.connect(), 5000)
-
-
   }
 
   private async send_reconnection_msg(): Promise<void>{
-    ///Local-Storage - Make 'game-object' 
-    // mit allen daten für Reconnect und vielleicht time-Stamp?
-    // Wenn nicht vorhanden oder zu alt -> null
 
-    /*
-    if (!this.localStorage.getReconnectInfo){ return }
+    const reconnect_token = JSON.parse(this.localStorageService.getItem('ssp_tcg_reconnect_data') || '')
+    if (!reconnect_token ){ return }
+    if (Date.now() - reconnect_token.timeStamp > 5*60*1000) {
+      this.localStorageService.removeItem('ssp_tcg_reconnect_data')
+      return
+    }
 
     try {
-      await send_via_ws ()
-
+      await this.send_via_WS(
+        '/game/reconnect',
+        reconnect_token.gameCode,
+        true
+      )
       console.log('Attempted reconnection')
+
     } catch (err) { 
       console.log('Error trying to reconnect: ', err)
     }
-    */
     
   }
 
   leaveGame(){
-    /// Delete Reconnect-Infos aus dem Local-Storage 
-    ///Close connection
-    ///this.disconnect()?
+    this.localStorageService.removeItem('ssp_tcg_reconnect_data')
+    this.disconnect()
   }
 
   createGame(displayName: string): void {
