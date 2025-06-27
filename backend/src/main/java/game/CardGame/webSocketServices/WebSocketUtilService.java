@@ -1,6 +1,8 @@
 package game.CardGame.webSocketServices;
 
 import game.CardGame.dtos.CardDto;
+import game.CardGame.responseDtos.CardAmountsDto;
+import game.CardGame.responseDtos.TurnOrderDto;
 import game.CardGame.responseDtos.WebSocketResponseDto;
 import game.CardGame.models.CardModel;
 import game.CardGame.models.DeckModel;
@@ -52,6 +54,28 @@ public class WebSocketUtilService {
             }
         }
         return player;
+    }
+
+
+    public TurnOrderDto createTurnOrderDto(GameModel game) {
+        TurnOrderDto turnOrderDto = new TurnOrderDto();
+        List<PlayerModel> playersByTurnOrder = playerRepository.findByGameIdOrderByTurnIndicatorDesc(game).get();
+        turnOrderDto.setPlayer1(playersByTurnOrder.get(3).getDisplayName());
+        turnOrderDto.setPlayer2(playersByTurnOrder.get(2).getDisplayName());
+        turnOrderDto.setPlayer3(playersByTurnOrder.get(1).getDisplayName());
+        turnOrderDto.setPlayer4(playersByTurnOrder.get(0).getDisplayName());
+        return turnOrderDto;
+    }
+
+
+    public CardAmountsDto createCardAmountsDto(GameModel game) {
+        CardAmountsDto cardAmountsDto = new CardAmountsDto();
+        List<PlayerModel> playersByTurnOrder = playerRepository.findByGameIdOrderByTurnIndicatorDesc(game).get();
+        cardAmountsDto.setPlayer1(cardRepository.findByDeckId(playersByTurnOrder.get(3).getHandCards()).get().size());
+        cardAmountsDto.setPlayer2(cardRepository.findByDeckId(playersByTurnOrder.get(2).getHandCards()).get().size());
+        cardAmountsDto.setPlayer3(cardRepository.findByDeckId(playersByTurnOrder.get(1).getHandCards()).get().size());
+        cardAmountsDto.setPlayer4(cardRepository.findByDeckId(playersByTurnOrder.get(0).getHandCards()).get().size());
+        return cardAmountsDto;
     }
 
 

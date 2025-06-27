@@ -15,9 +15,8 @@ import {
 } from '@spartan-ng/ui-dialog-helm';
 import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { UserService } from 'src/app/services/user.service';
 import { WebsocketService } from 'src/app/services/websocket.service';
-import { User } from 'src/app/services/local-storage.service';
+import { LocalStorageService, User } from 'src/app/services/local-storage.service';
 
 
 @Component({
@@ -44,13 +43,13 @@ import { User } from 'src/app/services/local-storage.service';
 export class UserProfileComponent implements OnInit {
   user: User | null = null;
   lobbyCode: string = '';
-  private userService = inject(UserService);
+  private userService = inject(LocalStorageService);
   private webSocketService = inject(WebsocketService);
   private router = inject(Router);
 
   ngOnInit(): void {
     this.user = this.userService.getUser();
-    const token = this.userService.getToken();
+    const token = this.userService.getJwtToken();
 
     if (token) {
       this.webSocketService.connect();

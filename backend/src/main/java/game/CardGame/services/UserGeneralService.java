@@ -2,13 +2,12 @@ package game.CardGame.services;
 
 import game.CardGame.models.UserModel;
 import game.CardGame.repositories.UserRepository;
+import game.CardGame.responseDtos.UserStatsDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
-
 @Service
-public class UserSettingsService {
+public class UserGeneralService {
     @Autowired
     private UserRepository userRepository;
 
@@ -23,5 +22,13 @@ public class UserSettingsService {
         UserModel user = userRepository.findById(userId).get();
         user.setEmail(newEmail);
         userRepository.save(user);
+    }
+
+    public UserStatsDto getUserStats(Integer userId) {
+        UserModel user = userRepository.findById(userId).get();
+        UserStatsDto userStatsDto = new UserStatsDto();
+        userStatsDto.setGamesLost(user.getStatGamesLost());
+        userStatsDto.setGamesWon(user.getStatGamesWon());
+        return userStatsDto;
     }
 }

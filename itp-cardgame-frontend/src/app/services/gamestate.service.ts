@@ -1,7 +1,6 @@
 import { inject, Injectable, OnDestroy, signal } from '@angular/core';
 import { WebsocketService } from './websocket.service';
 import { Subscription } from 'rxjs';
-import { UserService } from './user.service';
 import { LocalStorageService } from './local-storage.service';
 
 export type CardFace = 'Scissors' | 'Rock' | 'Paper';
@@ -59,7 +58,6 @@ export class GamestateService implements OnDestroy {
 
   private websocketService = inject(WebsocketService)
   private localStorageService = inject(LocalStorageService);
-  private user = inject(UserService)
 
   public readonly playerDeck = signal<Card[]>([])
   public readonly currentTopCard = signal<Card[]>([])
@@ -115,7 +113,7 @@ export class GamestateService implements OnDestroy {
           break;
 
         case 'CARD_PLACED':
-          if (data.sender === this.user.getUser()?.username) {
+          if (data.sender === this.localStorageService.getUser()?.username) {
             this.removeCardFromHand(data.playedCard);
           }
           this.updatePlayerHand(data.sender, -1)
@@ -169,7 +167,9 @@ export class GamestateService implements OnDestroy {
 
     // set active player based on sender value
     //Active Offset 
-    const activeOffset = playerList.findIndex(player => player.nickname === this.user.getUser()?.username);
+    const activeOffset = playerList.findIndex(player => 
+      player.nickname === this.localStorageService.getUser()?.username
+    );
 
     if (activeOffset !== -1) {
       this.activeOffsetPos.set(activeOffset);

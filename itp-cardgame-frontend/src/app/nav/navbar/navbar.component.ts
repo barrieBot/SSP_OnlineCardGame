@@ -18,7 +18,7 @@ import {
   HlmMenuLabelComponent,
   HlmMenuSeparatorComponent
 } from '@spartan-ng/ui-menu-helm';
-import { UserService } from 'src/app/services/user.service';
+import { LocalStorageService } from 'src/app/services/local-storage.service';
 
 @Component({
   selector: 'app-navbar',
@@ -42,7 +42,7 @@ import { UserService } from 'src/app/services/user.service';
 export class NavbarComponent {
 
   private router = inject(Router)
-  private user_status = inject(UserService)
+  private user_status = inject(LocalStorageService)
 
   readonly loggedIn = signal(false)
   readonly nav_visible = signal(true)
