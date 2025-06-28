@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { HlmButtonDirective } from '@spartan-ng/ui-button-helm';
 import { HlmLabelDirective } from '@spartan-ng/ui-label-helm';
 import { HlmFormFieldComponent } from '@spartan-ng/ui-formfield-helm';
@@ -20,48 +20,18 @@ import { FormsModule } from '@angular/forms';
   templateUrl: './user-settings.component.html',
   styleUrl: './user-settings.component.css'
 })
-export class UserSettingsComponent {
+export class UserSettingsComponent implements OnInit {
   user: User | null = null;
   newUsername: string = '';
   newEmail: string = '';
 
   private localStorage = inject(LocalStorageService);
-
-  onChangeUsername() {
-    if (!this.newUsername.trim()) {
-      return;
-    }
-
-    this.localStorage.changeUsername(this.newUsername).subscribe({
-      next: () => {
-        alert('Username updated successfully');
-        if (this.user) {
-          this.user.username = this.newUsername;
-          this.localStorage.setUser(this.user);
-        }
-      },
-      error: (err) => {
-        console.error('Failed to update username:', err);
-        alert('Failed to update username');
-      }
-    });
+  
+  ngOnInit(): void {
+    this.user = this.localStorage.getUser();
+    this.newUsername = this.user?.username ?? '';
+    this.newEmail = '';
   }
-
-  onChangeEmail() {
-    if (!this.newEmail.trim()) {
-      return;
-    }
-
-    this.localStorage.changeEmail(this.newEmail).subscribe({
-      next: () => {
-        alert('Email updated successfully');
-      },
-      error: (err) => {
-        console.error('Failed to update email:', err);
-        alert('Failed to update email');
-      }
-    });
-   }
 
    saveChanges() {
     if (this.newUsername.trim()) {
@@ -69,8 +39,10 @@ export class UserSettingsComponent {
         next: () => {
           alert('Username updated successfully!');
           if (this.user) {
-            this.user.username = this.newUsername;
-            this.localStorage.setUser(this.user);
+            this.localStorage.setUser({
+              ...this.user,
+              username: this.newUsername
+            });
           }
         },
         error: (err) => alert('Failed to update username.'),
