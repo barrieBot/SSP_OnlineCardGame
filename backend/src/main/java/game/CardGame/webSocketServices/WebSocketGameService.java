@@ -263,6 +263,7 @@ public class WebSocketGameService {
         cardDto.setCardValue(topCard.getCardType().getCardValue());
         cardDto.setCardEvent(topCard.getCardType().getCardEvent());
 
+        randomizeTurnOrder(game);
         TurnOrderDto turnOrderDto = webSocketUtilService.createTurnOrderDto(game);
 
         return WebSocketStartGameResponse.builder()
@@ -358,6 +359,8 @@ public class WebSocketGameService {
         cardDto.setCardValue(topCard.getCardType().getCardValue());
         cardDto.setCardEvent(topCard.getCardType().getCardEvent());
 
+        randomizeTurnOrder(game);
+        game.setCurrentPlayerId(playerRepository.findByGameIdAndTurnIndicator(game, 1).get());
         TurnOrderDto turnOrderDto = webSocketUtilService.createTurnOrderDto(game);
 
         return WebSocketStartGameResponse.builder()
@@ -382,6 +385,30 @@ public class WebSocketGameService {
         }
         for(CardModel card : cardRepository.findByDeckId(game.getDiscardPile()).get()) {
             cardRepository.delete(card);
+        }
+    }
+
+
+    private void randomizeTurnOrder(GameModel game) {
+        int randomTurnIndicator = (int)(Math.random() * 5);
+        boolean uniqueTurnIndicator;
+        for(PlayerModel player : game.getPlayers()) {
+            player.setTurnIndicator(0);
+            playerRepository.save(player);
+        }
+        for(PlayerModel player : game.getPlayers()) {
+            uniqueTurnIndicator = false;
+            while (!uniqueTurnIndicator) {
+                uniqueTurnIndicator = true;
+                randomTurnIndicator = (int)(Math.random() * 5);
+                for(PlayerModel otherPlayer : game.getPlayers()) {
+                    if(otherPlayer.getTurnIndicator() == randomTurnIndicator) {
+                        uniqueTurnIndicator = false;
+                    }
+                }
+            }
+            player.setTurnIndicator(randomTurnIndicator);
+            playerRepository.save(player);
         }
     }
 
