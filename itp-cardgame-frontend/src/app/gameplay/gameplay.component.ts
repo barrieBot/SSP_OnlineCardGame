@@ -1,4 +1,4 @@
-import { Component, inject, computed, effect } from '@angular/core';
+import { Component, inject, computed, effect, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HlmButtonDirective } from '@spartan-ng/ui-button-helm';
 import { SvgIconComponent } from '../svg-icon/svg-icon.component';
@@ -29,6 +29,10 @@ export class GameplayComponent {
     return this.gameState.players()[(3+this.gameState.activeOffsetPos())%4].placement
   })
 
+  readonly animate_error = signal<boolean[]>([]);
+  readonly card_not_placable = computed(() => 
+    this.gameState.playerDeck().map(() => false))
+
   private router = inject(Router);
   
   playerCards: Card[] = [];
@@ -40,6 +44,9 @@ export class GameplayComponent {
   cardSpacing = 60;
 
   constructor() {
+
+    this.animate_error.set([...this.card_not_placable()])
+
     effect(() => {
       this.playerCards = this.gameState.playerDeck();
       this.topCard = this.gameState.currentTopCard()[0] ?? null;
@@ -66,7 +73,20 @@ export class GameplayComponent {
 
   placeCard(index: number): boolean {
     const card = this.playerCards[index];
+    if(!this.gameState.checkCardValidity(card)){
+      this.setErrorIndicator(index)
+    }
     return this.gameState.placeCardAction(card);
+  }
+
+  setErrorIndicator(index: number){
+    const animate = this.card_not_placable();
+    animate[index] = true;
+    this.animate_error.set([...animate])
+    
+    setTimeout(() => {
+      this.animate_error.set([...this.card_not_placable()])
+    }, 400)
   }
 
   resetRound() {

@@ -370,7 +370,7 @@ export class GamestateService implements OnDestroy {
 
   private updateTopCard(cardDto: CardDto) {
     const newTopCard = this.parseCard(cardDto);
-    
+
     this.drawModifier.set(newTopCard.effect == CardEffects.DRAW
       ? this.drawModifier() + newTopCard.value : 0)
 

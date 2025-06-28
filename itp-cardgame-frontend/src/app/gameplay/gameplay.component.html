@@ -115,6 +115,7 @@
                 <div
                     class="absolute sm:w-56 sm-h-72 md:w-64 md:h-80 transition-transform hover:scale-105 hover:-translate-y-10 cursor-pointer"
                     [ngStyle]="getCardStyle(i, playerCards.length)"
+                    [ngClass]="{ 'invalid_card': animate_error()[i]}"
                     (click)="placeCard(i)">
                     <div class="relative inline-block bg-transparent  border-none p-0 m-0 shadow-none">
                         <app-svg-icon
