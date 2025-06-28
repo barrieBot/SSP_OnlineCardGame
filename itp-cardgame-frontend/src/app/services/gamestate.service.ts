@@ -83,6 +83,7 @@ export class GamestateService implements OnDestroy {
   readonly activePlayerPos = signal(0)
   readonly activeOffsetPos = signal(0)
   readonly isHost = signal(false)
+  readonly roundWinner = signal<string | null>(null);
 
   private gameUpdatesSub?: Subscription
   private game_host: string | null = null
@@ -137,7 +138,7 @@ export class GamestateService implements OnDestroy {
           break;
 
         case 'CARD_PLACED':
-          if (data.sender === this.localStorageService.getPlayer()?.username) {
+          if (data.sender === this.localStorageService.getUser()?.username) {
             this.removeCardFromHand(data.playedCard);
           }
           this.updatePlayerHand(data.sender, -1)
@@ -164,7 +165,23 @@ export class GamestateService implements OnDestroy {
           break;
 
         case 'GAME_FINISHED':
-          // TODO
+          if (data.playedCard) {
+            this.updateTopCard(data.playedCard);
+          }
+
+          if (data.winningPlayer) {
+            this.roundWinner.set(data.winningPlayer);
+          }
+
+          this.activePlayerPos.set(-1);
+          break;
+        
+        case 'HOST_CLOSE':
+          //TODO
+          break;
+        
+        case 'HOST_REMATCH':
+          //TODO
           break;
 
         default:
@@ -219,7 +236,7 @@ export class GamestateService implements OnDestroy {
     this.players.set(playerList);
 
     const activeOffset = playerList.findIndex(player =>
-      player.nickname === this.localStorageService.getPlayer()?.username
+      player.nickname === this.localStorageService.getUser()?.username
     );
 
     if (activeOffset !== -1) { this.activeOffsetPos.set(activeOffset); }
@@ -229,11 +246,6 @@ export class GamestateService implements OnDestroy {
     this.currentTopCard.set([]);
     this.currentTopCard.update((cards) => [this.parseCard(card), ...cards])
   }
-
-
-
-
-
 
   update_active_player(new_active_nick: string) {
     const newIndex = this.players().findIndex(p => p.nickname === new_active_nick);
@@ -293,8 +305,6 @@ export class GamestateService implements OnDestroy {
       card: cardDto
     };
 
-    console.log('👉 Sending to backend:', payload);
-
     this.websocketService.send_via_WS(
       '/app/game.card.play',
       JSON.stringify(payload),
@@ -303,6 +313,20 @@ export class GamestateService implements OnDestroy {
     return true;
   }
 
+  getWinner(): Player | null {
+    const winnerName = this.roundWinner();
+    if (!winnerName) {
+      return null;
+    }
+
+    const player = this.players().find(p => p.nickname === winnerName);
+    return player ?? null;
+  }
+
+  resetRound() {
+    this.init();
+    //TODO
+  }
 
   private parseCard(card: CardDto): Card {
     return {
@@ -346,10 +370,6 @@ export class GamestateService implements OnDestroy {
 
     this.currentTopCard.update(cards => [newTopCard, ...cards]);
   }
-
-
-
-
 
   checkCardValidity(card: Card): boolean {
     const topCard = this.currentTopCard()[0];
