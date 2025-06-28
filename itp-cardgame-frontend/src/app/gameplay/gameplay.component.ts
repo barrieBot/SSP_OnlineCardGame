@@ -72,15 +72,12 @@ export class GameplayComponent {
   resetRound() {
     this.showRoundEndOverlay = false;
     this.winnerNickname = '';
-    this.playerCards = [];
-    this.topCard = null;
     this.gameState.resetRound();
   }
 
   closeGame() {
     this.router.navigate(['/main-menu']);
   }
-
 
   getCardStyle(index: number, total: number): { [key: string]: string } {
     const spread = 20;

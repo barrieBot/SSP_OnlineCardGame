@@ -110,20 +110,21 @@ export class GamestateService implements OnDestroy {
         case 'JOIN_GAME':
           if (!this.game_host && data.host) {
             this.game_host = data.host
-            this.isHost.set(this.localStorageService.getPlayer()?.username === data.host)
+            this.isHost.set(this.localStorageService.getUser()?.username === data.host)
           }
 
           this.playerJoined(data);
           console.log("Just joined: ", data)
           break;
 
+        case 'HOST_RESTART':
         case 'START_GAME':
-          if (data.gameCode) {
-            this.websocketService.setGameCode(data.gameCode);
-          } else {
+            this.roundWinner.set(null);
+            if (data.gameCode) {
+              this.websocketService.setGameCode(data.gameCode);
+            }
             this.setupGame(data);
-          }
-          break;
+            break;
 
         case 'CARD_DRAWN':
           this.drawModifier.set(0);
@@ -134,7 +135,6 @@ export class GamestateService implements OnDestroy {
           if (Array.isArray(cardDrawnData.drawnCards)) {
             cardDrawnData.drawnCards.forEach(card => this.addCardToHand(card));
           }
-
           break;
 
         case 'CARD_PLACED':
@@ -179,10 +179,6 @@ export class GamestateService implements OnDestroy {
         case 'HOST_CLOSE':
           //TODO
           break;
-        
-        case 'HOST_REMATCH':
-          //TODO
-          break;
 
         default:
           console.warn('Unknown update type:', type);
@@ -195,7 +191,6 @@ export class GamestateService implements OnDestroy {
       this.websocketService.connect();
     }
   }
-
 
   ngOnDestroy(): void {
     this.gameUpdatesSub?.unsubscribe();
@@ -214,8 +209,6 @@ export class GamestateService implements OnDestroy {
 
     this.drawModifier.set(data.drawCount)
     this.update_active_player(data.currentPlayer)
-
-
   }
 
   setupPlayerHand(handCards: CardDto[]) {
@@ -324,8 +317,21 @@ export class GamestateService implements OnDestroy {
   }
 
   resetRound() {
-    this.init();
-    //TODO
+    const gameCode = this.websocketService.getGameCode();
+    if (!gameCode) {
+      return;
+    }
+
+    const payload = {
+      gameCode,
+      action: 'RESTART_GAME'
+    };
+
+    this.websocketService.send_via_WS(
+      '/app/game.restart',
+      JSON.stringify(payload),
+      true
+    );
   }
 
   private parseCard(card: CardDto): Card {
@@ -406,13 +412,11 @@ export class GamestateService implements OnDestroy {
       return true;
     }
 
-    console.log('Cardcheck:')
-    console.log('Effect ', type)
-    console.log('Type ', faceValid)
-    console.log('Face ', valueValid)
+    // console.log('Cardcheck:')
+    // console.log('Effect ', type)
+    // console.log('Type ', faceValid)
+    // console.log('Face ', valueValid)
 
     return valueValid && faceValid;
   }
-
-
 }
