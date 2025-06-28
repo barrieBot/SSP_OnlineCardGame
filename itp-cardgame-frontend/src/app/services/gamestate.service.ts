@@ -47,7 +47,7 @@ export interface StartGameData {
 
 export interface InGameData {
   sender: string;
-  responseType: 'RECONNECT';
+  responseType: 'RECONNECT_GAME';
   turnOrder: { [playerId: string]: string };
   cardAmounts: { [playerId: string]: number };
   centerCard: CardDto;
@@ -56,6 +56,11 @@ export interface InGameData {
   drawCount: number
 }
 
+export interface LobbyData {
+  sender: string;
+  responseType: 'RECONNECT_LOBBY';
+  players: string[];
+}
 
 export interface Player {
   nickname: string,
@@ -102,7 +107,7 @@ export class GamestateService implements OnDestroy {
           break;
 
         case 'JOIN_GAME':
-          if(!this.game_host && data.host) { 
+          if (!this.game_host && data.host) {
             this.game_host = data.host
             this.isHost.set(this.localStorageService.getPlayer()?.username === data.host)
           }
@@ -140,8 +145,22 @@ export class GamestateService implements OnDestroy {
           this.update_active_player(data.newCurrentPlayer)
           break;
 
-        case 'RECONNECT':
+        case 'RECONNECT_GAME':
           this.setupReconnect(data)
+          break;
+
+        case 'RECONNECT_LOBBY':
+          const other_players = new Set([...data.player])
+
+          for (const other_player of other_players) {
+            if (!this.players().find(p => p.nickname === other_player)) {
+              const new_player = { nickname: other_player, card_count: 0, placement: 0 }
+              this.players.update(player => [...player, new_player]);
+            }
+          }
+          break;
+
+        case 'RECONNECTION_FAILED':
           break;
 
         case 'GAME_FINISHED':
@@ -167,11 +186,11 @@ export class GamestateService implements OnDestroy {
 
   setupGame(data: StartGameData): void {
     this.setupPlayerHand(data.handCards)
-    this.setupPlayerList(data.turnOrder, {"default": 5})
+    this.setupPlayerList(data.turnOrder, { "default": 5 })
     this.setupTopCard(data.centerCard)
   }
 
-  setupReconnect(data: InGameData){
+  setupReconnect(data: InGameData) {
     this.setupPlayerHand(data.handCards)
     this.setupPlayerList(data.turnOrder, data.cardAmounts)
     this.setupTopCard(data.centerCard)
@@ -189,7 +208,7 @@ export class GamestateService implements OnDestroy {
     this.playerDeck.set(hand);
   }
 
-  setupPlayerList(turnOrder:  { [playerId: string]: string }, cardAmounts: { [playerId: string]: number }) {
+  setupPlayerList(turnOrder: { [playerId: string]: string }, cardAmounts: { [playerId: string]: number }) {
     let placement_number = 0
     const playerList: Player[] = Object.entries(turnOrder).map(([playerId, nickname]) => (
       {
@@ -206,7 +225,7 @@ export class GamestateService implements OnDestroy {
     if (activeOffset !== -1) { this.activeOffsetPos.set(activeOffset); }
   }
 
-  setupTopCard(card: CardDto){
+  setupTopCard(card: CardDto) {
     this.currentTopCard.set([]);
     this.currentTopCard.update((cards) => [this.parseCard(card), ...cards])
   }
@@ -238,7 +257,7 @@ export class GamestateService implements OnDestroy {
 
     for (const other_player of all_players) {
       if (!this.players().find(p => p.nickname === other_player)) {
-        const new_player = { nickname: other_player, card_count: 5, placement: 0 }
+        const new_player = { nickname: other_player, card_count: 0, placement: 0 }
         this.players.update(player => [...player, new_player]);
       }
     }
@@ -247,7 +266,7 @@ export class GamestateService implements OnDestroy {
   drawCardAction() {
     this.drawModifier.set(0)
     const gameCode = this.websocketService.getGameCode();
-    if (!gameCode) { return;}
+    if (!gameCode) { return; }
     const drawCardDto = { gameCode, action: 'DRAW_CARD' }
     this.websocketService.send_via_WS('/app/game.card.draw',
       JSON.stringify(drawCardDto),
