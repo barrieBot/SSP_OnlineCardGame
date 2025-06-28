@@ -19,9 +19,9 @@
 
         <!-- username -->
         <div>
-            <label class="block text-base mb-2" hlmLabel>Username</label>
+            <label hlmLabel class="block text-base mb-2">Username</label>
             <hlm-form-field>
-                <input class="w-80 p-3 border rounded-md" hlmInput type="text" />
+                <input hlmInput type="text" [(ngModel)]="newUsername" placeholder="New username" class="w-80 p-3 border rounded-md" />
             </hlm-form-field>
         </div>
 
@@ -29,12 +29,12 @@
         <div>
             <label class="block text-base mb-2" hlmLabel>EMail</label>
             <hlm-form-field>
-                <input class="w-80 p-3 border rounded-md" hlmInput type="email" />
+                <input hlmInput type="email" [(ngModel)]="newEmail" placeholder="New email address" class="w-80 p-3 border rounded-md" />
             </hlm-form-field>
         </div>
 
         <div class="md:col-span-2">
-            <button type="submit" hlmBtn>Save changes</button>
+            <button hlmBtn type="button" (click)="saveChanges()">Save changes</button>
         </div>
     </div>
 </div>

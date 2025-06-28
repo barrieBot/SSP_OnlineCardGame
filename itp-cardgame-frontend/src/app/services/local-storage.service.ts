@@ -1,4 +1,6 @@
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { Observable } from 'rxjs';
 
 export interface GameInstance {
   gameCode: string;
@@ -12,7 +14,10 @@ export interface User {
   token: string;
 }
 
-
+export interface UserStats {
+  gamesWon: number;
+  gamesLost: number;
+}
 
 @Injectable({
   providedIn: 'root'
@@ -25,11 +30,10 @@ export class LocalStorageService {
   private token: string | null = null
 
 
-  constructor() {
+  constructor(private http: HttpClient) {
     ///Get User/Token/Game-Instance
     this.retrieveLS()
   }
-
 
   retrieveLS() {
     this.token = this.getItem('ssp_tcg_jwt');
@@ -45,7 +49,7 @@ export class LocalStorageService {
     this.removeItem('ssp_tcg_player')
   }
 
-  leaveGame(){
+  leaveGame() {
     this.removeItem('ssp_tcg_game')
     this.removeItem('ssp_tcg_player')
   }
@@ -74,8 +78,6 @@ export class LocalStorageService {
     localStorage.removeItem(key);
   }
 
-
-
   setUser(user: User) {
     this.user = user;
     this.setItem('ssp_tcg_user', user);
@@ -90,14 +92,12 @@ export class LocalStorageService {
     this.removeItem('ssp_tcg_user');
   }
 
-
-
   setPlayer(u: User | null) {
     const p = u ?? this.user;
 
-    if (u) {
-      this.player = u
-      this.setItem('ssp_tcg_player', u);
+    if (p) {
+      this.player = p
+      this.setItem('ssp_tcg_player', p);
     } else {
       console.warn('Error setting up Player-Instance')
     }
@@ -118,8 +118,6 @@ export class LocalStorageService {
 
 
   getJwtToken(): string | null {
-    //return localStorage.getItem('jwt');
-    console.log(this.token)
     return this.token ?? this.getItem<string>('ssp_tcg_jwt')
   }
 
@@ -131,5 +129,29 @@ export class LocalStorageService {
   removeJwtToken(): void {
     localStorage.removeItem('ssp_tcg_jwt');
     this.token = null
+  }
+
+  getUserStats(): Observable<UserStats> {
+    const headers = new HttpHeaders().set(
+      'Authorization',
+      `Bearer ${this.getJwtToken()}`
+    );
+    return this.http.get<UserStats>('/api/general/getUserStats', { headers });
+  }
+
+  changeUsername(newUsername: string): Observable<any> {
+    const headers = new HttpHeaders().set(
+      'Authorization',
+      `Bearer ${this.getJwtToken()}`
+    );
+    return this.http.post(`/api/general/changeUsername?newUsername=${encodeURIComponent(newUsername)}`, {}, { headers });
+  }
+
+  changeEmail(newEmail: string): Observable<any> {
+    const headers = new HttpHeaders().set(
+      'Authorization',
+      `Bearer ${this.getJwtToken()}`
+    );
+    return this.http.post(`/api/general/changeEmail?newEmail=${encodeURIComponent(newEmail)}`, {}, { headers });
   }
 }

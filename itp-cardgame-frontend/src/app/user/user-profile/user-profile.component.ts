@@ -18,7 +18,6 @@ import { FormsModule } from '@angular/forms';
 import { WebsocketService } from 'src/app/services/websocket.service';
 import { GameInstance, LocalStorageService, User } from 'src/app/services/local-storage.service';
 
-
 @Component({
   selector: 'app-user-profile',
   providers: [provideIcons({ lucidePen, lucideTrophy })],
@@ -43,17 +42,28 @@ import { GameInstance, LocalStorageService, User } from 'src/app/services/local-
 export class UserProfileComponent implements OnInit {
   user: User | null = null;
   lobbyCode: string = '';
-  private userService = inject(LocalStorageService);
+  gamesWon: number = 0;
+  gamesLost: number = 0;
+
+  private localStorage = inject(LocalStorageService);
   private webSocketService = inject(WebsocketService);
   private router = inject(Router);
 
   ngOnInit(): void {
-    this.user = this.userService.getUser();
-    const token = this.userService.getJwtToken();
+    this.user = this.localStorage.getUser();
+    const token = this.localStorage.getJwtToken();
 
     if (token) {
       this.webSocketService.connect();
     }
+
+    this.localStorage.getUserStats().subscribe({
+      next: (stats) => {
+        this.gamesWon = stats.gamesWon;
+        this.gamesLost = stats.gamesLost;
+      },
+      error: (err) => console.error('Error while loading stats:', err)
+    });
 
     this.webSocketService.getGameUpdates().subscribe((update) => {
       console.log('WebSocket-Update:', update);
@@ -65,12 +75,12 @@ export class UserProfileComponent implements OnInit {
       if (update?.responseType === 'JOIN_GAME' && update?.gameCode) {
         ///Wie oft wird das ausgeführt? Nur einmal, oder jedes mal wenn JOIN_GAME kommt
         console.log('Joined Game successfully: ', update)
-        this.userService.setGameInstance({
+        this.localStorage.setGameInstance({
           gameCode: update.gameCode,
           username: update.sender,
           timeStamp: Date.now()
         })
-        this.userService.setPlayer(null)
+        this.localStorage.setPlayer(null)
 
         this.router.navigate(['/lobby', update.gameCode]);
       }
@@ -91,8 +101,7 @@ export class UserProfileComponent implements OnInit {
 
     this.webSocketService.joinGame(this.lobbyCode, this.user.username);
     this.router.navigate(['/lobby', this.lobbyCode]);
-    console.log(`Join lobby requested via WebSocket: lobbyCode=${this.lobbyCode}`);
-    
+    console.log(`Join lobby requested via WebSocket: lobbyCode=${this.lobbyCode}`);    
   }
 }
 
