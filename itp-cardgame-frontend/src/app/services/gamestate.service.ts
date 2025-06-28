@@ -102,6 +102,7 @@ export class GamestateService implements OnDestroy {
       switch (type) {
         case 'NEW_GAME':
           this.game_host = data.sender
+          this.isHost.set(true);
           console.log("New Game: ", data)
           break;
 

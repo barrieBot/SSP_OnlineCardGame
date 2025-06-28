@@ -115,9 +115,11 @@
                 <div
                     class="absolute sm:w-56 sm-h-72 md:w-64 md:h-80 transition-transform hover:scale-105 hover:-translate-y-10 cursor-pointer"
                     [ngStyle]="getCardStyle(i, playerCards.length)"
-                    [ngClass]="{ 'invalid_card': animate_error()[i]}"
                     (click)="placeCard(i)">
-                    <div class="relative inline-block bg-transparent  border-none p-0 m-0 shadow-none">
+                    <div 
+                        class="relative inline-block bg-transparent  border-none p-0 m-0 shadow-none"
+                        [ngClass]="{ 'invalid_card': animate_error()[i]}"
+                    >
                         <app-svg-icon
                             class="pointer-events-none"
                             [src]="card.asset">
@@ -129,7 +131,7 @@
     </div>
 
     <!-- round finished overlay -->
-    <div *ngIf="showRoundEndOverlay" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50">
+    <div  *ngIf="this.gameState.roundWinner()" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50">
         <div class="bg-white text-black p-6 rounded-lg shadow-lg text-center max-w-sm w-full">
             <h2 class="text-2xl font-bold mb-4">Round over!</h2>
             <p class="text-lg mb-4">
@@ -141,8 +143,8 @@
             </li>
             </ul>
             <div class="flex flex-col space-y-1 items-center">
-                <button hlmBtn (click)="resetRound()">Rematch</button>
-                <button hlmBtn class="mt-2">Close game</button>
+                <button hlmBtn *ngIf="this.gameState.isHost()" (click)="resetRound()">Rematch</button>
+                <button hlmBtn *ngIf="this.gameState.isHost()" class="mt-2" (click)="closeGame()">Close game</button>
             </div>
         </div>
     </div>
