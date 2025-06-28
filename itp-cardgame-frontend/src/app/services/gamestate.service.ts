@@ -95,9 +95,7 @@ export class GamestateService implements OnDestroy {
         return;
       }
 
-      if (data.gameCode) {
-        this.websocketService.setGameCode(data.gameCode)
-      }
+      if (data.gameCode) { this.websocketService.setGameCode(data.gameCode) }
 
       const type = data.responseType || data.action || data.type;
 
@@ -117,12 +115,8 @@ export class GamestateService implements OnDestroy {
           console.log("Just joined: ", data)
           break;
 
-        case 'HOST_RESTART':
         case 'START_GAME':
-            this.roundWinner.set(null);
-            if (data.gameCode) {
-              this.websocketService.setGameCode(data.gameCode);
-            }
+            if (data.gameCode) { this.websocketService.setGameCode(data.gameCode); }
             this.setupGame(data);
             break;
 
@@ -151,6 +145,8 @@ export class GamestateService implements OnDestroy {
           break;
 
         case 'RECONNECT_LOBBY':
+          this.playerJoined({data: {sender: data.sender, otherPlayers: data.players}})
+          /*
           const other_players = new Set([...data.player])
 
           for (const other_player of other_players) {
@@ -158,22 +154,21 @@ export class GamestateService implements OnDestroy {
               const new_player = { nickname: other_player, card_count: 0, placement: 0 }
               this.players.update(player => [...player, new_player]);
             }
-          }
+          */
           break;
 
         case 'RECONNECTION_FAILED':
           break;
 
         case 'GAME_FINISHED':
-          if (data.playedCard) {
-            this.updateTopCard(data.playedCard);
-          }
-
-          if (data.winningPlayer) {
-            this.roundWinner.set(data.winningPlayer);
-          }
-
+          if (data.playedCard) { this.updateTopCard(data.playedCard); }
+          if (data.winningPlayer) { this.roundWinner.set(data.winningPlayer); }
           this.activePlayerPos.set(-1);
+          break;
+
+        case 'HOST_RESTART':
+          this.roundWinner.set(null);
+          this.setupGame(data);
           break;
         
         case 'HOST_CLOSE':
@@ -361,18 +356,23 @@ export class GamestateService implements OnDestroy {
     this.playerDeck.update(deck => [...deck, newCard]);
   }
 
-  private removeCardFromHand(cardDto: { cardName: string; cardValue: number }) {
-    this.playerDeck.update(deck => deck.filter(
-      c => !(c.face === cardDto.cardName && c.value === cardDto.cardValue)
-    ));
+  private removeCardFromHand(cardDto: CardDto) {
+    this.playerDeck.update(deck => {
+      const card_pos = deck.findIndex( c => (c.face === cardDto.cardName && c.value === cardDto.cardValue && c.effect === cardDto.cardEvent))
+      if(card_pos !== -1){ 
+        const updated_deck = [...deck]
+        updated_deck.splice(card_pos, 1) 
+        return updated_deck
+      }
+      return deck
+    });
   }
 
   private updateTopCard(cardDto: CardDto) {
     const newTopCard = this.parseCard(cardDto);
-
+    
     this.drawModifier.set(newTopCard.effect == CardEffects.DRAW
-      ? this.drawModifier() + newTopCard.value
-      : 0)
+      ? this.drawModifier() + newTopCard.value : 0)
 
     this.currentTopCard.update(cards => [newTopCard, ...cards]);
   }
@@ -411,11 +411,6 @@ export class GamestateService implements OnDestroy {
     if (valueValid && type) {
       return true;
     }
-
-    // console.log('Cardcheck:')
-    // console.log('Effect ', type)
-    // console.log('Type ', faceValid)
-    // console.log('Face ', valueValid)
 
     return valueValid && faceValid;
   }

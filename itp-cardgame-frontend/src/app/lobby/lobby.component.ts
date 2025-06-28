@@ -55,11 +55,11 @@ export class LobbyComponent implements OnInit {
       // join game
       if (update?.responseType === 'JOIN_GAME') {
         if (update.sender === this.currentUser?.username) {
-          this.localStorage.setItem('ssp_tcg_reconnect_data', JSON.stringify({
+          this.localStorage.setGameInstance( {
             gameCode: update.gameCode,
             username: update.sender,
             timeStamp: Date.now()
-          }))
+          })
         }
         if (Array.isArray(update.otherPlayers)) {
           if (update.host) {
