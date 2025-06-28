@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { HlmButtonDirective } from '@spartan-ng/ui-button-helm';
 import { SvgIconComponent } from '../svg-icon/svg-icon.component';
 import { GamestateService, Card, CardDto, CardEffects } from '../services/gamestate.service';
+import { Player } from '../services/gamestate.service';
+import { Router } from '@angular/router';
 
 
 @Component({
@@ -26,9 +28,14 @@ export class GameplayComponent {
   player2_pos = computed(() => {
     return this.gameState.players()[(3+this.gameState.activeOffsetPos())%4].placement
   })
+
+  private router = inject(Router);
   
   playerCards: Card[] = [];
   topCard: Card | null = null;
+  showRoundEndOverlay: boolean = false;
+  winnerNickname: string = '';
+  playerRanking: Player[] = [];
 
   cardSpacing = 60;
 
@@ -36,6 +43,16 @@ export class GameplayComponent {
     effect(() => {
       this.playerCards = this.gameState.playerDeck();
       this.topCard = this.gameState.currentTopCard()[0] ?? null;
+
+      const winnerName = this.gameState.roundWinner();
+      if (winnerName) {
+        const winner = this.gameState.getWinner();
+        if (winner) {
+          this.winnerNickname = winner.nickname;
+          this.showRoundEndOverlay = true;
+          this.playerRanking = [...this.gameState.players()].sort((a, b) => a.card_count - b.card_count);
+        }
+      }
     });
   }
 
@@ -52,6 +69,18 @@ export class GameplayComponent {
     return this.gameState.placeCardAction(card);
   }
 
+  resetRound() {
+    this.showRoundEndOverlay = false;
+    this.winnerNickname = '';
+    this.playerCards = [];
+    this.topCard = null;
+    this.gameState.resetRound();
+  }
+
+  closeGame() {
+    this.router.navigate(['/main-menu']);
+  }
+
 
   getCardStyle(index: number, total: number): { [key: string]: string } {
     const spread = 20;
@@ -66,6 +95,4 @@ export class GameplayComponent {
       zIndex: `${10 + (total - index)}`
     };
   }
-
-
 }
