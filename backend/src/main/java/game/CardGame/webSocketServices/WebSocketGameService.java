@@ -349,6 +349,9 @@ public class WebSocketGameService {
 
         setupCardOfGame(game);
 
+        game.setGameStatus("Running");
+        gameRepository.save(game);
+
         CardDto cardDto = new CardDto();
         CardModel topCard = webSocketUtilService.viewTopCard(game.getDiscardPile());
         cardDto.setCardName(topCard.getCardType().getCardName());
