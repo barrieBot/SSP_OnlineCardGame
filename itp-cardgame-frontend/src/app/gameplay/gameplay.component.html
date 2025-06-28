@@ -28,7 +28,12 @@
     <div class="col-start-2 row-start-2 flex flex-col items-center justify-center p-6">
         <div class="flex items-center justify-center mb-6 space-x-4">
             <!-- draw card stack -->
-            <button hlmBtn (click)="drawCard()" class="w-32 sm:w-48 h-48 sm:h-60 rounded-lg shadow flex items-center justify-center text-white text-lg sm:text-3xl cursor-pointer transition-transform hover:scale-105">
+            <button 
+                hlmBtn 
+                (click)="drawCard()" 
+                class="w-32 sm:w-48 h-48 sm:h-60 rounded-lg shadow flex flex-col items-center justify-center text-white text-lg sm:text-3xl cursor-pointer transition-transform hover:scale-105 bg-no-repeat bg-cover bg-center border-white border-2"
+                style="background-image: url(assets/svg/cards/card_background/background.svg)"
+            >
                 <span>DRAW</span>
                 <span class="h-6"></span>
                 @if (gameState.drawModifier() !== 0){
@@ -99,6 +104,12 @@
 
     <!-- own cards: row 3, col 2 -->
     <div class="col-start-2 row-start-3 relative flex justify-center p-6">
+        
+        <!-- indicator for own player -->
+        <div *ngIf="gameState.activePlayerPos() === gameState.activeOffsetPos()" class="absolute -top-4 sm:-top-6 left-1/2 -translate-x-1/2 bg-white text-black text-sm sm:text-base px-3 py-1 rounded shadow z-10 font-semibold">
+            Your Turn
+        </div>
+
         <div class="relative flex justify-center items-center sm:h-[25vh] w-full max-w-7xl">
             <ng-container *ngFor="let card of playerCards; let i = index">
                 <div
