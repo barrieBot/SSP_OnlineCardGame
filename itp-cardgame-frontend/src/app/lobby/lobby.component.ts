@@ -33,7 +33,7 @@ export class LobbyComponent implements OnInit {
   isHost = signal(true)
 
   ngOnInit() {
-    this.currentUser = this.localStorage.getUser();
+    
     this.gameId = this.route.snapshot.paramMap.get('id');
     console.log('Joined lobby-id: ', this.gameId);
 
@@ -47,21 +47,13 @@ export class LobbyComponent implements OnInit {
     this.webSocketService.getGameUpdates().subscribe(update => {
       // new game
       if (update?.responseType === 'NEW_GAME' && update.id) {
-        if (!this.hostUsername && this.currentUser) {
-          this.hostUsername = this.currentUser?.username;
+        if (!this.hostUsername) {
+          this.hostUsername = update.sender;
         }
       }
 
       // join game
       if (update?.responseType === 'JOIN_GAME') {
-        if (update.sender === this.currentUser?.username) {
-          this.localStorage.setGameInstance({
-            gameCode: this.gameId || '',
-            username: update.sender,
-            player: this.currentUser,
-            timeStamp: Date.now()
-          })
-        }
         if (Array.isArray(update.otherPlayers)) {
           if (update.host) {
             this.hostUsername = update.host;

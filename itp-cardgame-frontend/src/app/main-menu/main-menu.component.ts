@@ -45,14 +45,13 @@ export class MainMenuComponent implements OnInit {
 
   ngOnInit(): void {
     this.websocketService.getGameUpdates().subscribe((update) => {
-      if (update?.responseType === 'JOIN_GAME' || update?.responseType === 'CREATE_GAME') {
+      if (update?.responseType === 'JOIN_GAME') {
         const code = update.gameCode ?? this.websocketService.getGameCode();
         const user: User = {
           username: update.sender,
           token: update.jwt
         };
 
-        this.userService.setPlayer(user);
         console.log("Joined game via Anon. GameCode: ", update.gameCode)
         this.userService.setGameInstance({
           gameCode: update.gameCode,
@@ -61,6 +60,8 @@ export class MainMenuComponent implements OnInit {
           timeStamp: Date.now()
         })
         
+        this.userService.setPlayer(user);
+
         if (code) {
           this.router.navigate(['/lobby', code]);
           console.log('[MainMenu] navigating to lobby:', code);
@@ -70,6 +71,18 @@ export class MainMenuComponent implements OnInit {
       }
     });
   }
+
+
+  joinAnonymously() {
+    if (!this.joinCode || !this.nickname) {
+      alert('Please enter gamecode and nickname');
+      return;
+    }
+    
+    this.websocketService.joinGameAnonymous(this.joinCode.trim(), this.nickname.trim());
+    console.log('[MainMenu] joinGameAnonymous sent');
+  }
+
 
   onLoginClick() {
     console.log("Login button clicked");
@@ -95,13 +108,5 @@ export class MainMenuComponent implements OnInit {
     this.router.navigate(['/cards']);
   }
 
-  joinAnonymously() {
-    if (!this.joinCode || !this.nickname) {
-      alert('Please enter gamecode and nickname');
-      return;
-    }
-    
-    this.websocketService.joinGameAnonymous(this.joinCode.trim(), this.nickname.trim());
-    console.log('[MainMenu] joinGameAnonymous sent');
-  }
+
 }
