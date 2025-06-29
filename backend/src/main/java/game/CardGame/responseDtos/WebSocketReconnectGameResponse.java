@@ -19,5 +19,6 @@ public class WebSocketReconnectGameResponse extends WebSocketReconnectResult {
     List<CardDto> handCards;
     Integer drawCount;
     String currentPlayer;
+    String host;
     CardAmountsDto cardAmounts;
 }

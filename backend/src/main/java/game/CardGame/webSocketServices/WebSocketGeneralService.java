@@ -76,6 +76,7 @@ public class WebSocketGeneralService {
                         .handCards(handCards)
                         .drawCount(game.getDrawCount())
                         .currentPlayer(game.getCurrentPlayerId().getDisplayName())
+                        .host(game.getHostId().getDisplayName())
                         .cardAmounts(cardAmountsDto)
                         .build();
             default:
