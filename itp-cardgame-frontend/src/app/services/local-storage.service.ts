@@ -145,6 +145,7 @@ export class LocalStorageService {
 
 
   setUser(user: User) {
+    console.log("Login - Set User: ", user)
     this.user = user;
     this.setItem('ssp_tcg_user', user);
     sessionStorage.setItem('ssp_tcg_user', JSON.stringify(user));

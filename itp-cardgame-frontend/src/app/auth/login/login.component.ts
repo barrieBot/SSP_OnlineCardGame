@@ -71,6 +71,7 @@ export class LoginComponent {
         const username = payload.sub;
 
         this.dataPresistance.setUser({ id: userId, username: username, token: token });
+        
         this.router.navigate(['/profile']);
       },
       error: (err) => {
