@@ -44,20 +44,30 @@ export class LocalStorageService {
   setupSessionStore() {
     this.SessionID = sessionStorage.getItem('ssp_tcg_session');
     if (!this.SessionID) {
+      console.log("SessionStore-ID not found - Generate new")
       this.SessionID = crypto.randomUUID()
       sessionStorage.setItem('ssp_tcg_session', this.SessionID)
     }
+    console.log("SessionStore-ID: ", this.SessionID)
   }
 
   retrieveLS() {
     ///this.token = this.getItem('ssp_tcg_jwt');
     const session_user = sessionStorage.getItem('ssp_tcg_user')
-    this.user = session_user ? JSON.parse(session_user) as User : this.getItem<User>('ssp_tcg_user');
+    if(session_user){
+      this.user = JSON.parse(session_user)
+      console.log("Persited User: ", this.user)
+    } else {
+      this.user = this.getItem<User>('ssp_tcg_user')
+      console.log("Pulled user from LS: ", this.user)
+      if(this.user) {
+        sessionStorage.setItem('ssp_tcg_user', JSON.stringify(this.user)) 
+      }
+    }
 
-    this.User_Sessions = this.getItem<string[]>(`ssp_tcg_${this.user?.username}`) || [];
     this.retrieveSessions(session_user)
 
-    for (const session in this.User_Sessions) {
+    for (const session of this.User_Sessions) {
       const found_game = this.getItem<GameInstance>(`ssp_tcg_game_${this.user?.username}_${session}}`)
       if (found_game) { this.User_Games.push(found_game) }
     }
@@ -67,6 +77,7 @@ export class LocalStorageService {
       try {
         this.game = JSON.parse(local_game) as GameInstance
       } catch {
+        console.log("Failed to fetch from Session-Storage")
         this.game = this.getItem<GameInstance>(`ssp_tcg_game_${this.user?.username}_${this.SessionID}`);
       }
     }
@@ -75,6 +86,8 @@ export class LocalStorageService {
 
 
   addSession() {
+
+    this.User_Sessions = this.getItem<string[]>(`ssp_tcg_${this.user?.username}`) || [];
     if (this.user && this.SessionID && !this.User_Sessions.includes(this.SessionID)) {
       this.User_Sessions.push(this.SessionID)
       this.setItem<string[]>(`ssp_tcg_${this.user.username}`, this.User_Sessions)
@@ -83,7 +96,6 @@ export class LocalStorageService {
 
   retrieveSessions(session_user: string | null) {
     if (this.user) {
-      if (!session_user) { sessionStorage.setItem('ssp_tcg_user', JSON.stringify(this.user)) }
       this.User_Sessions = this.User_Sessions.filter(session => {
         const saved_game = this.getItem<GameInstance>(`ssp_tcg_game_${this.user?.username}_${session}`)
         if (saved_game && ((saved_game?.timeStamp - Date.now()) > 1000 * 60 * 60)) {
@@ -152,9 +164,12 @@ export class LocalStorageService {
 
   setUser(user: User) {
     console.log("Login - Set User: ", user)
+    if(this.user && this.user.username !== user.username){ this.removeSession() }
     this.user = user;
+    this.addSession()
     this.setItem('ssp_tcg_user', user);
     sessionStorage.setItem('ssp_tcg_user', JSON.stringify(user));
+
   }
 
   getUser(): User | null {
@@ -172,6 +187,7 @@ export class LocalStorageService {
   removeUser() {
     this.user = null;
     this.removeItem('ssp_tcg_user');
+    sessionStorage.removeItem('ssp_tcg_user');
   }
 
 
@@ -222,13 +238,12 @@ export class LocalStorageService {
         console.log('Session-Game corrupted')
       }
     }
-
     //Game kann nicht im LS gefunden werden
-    if (!this.user || !this.SessionID) { return null }
-
+    if (!this.game && this.user && this.SessionID) {
+      this.game = this.getItem<GameInstance>(`ssp_tcg_game_${this.user?.username}_${this.SessionID}`)
+      if (this.game) { sessionStorage.setItem('ssp_tcg_game', JSON.stringify(this.game)) }
+    }
     //Suche game im LS
-    this.game = this.getItem<GameInstance>(`ssp_tcg_game_${this.user?.username}_${this.SessionID}`)
-    if (this.game) { sessionStorage.setItem('ssp_tcg_game', JSON.stringify(this.game)) }
     console.log("Final Attempt getGameState from LS: ", this.game)
     return this.game
 
@@ -261,7 +276,7 @@ export class LocalStorageService {
     this.token = token
     if (this.user) {
       this.user.token = token
-      this.setItem('ssp_tcg_user', this.user)
+      //this.setItem('ssp_tcg_user', this.user)
       sessionStorage.setItem('ssp_tcg_user', JSON.stringify(this.user))
     }
 
