@@ -201,12 +201,14 @@ export class LocalStorageService {
 
   getGameInstance(): GameInstance | null {
     ///Game in Instance existiert  
+    console.log("Attempt getGameInstance: ", this.game)
     if (this.game) { return this.game }
 
     //Game in Session existiert
     const session_game = sessionStorage.getItem('ssp_tcg_game')
     if (session_game) {
       try {
+        console.log("Attempt getGameInstance form SS: ", session_game)
         return JSON.parse(session_game) as GameInstance
       } catch {
         sessionStorage.removeItem('ssp_tcg_game')
@@ -220,6 +222,7 @@ export class LocalStorageService {
     //Suche game im LS
     this.game = this.getItem<GameInstance>(`ssp_tcg_game_${this.user?.username}_${this.SessionID}`)
     if (this.game) { sessionStorage.setItem('ssp_tcg_game', JSON.stringify(this.game)) }
+    console.log("Final Attempt getGameState from LS: ", this.game)
     return this.game
 
   }
