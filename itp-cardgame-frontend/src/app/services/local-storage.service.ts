@@ -50,12 +50,11 @@ export class LocalStorageService {
   }
 
   retrieveLS() {
-    this.token = this.getItem('ssp_tcg_jwt');
+    ///this.token = this.getItem('ssp_tcg_jwt');
     const session_user = sessionStorage.getItem('ssp_tcg_user')
     this.user = session_user ? JSON.parse(session_user) as User : this.getItem<User>('ssp_tcg_user');
 
     this.User_Sessions = this.getItem<string[]>(`ssp_tcg_${this.user?.username}`) || [];
-
     this.retrieveSessions(session_user)
 
     for (const session in this.User_Sessions) {
@@ -63,7 +62,14 @@ export class LocalStorageService {
       if (found_game) { this.User_Games.push(found_game) }
     }
 
-    this.game = this.getItem<GameInstance>(`ssp_tcg_game_${this.user?.username}_${this.SessionID}`);
+    const local_game = sessionStorage.getItem('ssp_tcg_game')
+    if(local_game) {
+      try {
+        this.game = JSON.parse(local_game) as GameInstance
+      } catch {
+        this.game = this.getItem<GameInstance>(`ssp_tcg_game_${this.user?.username}_${this.SessionID}`);
+      }
+    }
     this.player = this.game?.player || null
   }
 
