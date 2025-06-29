@@ -17,6 +17,7 @@ import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { WebsocketService } from 'src/app/services/websocket.service';
 import { GameInstance, LocalStorageService, User } from 'src/app/services/local-storage.service';
+import { Subscription } from 'rxjs/internal/Subscription';
 
 @Component({
   selector: 'app-user-profile',
@@ -48,6 +49,7 @@ export class UserProfileComponent implements OnInit {
   private localStorage = inject(LocalStorageService);
   private webSocketService = inject(WebsocketService);
   private router = inject(Router);
+  private joinGameSub?: Subscription
 
   ngOnInit(): void {
     this.user = this.localStorage.getUser();
@@ -65,7 +67,7 @@ export class UserProfileComponent implements OnInit {
       error: (err) => console.error('Error while loading stats:', err)
     });
 
-    this.webSocketService.getGameUpdates().subscribe((update) => {
+    this.joinGameSub = this.webSocketService.getGameUpdates().subscribe((update) => {
       console.log('WebSocket-Update:', update);
 
       if (update?.responseType === 'NEW_GAME' && update?.gameCode) {
@@ -94,6 +96,10 @@ export class UserProfileComponent implements OnInit {
         this.router.navigate(['/lobby', this.lobbyCode]);
       }
     });
+  }
+
+  ngOnDestroy(){
+    this.joinGameSub?.unsubscribe()
   }
 
   createMatch() {
