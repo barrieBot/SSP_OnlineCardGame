@@ -45,18 +45,15 @@ export class LocalStorageService {
     this.SessionID = null
     this.SessionID = sessionStorage.getItem('ssp_tcg_session');
     if (!this.SessionID) {
-      console.log("SessionStore-ID not found - Generate new")
       this.SessionID = crypto.randomUUID()
       sessionStorage.setItem('ssp_tcg_session', this.SessionID)
     }
-    console.log("SessionStore-ID: ", this.SessionID)
   }
 
   retrieveLS() {
     const session_user = sessionStorage.getItem('ssp_tcg_user')
     if(session_user){
       this.user = JSON.parse(session_user)
-      console.log("Persited User: ", this.user)
     } else {
       //this.user = this.getItem<User>('ssp_tcg_user')
       console.log("Pulled user from LS: ", this.user)
@@ -82,13 +79,13 @@ export class LocalStorageService {
 
 
   addSession() {
-
     this.User_Sessions = this.getItem<string[]>(`ssp_tcg_${this.user?.username}`) || [];
     if (this.user && this.SessionID && !this.User_Sessions.includes(this.SessionID)) {
       this.User_Sessions.push(this.SessionID)
       this.setItem<string[]>(`ssp_tcg_${this.user.username}`, this.User_Sessions)
     }
   }
+
 
   retrieveSessions(session_user: string | null) {
     if (this.user) {
@@ -112,6 +109,8 @@ export class LocalStorageService {
     }
   }
 
+
+  
   removeSession() {
     if (this.user && this.SessionID && this.User_Sessions.includes(this.SessionID)) {
       const index = this.User_Sessions.findIndex(id => id === this.SessionID)
@@ -173,7 +172,6 @@ export class LocalStorageService {
     this.user = user;
     this.setItem('ssp_tcg_user', user);
     sessionStorage.setItem('ssp_tcg_user', JSON.stringify(user));
-
   }
 
   getUser(): User | null {
@@ -203,8 +201,6 @@ export class LocalStorageService {
       this.player = p
       sessionStorage.setItem('ssp_tcg_player', JSON.stringify(this.player))
       if (this.game) {
-
-        console.log("Check for Game-Code", this.game.gameCode)
         this.game.player = p;
         this.setGameInstance(this.game)
       }
@@ -220,7 +216,7 @@ export class LocalStorageService {
 
   setGameInstance(game_instance: GameInstance) {
     this.game = game_instance;
-    console.log("Check for Game-Code in setGameInstance: ", this.game.gameCode)
+
     //Setze für Angemeldete Localstorage
     if (this.user && this.SessionID) {
       this.setItem<GameInstance>(`ssp_tcg_game_${this.user?.username}_${this.SessionID}`, game_instance);
@@ -231,14 +227,12 @@ export class LocalStorageService {
 
   getGameInstance(): GameInstance | null {
     ///Game in Instance existiert  
-    console.log("Attempt getGameInstance: ", this.game)
     if (this.game) { return this.game }
 
     //Game in Session existiert
     const session_game = sessionStorage.getItem('ssp_tcg_game')
     if (session_game) {
       try {
-        console.log("Attempt getGameInstance form SS: ", session_game)
         return JSON.parse(session_game) as GameInstance
       } catch {
         sessionStorage.removeItem('ssp_tcg_game')
@@ -246,6 +240,7 @@ export class LocalStorageService {
       }
     }
     //Game kann nicht im LS gefunden werden
+    //Suche game im LS
     /*
     if (!this.game && this.user && this.SessionID) {
       this.game = this.getItem<GameInstance>(`ssp_tcg_game_${this.user?.username}_${this.SessionID}`)
@@ -253,8 +248,6 @@ export class LocalStorageService {
     }
       */
 
-    //Suche game im LS
-    console.log("Final Attempt getGameState from LS: ", this.game)
     return this.game
 
   }

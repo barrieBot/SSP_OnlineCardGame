@@ -48,13 +48,14 @@ export class WebsocketService {
     this.connect_to_ws = new Promise((resolve, reject) => {
 
       const token = this.localStorageService.getJwtToken();
+      console.log("JWT-Token: ", token)
 
       this.stompClient = new Client({
 
         brokerURL: undefined, // not used with SockJS
         webSocketFactory: () => new SockJS('/ws'),
         reconnectDelay: 5000,
-        connectHeaders: token ? { Authorization: `Bearer ${this.localStorageService.getJwtToken()}` } : {},
+        connectHeaders: token ? { Authorization: `Bearer ${token}` } : {},
         debug: (msg) => console.log('[STOMP DEBUG]', msg),
         onConnect: () => {
           console.log('[WebSocket] Connected with server');
@@ -148,11 +149,11 @@ export class WebsocketService {
 
     try {
       await this.send_via_WS(
-        '/game/reconnect',
+        '/reconnect',
         JSON.stringify(Reconnect_Obj),
         true
       )
-      console.log('Attempted send: ', reconnect_token.gameCode)
+      console.log('Attempted send RECONNECT_MSG: ', reconnect_token.gameCode)
 
     } catch (err) {
       console.log('Error trying to reconnect: ', err)

@@ -95,6 +95,8 @@ export class GamestateService implements OnDestroy {
         return;
       }
 
+      console.log("Msg: ", data)
+      
       if (data.gameCode) { this.websocketService.setGameCode(data.gameCode) }
 
       const type = data.responseType || data.action || data.type;
