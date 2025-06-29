@@ -13,5 +13,6 @@ import java.util.List;
 public class WebSocketReconnectLobbyResponse extends WebSocketReconnectResult {
     ResponseType responseType;
     String sender;
+    String host;
     List<String> players;
 }

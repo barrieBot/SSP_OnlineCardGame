@@ -45,6 +45,7 @@ public class WebSocketGeneralService {
                 return WebSocketReconnectLobbyResponse.builder()
                         .sender(callingPlayer.getDisplayName())
                         .responseType(ResponseType.RECONNECT_LOBBY)
+                        .host(game.getHostId().getDisplayName())
                         .players(playersOfGame)
                         .build();
             case "Running":
