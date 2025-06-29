@@ -37,7 +37,7 @@ export class LocalStorageService {
   constructor(private http: HttpClient) {
     ///Get User/Token/Game-Instance
     this.setupSessionStore()
-    this.retrieveLS()
+    //this.retrieveLS()
 
   }
 
@@ -203,6 +203,8 @@ export class LocalStorageService {
       this.player = p
       sessionStorage.setItem('ssp_tcg_player', JSON.stringify(this.player))
       if (this.game) {
+
+        console.log("Check for Game-Code", this.game.gameCode)
         this.game.player = p;
         this.setGameInstance(this.game)
       }
@@ -218,6 +220,7 @@ export class LocalStorageService {
 
   setGameInstance(game_instance: GameInstance) {
     this.game = game_instance;
+    console.log("Check for Game-Code in setGameInstance: ", this.game.gameCode)
     //Setze für Angemeldete Localstorage
     if (this.user && this.SessionID) {
       this.setItem<GameInstance>(`ssp_tcg_game_${this.user?.username}_${this.SessionID}`, game_instance);
