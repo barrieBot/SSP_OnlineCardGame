@@ -56,9 +56,9 @@ export class LobbyComponent implements OnInit {
       if (update?.responseType === 'JOIN_GAME') {
         if (update.sender === this.currentUser?.username) {
           this.localStorage.setGameInstance({
-            gameCode: update.gameCode,
+            gameCode: this.gameId || '',
             username: update.sender,
-            player: null,
+            player: this.currentUser,
             timeStamp: Date.now()
           })
         }
