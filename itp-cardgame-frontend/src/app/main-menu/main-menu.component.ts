@@ -36,6 +36,7 @@ import { LocalStorageService, User } from '../services/local-storage.service';
 })
 export class MainMenuComponent implements OnInit {
   joinCode: string = '';
+  gameCode: string = '';
   nickname: string = '';
   
   private router = inject(Router);
@@ -46,7 +47,7 @@ export class MainMenuComponent implements OnInit {
   ngOnInit(): void {
     this.websocketService.getGameUpdates().subscribe((update) => {
       if (update?.responseType === 'JOIN_GAME') {
-        const code = update.gameCode ?? this.websocketService.getGameCode();
+        //const code = update.gameCode ?? this.websocketService.getGameCode();
         const user: User = {
           username: update.sender,
           token: update.jwt
@@ -54,7 +55,7 @@ export class MainMenuComponent implements OnInit {
 
         console.log("Joined game via Anon. GameCode: ", update.gameCode)
         this.userService.setGameInstance({
-          gameCode: update.gameCode,
+          gameCode: this.gameCode,
           username: update.sender,
           player: null,
           timeStamp: Date.now()
@@ -62,9 +63,12 @@ export class MainMenuComponent implements OnInit {
         
         this.userService.setPlayer(user);
 
-        if (code) {
-          this.router.navigate(['/lobby', code]);
-          console.log('[MainMenu] navigating to lobby:', code);
+        if (this.gameCode !=='') {
+
+          console.log('[MainMenu] navigating to lobby:', this.gameCode);
+          this.router.navigate(['/lobby', this.gameCode]);
+          this.gameCode = ''
+          
         } else {
           console.warn('[MainMenu] gameCode not set in WebSocketService');
         }
@@ -79,6 +83,7 @@ export class MainMenuComponent implements OnInit {
       return;
     }
     
+    this.gameCode = this.joinCode
     this.websocketService.joinGameAnonymous(this.joinCode.trim(), this.nickname.trim());
     console.log('[MainMenu] joinGameAnonymous sent');
   }
