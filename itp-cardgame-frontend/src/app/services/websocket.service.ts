@@ -80,6 +80,7 @@ export class WebsocketService {
         onWebSocketClose: () => {
           if (!this.disconnect_now) {
             ///Speicher daten ins Local-Storage
+            console.log("Trying to reconnet onWebSocketClose")
             this.reconnect()
           }
         }
@@ -106,38 +107,49 @@ export class WebsocketService {
 
   reconnect() {
 
+    console.log("[Reconnect()] Attempting reconnect")
     if (this.reconnection_tries >= 5) {
       ///Clear localstorage
+      console.log("To many reconnection attempts ")
       this.disconnect_now = true
       return
     }
     if (!this.localStorageService.getGameInstance()) {
+
+      console.log("[Reconnect()] No Game-Instance for reconnect")
       this.disconnect_now = true
       return
     }
 
     this.reconnection_tries++
+    console.log("Start reconnection attempt nr: ", this.reconnection_tries)
     setTimeout(() => this.connect(), 5000)
 
   }
 
   private async send_reconnection_msg(): Promise<void> {
 
+    console.log("Attempting to send Reconnect-Msg")
     const reconnect_token = this.localStorageService.getGameInstance()
-    if (!reconnect_token) { return }
+    console.log(reconnect_token)
+    if (!reconnect_token) { 
+      console.warn("No Game-Instance for Reconnect-msg found")
+      return 
+    }
 
     if (Date.now() - reconnect_token.timeStamp > 15 * 60 * 1000) {
-      this.localStorageService.leaveGame()
+      console.log("Game-Instance to old: ", reconnect_token)
+      this.leaveGame()
       return
     }
 
     try {
       await this.send_via_WS(
         '/game/reconnect',
-        reconnect_token.gameCode,
+        JSON.stringify({gameCode: reconnect_token.gameCode}),
         true
       )
-      console.log('Attempted reconnection')
+      console.log('Attempted send: ', reconnect_token.gameCode)
 
     } catch (err) {
       console.log('Error trying to reconnect: ', err)
@@ -146,6 +158,7 @@ export class WebsocketService {
   }
 
   leaveGame() {
+    console.log("leaving Game")
     this.localStorageService.leaveGame()
     this.disconnect()
   }
