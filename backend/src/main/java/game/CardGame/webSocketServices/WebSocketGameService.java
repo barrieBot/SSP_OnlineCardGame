@@ -252,9 +252,6 @@ public class WebSocketGameService {
         }
 
         game.setGameStatus("Running");
-        PlayerModel startingPlayer = playerRepository.findByGameIdAndTurnIndicator(game, 1).get();
-        game.setCurrentPlayerId(startingPlayer);
-        gameRepository.save(game);
         setupCardOfGame(game);
 
         CardDto cardDto = new CardDto();
@@ -264,6 +261,9 @@ public class WebSocketGameService {
         cardDto.setCardEvent(topCard.getCardType().getCardEvent());
 
         randomizeTurnOrder(game);
+        PlayerModel startingPlayer = playerRepository.findByGameIdAndTurnIndicator(game, 1).get();
+        game.setCurrentPlayerId(startingPlayer);
+        gameRepository.save(game);
         TurnOrderDto turnOrderDto = webSocketUtilService.createTurnOrderDto(game);
 
         return WebSocketStartGameResponse.builder()
@@ -361,6 +361,7 @@ public class WebSocketGameService {
 
         randomizeTurnOrder(game);
         game.setCurrentPlayerId(playerRepository.findByGameIdAndTurnIndicator(game, 1).get());
+        gameRepository.save(game);
         TurnOrderDto turnOrderDto = webSocketUtilService.createTurnOrderDto(game);
 
         return WebSocketStartGameResponse.builder()
