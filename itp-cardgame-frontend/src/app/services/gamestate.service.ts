@@ -193,6 +193,7 @@ export class GamestateService implements OnDestroy {
   }
 
   setupGame(data: StartGameData): void {
+    this.activePlayerPos.set(0)
     this.setupPlayerHand(data.handCards)
     this.setupPlayerList(data.turnOrder, { "default": 5 })
     this.setupTopCard(data.centerCard)
