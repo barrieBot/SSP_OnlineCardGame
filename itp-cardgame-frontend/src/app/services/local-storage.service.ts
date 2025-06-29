@@ -53,13 +53,12 @@ export class LocalStorageService {
   }
 
   retrieveLS() {
-    ///this.token = this.getItem('ssp_tcg_jwt');
     const session_user = sessionStorage.getItem('ssp_tcg_user')
     if(session_user){
       this.user = JSON.parse(session_user)
       console.log("Persited User: ", this.user)
     } else {
-      this.user = this.getItem<User>('ssp_tcg_user')
+      //this.user = this.getItem<User>('ssp_tcg_user')
       console.log("Pulled user from LS: ", this.user)
       if(this.user) {
         sessionStorage.setItem('ssp_tcg_user', JSON.stringify(this.user)) 
@@ -171,9 +170,7 @@ export class LocalStorageService {
 
   setUser(user: User) {
     console.log("Login - Set User: ", user)
-    if(this.user && this.user.username !== user.username){ this.removeSession() }
     this.user = user;
-    this.addSession()
     this.setItem('ssp_tcg_user', user);
     sessionStorage.setItem('ssp_tcg_user', JSON.stringify(user));
 
@@ -277,7 +274,7 @@ export class LocalStorageService {
       this.token 
       ?? this.player?.token 
       ?? this.user?.token 
-      ?? this.getItem<string>('ssp_tcg_jwt')
+      ?? null
     )
   }
 
@@ -298,7 +295,6 @@ export class LocalStorageService {
 
   //Legacy, wahrscheinlich kann nam das einfach entfernen
   removeJwtToken(): void {
-    localStorage.removeItem('ssp_tcg_jwt');
     this.token = null
   }
 
