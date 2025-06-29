@@ -69,10 +69,18 @@ export class UserProfileComponent implements OnInit {
       console.log('WebSocket-Update:', update);
 
       if (update?.responseType === 'NEW_GAME' && update?.gameCode) {
+        console.log("Created game successfully: ")
+        this.localStorage.setGameInstance({
+          gameCode: update.gameCode,
+          username: update.sender,
+          player: this.localStorage.getUser(),
+          timeStamp: Date.now()
+        })
+        this.localStorage.setPlayer(null)
         this.router.navigate(['/lobby', update.gameCode]);
       }
 
-      if (update?.responseType === 'JOIN_GAME' && update?.gameCode) {
+      if (update?.responseType === 'JOIN_GAME') {
         ///Wie oft wird das ausgeführt? Nur einmal, oder jedes mal wenn JOIN_GAME kommt
         console.log('Joined Game successfully: ', update)
         this.localStorage.setGameInstance({
