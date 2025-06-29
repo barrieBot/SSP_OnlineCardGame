@@ -14,6 +14,7 @@ import {
 import { WebsocketService } from '../services/websocket.service';
 import { GamestateService } from '../services/gamestate.service';
 import { LocalStorageService, User } from '../services/local-storage.service';
+import { Subscription } from 'rxjs/internal/Subscription';
 
 
 @Component({
@@ -43,9 +44,10 @@ export class MainMenuComponent implements OnInit {
   private websocketService = inject(WebsocketService);
   private userService = inject(LocalStorageService);
   private gamestate = inject(GamestateService);
+  private joinGameSub?: Subscription
 
   ngOnInit(): void {
-    this.websocketService.getGameUpdates().subscribe((update) => {
+    this.joinGameSub = this.websocketService.getGameUpdates().subscribe((update) => {
       if (update?.responseType === 'JOIN_GAME') {
         //const code = update.gameCode ?? this.websocketService.getGameCode();
         const user: User = {
@@ -74,6 +76,10 @@ export class MainMenuComponent implements OnInit {
         }
       }
     });
+  }
+
+  ngOnDestroy(){
+    this.joinGameSub?.unsubscribe()
   }
 
 
