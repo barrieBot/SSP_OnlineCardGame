@@ -70,7 +70,7 @@ export class LoginComponent {
         const userId = payload.userId;
         const username = payload.sub;
 
-        this.dataPresistance.setUser({ id: userId, username: username, token: token });
+        this.dataPresistance.login({ id: userId, username: username, token: token });
         
         this.router.navigate(['/profile']);
       },

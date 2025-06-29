@@ -51,7 +51,7 @@ export class UserProfileComponent implements OnInit {
   private router = inject(Router);
 
   ngOnInit(): void {
-    this.user = this.localStorage.getUser();
+    ///this.user = this.localStorage.getUser();
     const token = this.localStorage.getJwtToken();
 
     if (token) {

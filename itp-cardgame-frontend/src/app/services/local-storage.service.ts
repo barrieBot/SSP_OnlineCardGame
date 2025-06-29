@@ -42,6 +42,7 @@ export class LocalStorageService {
   }
 
   setupSessionStore() {
+    this.SessionID = null
     this.SessionID = sessionStorage.getItem('ssp_tcg_session');
     if (!this.SessionID) {
       console.log("SessionStore-ID not found - Generate new")
@@ -122,8 +123,15 @@ export class LocalStorageService {
   }
 
 
+  login(user: User){
+    sessionStorage.clear()
+    this.setupSessionStore()
+    this.setUser(user)
+  }
 
   logout() {
+    sessionStorage.clear
+    this.setupSessionStore()
     this.removeGameInstance()
     this.removeSession()
     this.removeUser()
