@@ -149,7 +149,7 @@ export class WebsocketService {
 
     try {
       await this.send_via_WS(
-        '/reconnect',
+        '/app/reconnect',
         JSON.stringify(Reconnect_Obj),
         true
       )

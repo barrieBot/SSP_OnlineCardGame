@@ -113,8 +113,8 @@ export class GamestateService implements OnDestroy {
             this.game_host = data.host
             this.isHost.set(this.localStorageService.getPlayer()?.username === data.host)
           }
-
-          this.playerJoined(data);
+          if (data.jwt) { this.localStorageService.setJwtToken(data.jwt) }
+          this.playerJoined(data.otherPlayers, data.sender);
           console.log("Just joined: ", data)
           break;
 
@@ -145,19 +145,11 @@ export class GamestateService implements OnDestroy {
 
         case 'RECONNECT_GAME':
           this.setupReconnect(data)
+          this.update_active_player(data.currentPlayer)
           break;
 
         case 'RECONNECT_LOBBY':
-          this.playerJoined({data: {sender: data.sender, otherPlayers: data.players}})
-          /*
-          const other_players = new Set([...data.player])
-
-          for (const other_player of other_players) {
-            if (!this.players().find(p => p.nickname === other_player)) {
-              const new_player = { nickname: other_player, card_count: 0, placement: 0 }
-              this.players.update(player => [...player, new_player]);
-            }
-          */
+          this.playerJoined(data.players, data.sender)
           break;
 
         case 'RECONNECTION_FAILED':
@@ -254,10 +246,9 @@ export class GamestateService implements OnDestroy {
     console.log(this.players())
   }
 
-  playerJoined(data: any): void {
-    const newPlayerUsername = data.sender;
-    if (data.jwt) { this.localStorageService.setJwtToken(data.jwt) }
-    const all_players = new Set([...data.otherPlayers, data.sender])
+  playerJoined(data: any, sender: string): void {
+    
+    const all_players = new Set([...data, sender])
 
     for (const other_player of all_players) {
       if (!this.players().find(p => p.nickname === other_player)) {

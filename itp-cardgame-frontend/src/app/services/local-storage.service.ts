@@ -267,8 +267,9 @@ export class LocalStorageService {
 
   getJwtToken(): string | null {
     return (
-      this.token 
+      this.game?.player?.token
       ?? this.player?.token 
+      ?? this.token 
       ?? this.user?.token 
       ?? null
     )
