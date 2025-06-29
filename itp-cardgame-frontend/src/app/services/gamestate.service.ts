@@ -226,7 +226,7 @@ export class GamestateService implements OnDestroy {
     this.players.set(playerList);
 
     const activeOffset = playerList.findIndex(player =>
-      player.nickname === this.localStorageService.getUser()?.username
+      player.nickname === this.localStorageService.getPlayer()?.username
     );
 
     if (activeOffset !== -1) { this.activeOffsetPos.set(activeOffset); }

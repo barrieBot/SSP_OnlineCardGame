@@ -68,20 +68,16 @@ export class LocalStorageService {
 
     this.retrieveSessions(session_user)
 
-    for (const session of this.User_Sessions) {
-      const found_game = this.getItem<GameInstance>(`ssp_tcg_game_${this.user?.username}_${session}}`)
-      if (found_game) { this.User_Games.push(found_game) }
-    }
-
     const local_game = sessionStorage.getItem('ssp_tcg_game')
     if(local_game) {
       try {
         this.game = JSON.parse(local_game) as GameInstance
       } catch {
         console.log("Failed to fetch from Session-Storage")
-        this.game = this.getItem<GameInstance>(`ssp_tcg_game_${this.user?.username}_${this.SessionID}`);
+        ///this.game = this.getItem<GameInstance>(`ssp_tcg_game_${this.user?.username}_${this.SessionID}`);
       }
     }
+    
     this.player = this.game?.player || null
   }
 
@@ -110,6 +106,11 @@ export class LocalStorageService {
       }
       this.setItem<string[]>(`ssp_tcg_${this.user?.username}`, this.User_Sessions)
     }
+
+    for (const session of this.User_Sessions) {
+      const found_game = this.getItem<GameInstance>(`ssp_tcg_game_${this.user?.username}_${session}}`)
+      if (found_game) { this.User_Games.push(found_game) }
+    }
   }
 
   removeSession() {
@@ -136,12 +137,10 @@ export class LocalStorageService {
     this.removeSession()
     this.removeUser()
     this.removeJwtToken()
-    this.removeItem('ssp_tcg_player')
   }
 
   leaveGame() {
     this.removeGameInstance()
-    this.removeItem('ssp_tcg_player')
   }
 
 
@@ -205,7 +204,7 @@ export class LocalStorageService {
     const p = u ?? this.user;
     if (p) {
       this.player = p
-      this.setItem('ssp_tcg_player', p);
+      sessionStorage.setItem('ssp_tcg_player', JSON.stringify(this.player))
       if (this.game) {
         this.game.player = p;
         this.setGameInstance(this.game)
@@ -216,7 +215,7 @@ export class LocalStorageService {
   }
 
   getPlayer() {
-    return this.game?.player ?? this.player ?? this.getItem<User>('ssp_tcg_player');
+    return this.game?.player ?? this.player;
   }
 
 
@@ -247,10 +246,13 @@ export class LocalStorageService {
       }
     }
     //Game kann nicht im LS gefunden werden
+    /*
     if (!this.game && this.user && this.SessionID) {
       this.game = this.getItem<GameInstance>(`ssp_tcg_game_${this.user?.username}_${this.SessionID}`)
       if (this.game) { sessionStorage.setItem('ssp_tcg_game', JSON.stringify(this.game)) }
     }
+      */
+
     //Suche game im LS
     console.log("Final Attempt getGameState from LS: ", this.game)
     return this.game
