@@ -51,7 +51,7 @@ export class UserProfileComponent implements OnInit {
   private router = inject(Router);
 
   ngOnInit(): void {
-    ///this.user = this.localStorage.getUser();
+    this.user = this.localStorage.getUser();
     const token = this.localStorage.getJwtToken();
 
     if (token) {
@@ -75,7 +75,7 @@ export class UserProfileComponent implements OnInit {
           gameCode: update.gameCode,
           username: update.sender,
           timeStamp: Date.now(),
-          player: this.localStorage.getUser()
+          player: this.user
         })
         this.localStorage.setPlayer(null)
         this.router.navigate(['/lobby', update.gameCode]);
@@ -88,7 +88,7 @@ export class UserProfileComponent implements OnInit {
           gameCode: this.gameCode,
           username: update.sender,
           timeStamp: Date.now(),
-          player: this.localStorage.getUser()
+          player: this.user
         })
         this.localStorage.setPlayer(null)
 
