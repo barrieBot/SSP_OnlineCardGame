@@ -78,6 +78,7 @@ export class UserProfileComponent implements OnInit {
         this.localStorage.setGameInstance({
           gameCode: update.gameCode,
           username: update.sender,
+          player: null,
           timeStamp: Date.now()
         })
         this.localStorage.setPlayer(null)

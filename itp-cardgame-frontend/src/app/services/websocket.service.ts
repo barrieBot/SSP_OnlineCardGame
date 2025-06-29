@@ -28,7 +28,8 @@ export class WebsocketService {
   }
 
   getGameCode(): string | null {
-    return this.currentGameCode;
+    return this.localStorageService.getGameInstance()?.gameCode || null;
+    // return this.currentGameCode;
   }
 
   getConnectionStatus(): boolean {

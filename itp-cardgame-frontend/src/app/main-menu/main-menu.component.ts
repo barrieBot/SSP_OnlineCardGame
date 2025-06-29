@@ -56,6 +56,7 @@ export class MainMenuComponent implements OnInit {
         this.userService.setGameInstance({
           gameCode: update.gameCode,
           username: update.sender,
+          player: null,
           timeStamp: Date.now()
         })
         

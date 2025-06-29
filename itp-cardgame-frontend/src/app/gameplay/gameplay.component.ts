@@ -25,10 +25,6 @@ export class GameplayComponent {
   player3 = computed(() => Array.from({length: this.gameState.players()[(2+this.gameState.activeOffsetPos())%4].card_count }, (_, i) => i + 1));
   player4 = computed(() => Array.from({length: this.gameState.players()[(1+this.gameState.activeOffsetPos())%4].card_count }, (_, i) => i + 1));
 
-  player2_pos = computed(() => {
-    return this.gameState.players()[(3+this.gameState.activeOffsetPos())%4].placement
-  })
-
   readonly animate_error = signal<boolean[]>([]);
   readonly card_not_placable = computed(() => 
     this.gameState.playerDeck().map(() => false))

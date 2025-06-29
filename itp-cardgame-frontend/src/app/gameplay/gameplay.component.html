@@ -5,8 +5,8 @@
         <div 
             class="mb-2 font-bold text-lg sm:text-xl px-2 py-1 rounded transition-colors"
             [ngClass]="{
-                'bg-white text-black': player2_pos() === gameState.activePlayerPos(),
-                'text-white': player2_pos() !== gameState.activePlayerPos()
+                'bg-white text-black': this.gameState.players()[(3+this.gameState.activeOffsetPos())%4].placement == gameState.activePlayerPos(),
+                'text-white': gameState.players()[(3+gameState.activeOffsetPos())%4].placement !== gameState.activePlayerPos()
             }">
             {{ gameState.players()[(3 + gameState.activeOffsetPos()) % 4].nickname }}
         </div>
