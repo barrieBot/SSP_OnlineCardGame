@@ -143,10 +143,13 @@ export class WebsocketService {
       return
     }
 
+
+   const Reconnect_Obj = { gameCode: reconnect_token.gameCode, action: "RESTART_GAME" }
+
     try {
       await this.send_via_WS(
         '/game/reconnect',
-        JSON.stringify({gameCode: reconnect_token.gameCode}),
+        JSON.stringify(Reconnect_Obj),
         true
       )
       console.log('Attempted send: ', reconnect_token.gameCode)

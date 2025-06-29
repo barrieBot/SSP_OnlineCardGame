@@ -109,7 +109,7 @@ export class GamestateService implements OnDestroy {
         case 'JOIN_GAME':
           if (!this.game_host && data.host) {
             this.game_host = data.host
-            this.isHost.set(this.localStorageService.getUser()?.username === data.host)
+            this.isHost.set(this.localStorageService.getPlayer()?.username === data.host)
           }
 
           this.playerJoined(data);
@@ -133,7 +133,7 @@ export class GamestateService implements OnDestroy {
           break;
 
         case 'CARD_PLACED':
-          if (data.sender === this.localStorageService.getUser()?.username) {
+          if (data.sender === this.localStorageService.getPlayer()?.username) {
             this.removeCardFromHand(data.playedCard);
           }
           this.updatePlayerHand(data.sender, -1)
