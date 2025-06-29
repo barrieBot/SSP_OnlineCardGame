@@ -37,7 +37,7 @@ export class LocalStorageService {
   constructor(private http: HttpClient) {
     ///Get User/Token/Game-Instance
     this.setupSessionStore()
-    //this.retrieveLS()
+    this.retrieveLS()
 
   }
 
@@ -62,7 +62,7 @@ export class LocalStorageService {
       }
     }
 
-    this.retrieveSessions(session_user)
+    //this.retrieveSessions(session_user)
 
     const local_game = sessionStorage.getItem('ssp_tcg_game')
     if(local_game) {

@@ -53,13 +53,15 @@ export interface InGameData {
   centerCard: CardDto;
   handCards: CardDto[];
   currentPlayer: string;
-  drawCount: number
+  drawCount: number;
+  host: string;
 }
 
 export interface LobbyData {
   sender: string;
   responseType: 'RECONNECT_LOBBY';
   players: string[];
+  host: string;
 }
 
 export interface Player {
@@ -145,11 +147,12 @@ export class GamestateService implements OnDestroy {
 
         case 'RECONNECT_GAME':
           this.setupReconnect(data)
-          this.update_active_player(data.currentPlayer)
+          this.game_host = data.host
           break;
 
         case 'RECONNECT_LOBBY':
           this.playerJoined(data.players, data.sender)
+          this.game_host = data.host
           break;
 
         case 'RECONNECTION_FAILED':
@@ -219,6 +222,7 @@ export class GamestateService implements OnDestroy {
       }));
     this.players.set(playerList);
 
+    console.log("Current User: ", this.localStorageService.getPlayer()?.username)
     const activeOffset = playerList.findIndex(player =>
       player.nickname === this.localStorageService.getPlayer()?.username
     );
