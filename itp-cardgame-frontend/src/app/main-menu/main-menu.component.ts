@@ -53,6 +53,7 @@ export class MainMenuComponent implements OnInit {
         };
 
         this.userService.setPlayer(user);
+        console.log("Joined game via Anon. GameCode: ", update.gameCode)
         this.userService.setGameInstance({
           gameCode: update.gameCode,
           username: update.sender,

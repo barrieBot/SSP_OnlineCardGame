@@ -76,14 +76,14 @@ export class UserProfileComponent implements OnInit {
         ///Wie oft wird das ausgeführt? Nur einmal, oder jedes mal wenn JOIN_GAME kommt
         console.log('Joined Game successfully: ', update)
         this.localStorage.setGameInstance({
-          gameCode: update.gameCode,
+          gameCode: this.lobbyCode,
           username: update.sender,
-          player: null,
+          player: this.localStorage.getUser(),
           timeStamp: Date.now()
         })
         this.localStorage.setPlayer(null)
 
-        this.router.navigate(['/lobby', update.gameCode]);
+        this.router.navigate(['/lobby', this.lobbyCode]);
       }
     });
   }
@@ -100,8 +100,9 @@ export class UserProfileComponent implements OnInit {
       return;
     }
 
+
     this.webSocketService.joinGame(this.lobbyCode, this.user.username);
-    this.router.navigate(['/lobby', this.lobbyCode]);
+    ///this.router.navigate(['/lobby', this.lobbyCode]);
     console.log(`Join lobby requested via WebSocket: lobbyCode=${this.lobbyCode}`);    
   }
 }
