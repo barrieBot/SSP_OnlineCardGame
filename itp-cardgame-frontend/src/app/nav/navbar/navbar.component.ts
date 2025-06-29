@@ -4,9 +4,15 @@ import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
   lucideCircleUserRound,
+  lucideLogIn,
   lucideLogOut,
   lucideSettings,
-  lucideUser } from '@ng-icons/lucide';
+  lucideUser,
+  lucideUserPlus,
+  lucideGamepad2,
+  lucideLayers,
+  lucideInfo
+ } from '@ng-icons/lucide';
 import { BrnMenuTriggerDirective } from '@spartan-ng/brain/menu';
 import { HlmButtonDirective } from '@spartan-ng/ui-button-helm';
 import { HlmIconDirective } from '@spartan-ng/ui-icon-helm';
@@ -22,7 +28,17 @@ import { LocalStorageService } from 'src/app/services/local-storage.service';
 
 @Component({
   selector: 'app-navbar',
-  providers: [provideIcons({ lucideSettings, lucideCircleUserRound, lucideUser, lucideLogOut })],
+  providers: [provideIcons({ 
+    lucideCircleUserRound,
+    lucideLogIn,
+    lucideLogOut,
+    lucideSettings,
+    lucideUser,
+    lucideUserPlus,
+    lucideGamepad2,
+    lucideLayers,
+    lucideInfo
+  })],
   standalone: true,
   imports: [
       HlmIconDirective,
