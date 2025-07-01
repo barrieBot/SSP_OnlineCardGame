@@ -55,11 +55,24 @@ public class ApplicationConfiguration {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
-                        .allowedOrigins("http://localhost:4200")
-                        .allowedMethods(HttpMethod.GET.name(),
-                                        HttpMethod.POST.name())
-                        .allowedHeaders(HttpHeaders.CONTENT_TYPE,
-                                        HttpHeaders.AUTHORIZATION);
+                    .allowedOrigins(
+                        "http://localhost:4200", // For local Angular dev
+                        "https://game.s-sal.at"   // For production
+                        // Add any other domains that might access your API
+                    )
+                    .allowedMethods(HttpMethod.GET.name(),
+                                    HttpMethod.POST.name(),
+                                    HttpMethod.PUT.name(), // Add other methods you use, especially OPTIONS for preflight
+                                    HttpMethod.DELETE.name(),
+                                    HttpMethod.OPTIONS.name()) // Crucial for preflight requests
+                    .allowedHeaders(HttpHeaders.CONTENT_TYPE,
+                                    HttpHeaders.AUTHORIZATION,
+                                    HttpHeaders.ACCEPT, // Add if your frontend sends this
+                                    "X-Requested-With" // Common header from frontends
+                                    // Add any other custom headers your frontend sends
+                                    )
+                    .allowCredentials(true) // <<< IMPORTANT: Needs to be true if Angular sends `withCredentials: true`
+                    .maxAge(3600);
             }
         };
     }
